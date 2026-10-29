@@ -1,0 +1,202 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+
+const session = Astro.locals.session;
+const user = Astro.locals.user;
+
+const pathname = Astro.url.pathname;
+
+// Calculate localized switch URLs
+let bnUrl = '/';
+let enUrl = '/en';
+
+if (pathname === '/en' || pathname === '/en/') {
+  bnUrl = '/';
+  enUrl = '/en';
+} else if (pathname.startsWith('/en/')) {
+  bnUrl = pathname.replace(/^\/en/, '');
+  enUrl = pathname;
+} else if (pathname === '/') {
+  bnUrl = '/';
+  enUrl = '/en';
+} else {
+  bnUrl = pathname;
+  enUrl = `/en${pathname}`;
+}
+
+const homeUrl = isBn ? '/' : '/en';
+const dashboardUrl = isBn ? '/dashboard' : '/en/dashboard';
+const profileUrl = isBn ? '/profile' : '/en/profile';
+---
+
+<header class="border-b border-gray-200 bg-white sticky top-0 z-30 shadow-xs">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <!-- Left: Brand Logo & Title -->
+    <a href={homeUrl} class="flex items-center gap-2.5 font-bold text-lg text-rose-600 hover:text-rose-700 transition">
+      <img src="/logo.png" alt="Save Araf Logo" class="w-8 h-8 rounded-lg object-contain shadow-xs" />
+      <span class="tracking-tight">Save Araf</span>
+    </a>
+
+    <!-- Right: User Dropdown & Compact Language Switcher -->
+    <div class="flex items-center gap-4">
+      {user ? (
+        <!-- User Context Menu Dropdown -->
+        <div class="relative" id="user-menu-container">
+          <button
+            type="button"
+            id="user-menu-btn"
+            aria-expanded="false"
+            aria-haspopup="true"
+            class="flex items-center gap-2 py-1.5 px-2.5 rounded-full border border-gray-200 hover:border-gray-300 bg-gray-50/80 hover:bg-gray-100 transition cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+          >
+            {user.image ? (
+              <img src={user.image} alt={user.name || 'User'} class="w-7 h-7 rounded-full object-cover border border-gray-300" />
+            ) : (
+              <div class="w-7 h-7 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs">
+                {user.name ? user.name[0] : 'U'}
+              </div>
+            )}
+            <span class="text-xs font-semibold text-gray-800 hidden sm:inline-block max-w-[120px] truncate">
+              {user.name || user.email}
+            </span>
+            <svg class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200" id="user-menu-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            id="user-dropdown"
+            class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-200 py-2 hidden z-40 transform origin-top-right transition-all"
+            role="menu"
+            aria-orientation="vertical"
+          >
+            <!-- User Information Header -->
+            <div class="px-4 py-2 border-b border-gray-100">
+              <p class="text-xs font-bold text-gray-900 truncate">{user.name}</p>
+              <p class="text-[11px] text-gray-500 truncate">{user.email}</p>
+              {user.role === 'admin' && (
+                <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] bg-rose-100 text-rose-700 font-bold">
+                  Admin
+                </span>
+              )}
+            </div>
+
+            <!-- Menu Links -->
+            <div class="py-1">
+              <a
+                href={dashboardUrl}
+                role="menuitem"
+                class="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-rose-600 transition"
+              >
+                <span>📊</span>
+                <span>{isBn ? 'ড্যাশবোর্ড' : 'Dashboard'}</span>
+              </a>
+
+              <a
+                href={profileUrl}
+                role="menuitem"
+                class="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-rose-600 transition"
+              >
+                <span>⚙️</span>
+                <span>{isBn ? 'প্রোফাইল সেটিংস' : 'Profile Settings'}</span>
+              </a>
+            </div>
+
+            <!-- Sign Out -->
+            <div class="border-t border-gray-100 pt-1">
+              <a
+                href="/api/auth/signout"
+                role="menuitem"
+                class="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition"
+              >
+                <span>🚪</span>
+                <span>{isBn ? 'লগআউট' : 'Sign Out'}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <!-- Sign In Button for Guests -->
+        <a
+          href="/api/auth/signin"
+          class="text-xs px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-xs transition"
+        >
+          {isBn ? 'লগইন করুন' : 'Sign In'}
+        </a>
+      )}
+
+      <!-- Compact Language Switcher on the Far Right (BN | EN) -->
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50 text-xs font-bold shadow-xs">
+        {isBn ? (
+          <>
+            <span class="text-rose-600">BN</span>
+            <span class="text-gray-300">|</span>
+            <a href={enUrl} class="text-gray-500 hover:text-gray-900 transition">
+              EN
+            </a>
+          </>
+        ) : (
+          <>
+            <a href={bnUrl} class="text-gray-500 hover:text-gray-900 transition">
+              BN
+            </a>
+            <span class="text-gray-300">|</span>
+            <span class="text-rose-600">EN</span>
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+</header>
+
+<script is:inline>
+  (() => {
+    const btn = document.getElementById('user-menu-btn');
+    const dropdown = document.getElementById('user-dropdown');
+    const arrow = document.getElementById('user-menu-arrow');
+
+    if (!btn || !dropdown) return;
+
+    function toggleMenu() {
+      const isHidden = dropdown.classList.contains('hidden');
+      if (isHidden) {
+        dropdown.classList.remove('hidden');
+        btn.setAttribute('aria-expanded', 'true');
+        arrow?.classList.add('rotate-180');
+      } else {
+        dropdown.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+        arrow?.classList.remove('rotate-180');
+      }
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    // Close on click outside
+    document.addEventListener('click', (e) => {
+      if (!dropdown.classList.contains('hidden') && !btn.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+        arrow?.classList.remove('rotate-180');
+      }
+    });
+
+    // Close on Escape key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+        btn.setAttribute('aria-expanded', 'false');
+        arrow?.classList.remove('rotate-180');
+      }
+    });
+  })();
+</script>

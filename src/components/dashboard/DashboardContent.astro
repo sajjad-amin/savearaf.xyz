@@ -11,15 +11,14 @@ import { donors } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { calculateCooldown } from '@/lib/cooldown';
 import DonorForm from '@/components/donor/DonorForm.astro';
+import Navbar from '@/components/common/Navbar.astro';
+import Footer from '@/components/common/Footer.astro';
 
 const session = Astro.locals.session;
 const user = Astro.locals.user;
 
 const homeUrl = isBn ? '/' : '/en';
 const onboardingUrl = isBn ? '/onboarding' : '/en/onboarding';
-const profileUrl = isBn ? '/profile' : '/en/profile';
-const switchLangUrl = isBn ? '/en/dashboard' : '/dashboard';
-const switchLangLabel = isBn ? 'English' : 'বাংলা';
 
 // Security check: Only logged-in users who completed onboarding can access dashboard
 if (!session || !user) {
@@ -89,6 +88,9 @@ function formatDate(date: Date | string | null | undefined): string {
     year: 'numeric',
   });
 }
+
+const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
+const today = new Date().toISOString().split('T')[0];
 ---
 
 <!doctype html>
@@ -100,74 +102,65 @@ function formatDate(date: Date | string | null | undefined): string {
     <title>{isBn ? 'ডোনার ড্যাশবোর্ড - Save Araf' : 'Donor Dashboard - Save Araf'}</title>
   </head>
   <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
-    <!-- Navbar -->
-    <header class="border-b border-gray-200 bg-white sticky top-0 z-20 shadow-xs">
-      <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
-        <div class="flex items-center gap-6">
-          <a href={homeUrl} class="flex items-center gap-2.5 font-bold text-lg text-rose-600 hover:text-rose-700">
-            <img src="/logo.png" alt="Save Araf Logo" class="w-8 h-8 rounded-lg object-contain shadow-xs" />
-            <span>Save Araf</span>
-          </a>
-          <nav class="hidden md:flex items-center gap-4 text-sm font-medium">
-            <a href={homeUrl} class="text-gray-600 hover:text-gray-900 transition">
-              {isBn ? 'মূল পাতা' : 'Home'}
-            </a>
-            <span class="text-rose-600 font-bold border-b-2 border-rose-600 pb-0.5">
-              {isBn ? 'ড্যাশবোর্ড' : 'Dashboard'}
-            </span>
-            <a href={profileUrl} class="text-gray-600 hover:text-gray-900 transition">
-              {isBn ? 'প্রোফাইল' : 'Profile'}
-            </a>
-          </nav>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <a
-            href={switchLangUrl}
-            class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
-          >
-            {switchLangLabel}
-          </a>
-
-          <div class="flex items-center gap-2 border-l border-gray-200 pl-3">
-            {user.image ? (
-              <img src={user.image} alt={user.name || 'User'} class="w-8 h-8 rounded-full border border-gray-300 object-cover" />
-            ) : (
-              <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs">
-                {user.name ? user.name[0] : 'U'}
-              </div>
-            )}
-            <a
-              href="/api/auth/signout"
-              class="text-xs px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition"
-            >
-              {isBn ? 'লগআউট' : 'Sign Out'}
-            </a>
-          </div>
-        </div>
-      </div>
-    </header>
+    <!-- Revamped Global Navbar -->
+    <Navbar lang={lang} />
 
     <!-- Main Content Container -->
     <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
-      <!-- Success Notification Banner -->
+      <!-- Success Notification Banners -->
       {successParam === 'registered' && (
         <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-xs">
           <div class="flex items-center gap-2.5">
             <span class="text-xl">✅</span>
             <span class="font-medium">
               {isBn
-                ? 'রক্তদাতার তথ্য সফলভাবে সংরক্ষণ ও হালনাগাদ করা হয়েছে।'
-                : 'Donor details have been successfully saved and updated.'}
+                ? 'রক্তদাতার তথ্য সফলভাবে সংরক্ষণ করা হয়েছে।'
+                : 'Donor details have been successfully saved.'}
             </span>
           </div>
-          <button
-            type="button"
-            onclick="this.parentElement.remove()"
-            class="text-emerald-700 hover:text-emerald-900 text-sm font-bold px-2 py-1"
-          >
-            ✕
-          </button>
+          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+        </div>
+      )}
+
+      {successParam === 'updated' && (
+        <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">✅</span>
+            <span class="font-medium">
+              {isBn
+                ? 'রক্তদাতার তথ্য সফলভাবে হালনাগাদ করা হয়েছে।'
+                : 'Donor details have been successfully updated.'}
+            </span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+        </div>
+      )}
+
+      {successParam === 'deleted' && (
+        <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">🗑️</span>
+            <span class="font-medium">
+              {isBn
+                ? 'রেফার করা রক্তদাতার তথ্য তালিকা থেকে অপসারণ করা হয়েছে।'
+                : 'Referred donor has been removed from your list.'}
+            </span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+        </div>
+      )}
+
+      {successParam === 'unregistered' && (
+        <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">ℹ️</span>
+            <span class="font-medium">
+              {isBn
+                ? 'আপনার ডোনার প্রোফাইল সফলভাবে প্রত্যাহার করা হয়েছে। আপনার মূল অ্যাকাউন্ট সক্রিয় রয়েছে।'
+                : 'Your donor profile has been unpublished. Your user account remains active.'}
+            </span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
         </div>
       )}
 
@@ -412,8 +405,16 @@ function formatDate(date: Date | string | null | undefined): string {
                 </div>
               </div>
 
-              <!-- Toggle Edit Form Button -->
-              <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end">
+              <!-- Action Buttons: Unpublish and Edit Profile -->
+              <div class="mt-8 pt-6 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                <button
+                  type="button"
+                  id="open-unpublish-self-modal-btn"
+                  class="py-2 px-4 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition cursor-pointer"
+                >
+                  {isBn ? '⚠️ ডোনার তালিকা থেকে নিজেকে প্রত্যাহার করুন' : '⚠️ Unpublish My Donor Profile'}
+                </button>
+
                 <button
                   type="button"
                   id="toggle-edit-profile-btn"
@@ -543,7 +544,8 @@ function formatDate(date: Date | string | null | undefined): string {
                     <th scope="col" class="py-3 px-4">{isBn ? 'যোগাযোগ' : 'Contact'}</th>
                     <th scope="col" class="py-3 px-4">{isBn ? 'ধরন' : 'Preference'}</th>
                     <th scope="col" class="py-3 px-4">{isBn ? 'বর্তমান স্ট্যাটাস' : 'Status'}</th>
-                    <th scope="col" class="py-3 px-4 rounded-r-xl">{isBn ? 'পরবর্তী রক্তদান' : 'Next Eligible'}</th>
+                    <th scope="col" class="py-3 px-4">{isBn ? 'পরবর্তী রক্তদান' : 'Next Eligible'}</th>
+                    <th scope="col" class="py-3 px-4 rounded-r-xl text-right">{isBn ? 'অ্যাকশন' : 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -608,6 +610,36 @@ function formatDate(date: Date | string | null | undefined): string {
                             ? 'এখনই প্রস্তুত'
                             : 'Ready Now'}
                       </td>
+
+                      <!-- Actions: Edit and Delete -->
+                      <td class="py-4 px-4 text-xs text-right whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5 justify-end">
+                          <button
+                            type="button"
+                            class="edit-referred-donor-btn px-2.5 py-1 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold transition cursor-pointer flex items-center gap-1"
+                            data-id={d.id}
+                            data-name={d.name}
+                            data-phone={d.phone}
+                            data-blood-group={d.bloodGroup}
+                            data-location={d.location || ''}
+                            data-preference={d.donationPreference}
+                            data-last-date={d.lastDonationDate ? new Date(d.lastDonationDate).toISOString().split('T')[0] : ''}
+                          >
+                            <span>✏️</span>
+                            <span>{isBn ? 'সম্পাদনা' : 'Edit'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="delete-referred-donor-btn px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold transition cursor-pointer flex items-center gap-1"
+                            data-id={d.id}
+                            data-name={d.name}
+                          >
+                            <span>🗑️</span>
+                            <span>{isBn ? 'মুছুন' : 'Delete'}</span>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -619,7 +651,7 @@ function formatDate(date: Date | string | null | undefined): string {
     </main>
 
     <!-- ============================================== -->
-    <!-- Modal: Refer Offline Donor -->
+    <!-- Modal 1: Refer Offline Donor (Add New) -->
     <!-- ============================================== -->
     <div
       id="refer-donor-modal"
@@ -661,7 +693,244 @@ function formatDate(date: Date | string | null | undefined): string {
       </div>
     </div>
 
-    <!-- Client-side Interactive Logic (Tabs, Modals, Edit Toggle) -->
+    <!-- ============================================== -->
+    <!-- Modal 2: Edit Referred Donor -->
+    <!-- ============================================== -->
+    <div
+      id="edit-referred-modal"
+      class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-edit-headline"
+    >
+      <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 transform transition-all max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
+          <div class="flex items-center gap-2.5 text-rose-600">
+            <span class="text-xl">✏️</span>
+            <h3 id="modal-edit-headline" class="text-lg font-bold text-gray-900">
+              {isBn ? 'রক্তদাতার তথ্য সম্পাদনা করুন' : 'Edit Referred Donor'}
+            </h3>
+          </div>
+          <button
+            type="button"
+            id="close-edit-modal-btn"
+            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Edit Form -->
+        <form method="POST" action="/api/donor/update" class="space-y-4">
+          <input type="hidden" name="type" value="referral" />
+          <input type="hidden" name="donor_id" id="edit-donor-id" value="" />
+
+          <!-- Name -->
+          <div>
+            <label for="edit-name" class="block text-xs font-semibold text-gray-800 mb-1">
+              {isBn ? 'পূর্ণ নাম' : 'Full Name'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="text"
+              id="edit-name"
+              name="name"
+              required
+              class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm focus:border-rose-500 focus:ring-rose-500 transition"
+            />
+          </div>
+
+          <!-- Phone -->
+          <div>
+            <label for="edit-phone" class="block text-xs font-semibold text-gray-800 mb-1">
+              {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর' : 'Phone / WhatsApp'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="tel"
+              id="edit-phone"
+              name="phone"
+              required
+              class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm focus:border-rose-500 focus:ring-rose-500 transition"
+            />
+          </div>
+
+          <!-- Blood Group & Location -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="edit-blood-group" class="block text-xs font-semibold text-gray-800 mb-1">
+                {isBn ? 'রক্তের গ্রুপ' : 'Blood Group'} <span class="text-rose-600">*</span>
+              </label>
+              <select
+                id="edit-blood-group"
+                name="blood_group"
+                required
+                class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:border-rose-500 focus:ring-rose-500 transition"
+              >
+                {bloodGroups.map((bg) => (
+                  <option value={bg}>{bg}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label for="edit-location" class="block text-xs font-semibold text-gray-800 mb-1">
+                {isBn ? 'এলাকা / শহর' : 'Area / City'}
+              </label>
+              <input
+                type="text"
+                id="edit-location"
+                name="location"
+                class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm focus:border-rose-500 focus:ring-rose-500 transition"
+              />
+            </div>
+          </div>
+
+          <!-- Donation Preference -->
+          <div>
+            <label for="edit-donation-preference" class="block text-xs font-semibold text-gray-800 mb-1">
+              {isBn ? 'রক্তদানের ধরন / অগ্রাধিকার' : 'Donation Preference'} <span class="text-rose-600">*</span>
+            </label>
+            <select
+              id="edit-donation-preference"
+              name="donation_preference"
+              required
+              class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:border-rose-500 focus:ring-rose-500 transition"
+            >
+              <option value="whole_blood">
+                {isBn ? 'সম্পূর্ণ রক্ত (Whole Blood) — নিরাপদ বিরতি ৯০ দিন' : 'Whole Blood (90d cooldown)'}
+              </option>
+              <option value="platelets">
+                {isBn ? 'প্লাটিলেট / এফারিসিস (Platelets / SDP) — নিরাপদ বিরতি ১৫ দিন' : 'Platelets / SDP (15d cooldown)'}
+              </option>
+            </select>
+          </div>
+
+          <!-- Last Donation Date -->
+          <div>
+            <label for="edit-last-donation-date" class="block text-xs font-semibold text-gray-800 mb-1">
+              {isBn ? 'সর্বশেষ রক্তদানের তারিখ' : 'Last Donation Date'}
+            </label>
+            <input
+              type="date"
+              id="edit-last-donation-date"
+              name="last_donation_date"
+              max={today}
+              class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:border-rose-500 focus:ring-rose-500 transition"
+            />
+          </div>
+
+          <div class="pt-4 flex items-center justify-end gap-3 border-t border-gray-100">
+            <button
+              type="button"
+              id="cancel-edit-modal-btn"
+              class="py-2 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 text-xs font-semibold transition cursor-pointer"
+            >
+              {isBn ? 'বাতিল' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              class="py-2 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+            >
+              {isBn ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- Modal 3: Delete Referred Donor Confirmation -->
+    <!-- ============================================== -->
+    <div
+      id="delete-referred-modal"
+      class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-del-referred-headline"
+    >
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-rose-200">
+        <div class="flex items-center gap-3 text-rose-600 mb-4">
+          <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-xl font-bold">🗑️</div>
+          <h3 id="modal-del-referred-headline" class="text-lg font-bold text-gray-900">
+            {isBn ? 'রক্তদাতা অপসারণ' : 'Delete Referred Donor'}
+          </h3>
+        </div>
+        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6">
+          {isBn ? (
+            <span>
+              আপনি কি নিশ্চিত যে রক্তদাতা <strong id="delete-donor-name-placeholder" class="text-gray-900"></strong>-কে আপনার রেফারেল তালিকা থেকে স্থায়ীভাবে অপসারণ করতে চান?
+            </span>
+          ) : (
+            <span>
+              Are you sure you want to remove <strong id="delete-donor-name-placeholder" class="text-gray-900"></strong> from your referred donors list?
+            </span>
+          )}
+        </p>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            id="close-delete-referred-modal-btn"
+            class="flex-1 py-2.5 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold text-sm transition cursor-pointer"
+          >
+            {isBn ? 'বাতিল' : 'Cancel'}
+          </button>
+          <form method="POST" action="/api/donor/delete" class="flex-1 m-0">
+            <input type="hidden" name="type" value="referral" />
+            <input type="hidden" name="donor_id" id="delete-donor-id-input" value="" />
+            <button
+              type="submit"
+              class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-xs transition cursor-pointer"
+            >
+              {isBn ? 'মুছে ফেলুন' : 'Confirm Delete'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- Modal 4: Unpublish Self Donor Confirmation -->
+    <!-- ============================================== -->
+    <div
+      id="unpublish-self-modal"
+      class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-unpublish-headline"
+    >
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-rose-200">
+        <div class="flex items-center gap-3 text-rose-600 mb-4">
+          <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-xl font-bold">⚠️</div>
+          <h3 id="modal-unpublish-headline" class="text-lg font-bold text-gray-900">
+            {isBn ? 'ডোনার প্রোফাইল প্রত্যাহার' : 'Unpublish Donor Profile'}
+          </h3>
+        </div>
+        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6">
+          {isBn
+            ? 'আপনি কি রক্তদাতা তালিকা থেকে আপনার ডোনার প্রোফাইল মুছে ফেলতে চান? আপনার মূল অ্যাকাউন্ট ও গুগল লগইন সম্পূর্ণ সক্রিয় ও নিরাপদ থাকবে, তবে রক্তদাতা তালিকা থেকে আপনার রেকর্ডটি প্রত্যাহার করা হবে।'
+            : 'Are you sure you want to unpublish your donor profile? Your main user account will remain active, but your profile will be removed from the active donor database.'}
+        </p>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            id="close-unpublish-self-modal-btn"
+            class="flex-1 py-2.5 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold text-sm transition cursor-pointer"
+          >
+            {isBn ? 'বাতিল' : 'Cancel'}
+          </button>
+          <form method="POST" action="/api/donor/delete" class="flex-1 m-0">
+            <input type="hidden" name="type" value="self" />
+            <button
+              type="submit"
+              class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-xs transition cursor-pointer"
+            >
+              {isBn ? 'প্রত্যাহার নিশ্চিত করুন' : 'Confirm Unpublish'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client-side Interactive Logic (Tabs, Modals, Populating Edit Values) -->
     <script is:inline>
       (() => {
         // Tab Switching
@@ -706,41 +975,101 @@ function formatDate(date: Date | string | null | undefined): string {
           editProfileSection?.classList.toggle('hidden');
         });
 
-        // Referral Modal
-        const modal = document.getElementById('refer-donor-modal');
-        const openBtns = [
+        // 1. Referral Modal (Add New)
+        const referModal = document.getElementById('refer-donor-modal');
+        const openReferBtns = [
           document.getElementById('open-referral-modal-btn'),
           document.getElementById('open-referral-modal-btn-2'),
           document.getElementById('open-referral-modal-btn-empty'),
         ];
-        const closeBtn = document.getElementById('close-referral-modal-btn');
+        const closeReferBtn = document.getElementById('close-referral-modal-btn');
 
-        function openModal() {
-          modal?.classList.remove('hidden');
-        }
+        openReferBtns.forEach((btn) => btn?.addEventListener('click', () => referModal?.classList.remove('hidden')));
+        closeReferBtn?.addEventListener('click', () => referModal?.classList.add('hidden'));
 
-        function closeModal() {
-          modal?.classList.add('hidden');
-        }
+        // 2. Unpublish Self Modal
+        const unpublishModal = document.getElementById('unpublish-self-modal');
+        const openUnpublishBtn = document.getElementById('open-unpublish-self-modal-btn');
+        const closeUnpublishBtn = document.getElementById('close-unpublish-self-modal-btn');
 
-        openBtns.forEach((btn) => btn?.addEventListener('click', openModal));
-        closeBtn?.addEventListener('click', closeModal);
+        openUnpublishBtn?.addEventListener('click', () => unpublishModal?.classList.remove('hidden'));
+        closeUnpublishBtn?.addEventListener('click', () => unpublishModal?.classList.add('hidden'));
 
-        modal?.addEventListener('click', (e) => {
-          if (e.target === modal) closeModal();
+        // 3. Edit Referred Donor Modal
+        const editModal = document.getElementById('edit-referred-modal');
+        const closeEditBtn = document.getElementById('close-edit-modal-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-modal-btn');
+        const editIdInput = document.getElementById('edit-donor-id');
+        const editNameInput = document.getElementById('edit-name');
+        const editPhoneInput = document.getElementById('edit-phone');
+        const editBloodGroupSelect = document.getElementById('edit-blood-group');
+        const editLocationInput = document.getElementById('edit-location');
+        const editPreferenceSelect = document.getElementById('edit-donation-preference');
+        const editLastDateInput = document.getElementById('edit-last-donation-date');
+
+        document.querySelectorAll('.edit-referred-donor-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            const phone = btn.getAttribute('data-phone');
+            const bg = btn.getAttribute('data-blood-group');
+            const loc = btn.getAttribute('data-location');
+            const pref = btn.getAttribute('data-preference');
+            const lastDate = btn.getAttribute('data-last-date');
+
+            if (editIdInput) editIdInput.value = id || '';
+            if (editNameInput) editNameInput.value = name || '';
+            if (editPhoneInput) editPhoneInput.value = phone || '';
+            if (editBloodGroupSelect) editBloodGroupSelect.value = bg || '';
+            if (editLocationInput) editLocationInput.value = loc || '';
+            if (editPreferenceSelect) editPreferenceSelect.value = pref || 'whole_blood';
+            if (editLastDateInput) editLastDateInput.value = lastDate || '';
+
+            editModal?.classList.remove('hidden');
+          });
+        });
+
+        closeEditBtn?.addEventListener('click', () => editModal?.classList.add('hidden'));
+        cancelEditBtn?.addEventListener('click', () => editModal?.classList.add('hidden'));
+
+        // 4. Delete Referred Donor Modal
+        const deleteModal = document.getElementById('delete-referred-modal');
+        const closeDeleteBtn = document.getElementById('close-delete-referred-modal-btn');
+        const deleteDonorIdInput = document.getElementById('delete-donor-id-input');
+        const deleteDonorNamePlaceholder = document.getElementById('delete-donor-name-placeholder');
+
+        document.querySelectorAll('.delete-referred-donor-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+
+            if (deleteDonorIdInput) deleteDonorIdInput.value = id || '';
+            if (deleteDonorNamePlaceholder) deleteDonorNamePlaceholder.textContent = name || '';
+
+            deleteModal?.classList.remove('hidden');
+          });
+        });
+
+        closeDeleteBtn?.addEventListener('click', () => deleteModal?.classList.add('hidden'));
+
+        // Universal modal backdrop and Escape dismiss
+        const allModals = [referModal, unpublishModal, editModal, deleteModal];
+
+        allModals.forEach((m) => {
+          m?.addEventListener('click', (e) => {
+            if (e.target === m) m.classList.add('hidden');
+          });
         });
 
         window.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && !modal?.classList.contains('hidden')) {
-            closeModal();
+          if (e.key === 'Escape') {
+            allModals.forEach((m) => m?.classList.add('hidden'));
           }
         });
       })();
     </script>
 
-    <!-- Footer -->
-    <footer class="border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-500">
-      <p>&copy; 2026 Save Araf Campaign. All rights reserved.</p>
-    </footer>
+    <!-- Global Footer -->
+    <Footer lang={lang} />
   </body>
 </html>

@@ -9,6 +9,8 @@ const isBn = lang === 'bn';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import Navbar from '@/components/common/Navbar.astro';
+import Footer from '@/components/common/Footer.astro';
 
 const session = Astro.locals.session;
 const user = Astro.locals.user;
@@ -67,28 +69,7 @@ const isUpdated = Astro.url.searchParams.get('updated') === 'true';
   </head>
   <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
     <!-- Header -->
-    <header class="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-xs">
-      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-        <a href={homeUrl} class="flex items-center gap-2 font-bold text-lg text-rose-600 hover:text-rose-700">
-          <img src="/logo.png" alt="Save Araf Logo" class="w-8 h-8 rounded-lg object-contain" />
-          <span>Save Araf</span>
-        </a>
-        <div class="flex items-center gap-3">
-          <a
-            href={switchLangUrl}
-            class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
-          >
-            {switchLangLabel}
-          </a>
-          <a href={dashboardUrl} class="text-sm font-semibold text-rose-600 hover:text-rose-700 transition">
-            {isBn ? 'ড্যাশবোর্ড' : 'Dashboard'}
-          </a>
-          <a href={homeUrl} class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">
-            {isBn ? '← মূল পাতায় ফিরুন' : '← Back to Home'}
-          </a>
-        </div>
-      </div>
-    </header>
+    <Navbar lang={lang} />
 
     <!-- Main Container -->
     <main class="max-w-3xl mx-auto px-4 py-10 flex-1 w-full">
@@ -349,8 +330,6 @@ const isUpdated = Astro.url.searchParams.get('updated') === 'true';
     </script>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-500">
-      <p>&copy; 2026 Save Araf Campaign. All rights reserved.</p>
-    </footer>
+    <Footer lang={lang} />
   </body>
 </html>

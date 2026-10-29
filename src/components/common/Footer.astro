@@ -1,0 +1,35 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+
+const privacyUrl = isBn ? '/privacy-policy' : '/en/privacy-policy';
+const termsUrl = isBn ? '/terms-of-service' : '/en/terms-of-service';
+---
+
+<footer class="border-t border-gray-200 bg-white py-8 mt-auto text-xs text-gray-500">
+  <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <!-- Copyright -->
+    <div class="text-center sm:text-left">
+      <p>&copy; 2026 Save Araf Campaign. {isBn ? 'সর্বস্বত্ব সংরক্ষিত।' : 'All rights reserved.'}</p>
+    </div>
+
+    <!-- Navigation & Legal Links -->
+    <div class="flex flex-wrap items-center justify-center gap-6 text-gray-600 font-medium">
+      <a href={privacyUrl} class="hover:text-rose-600 transition">
+        {isBn ? 'গোপনীয়তা নীতি' : 'Privacy Policy'}
+      </a>
+      <span class="text-gray-300">|</span>
+      <a href={termsUrl} class="hover:text-rose-600 transition">
+        {isBn ? 'ব্যবহারের শর্তাবলি' : 'Terms of Service'}
+      </a>
+      <span class="text-gray-300">|</span>
+      <a href="mailto:savemdaraf@gmail.com" class="hover:text-rose-600 transition">
+        savemdaraf@gmail.com
+      </a>
+    </div>
+  </div>
+</footer>

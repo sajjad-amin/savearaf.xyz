@@ -1,0 +1,126 @@
+export const prerender = false;
+
+import type { APIRoute } from 'astro';
+import { getSession } from '@/lib/auth';
+import { db } from '@/db';
+import { donors, donations } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
+import { calculateCooldown, type DonationPreference } from '@/lib/cooldown';
+
+const VALID_BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const session = await getSession(request);
+  if (!session?.user?.id) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const userId = session.user.id;
+  const referer = request.headers.get('referer') || '';
+  const isEn = referer.includes('/en');
+
+  try {
+    const formData = await request.formData();
+    const donorIdRaw = formData.get('donor_id')?.toString().trim();
+    const name = formData.get('name')?.toString().trim();
+    const phone = formData.get('phone')?.toString().trim();
+    const bloodGroupRaw = formData.get('blood_group')?.toString().trim();
+    const location = formData.get('location')?.toString().trim() || null;
+    const donationPreferenceRaw = formData.get('donation_preference')?.toString().trim();
+    const lastDonationDateRaw = formData.get('last_donation_date')?.toString().trim() || null;
+    const type = formData.get('type')?.toString().trim() || 'referral';
+
+    const donorId = Number(donorIdRaw);
+    if (!donorId || isNaN(donorId) || !name || !phone || !bloodGroupRaw) {
+      return new Response(
+        JSON.stringify({ error: 'Missing or invalid required fields (id, name, phone, blood group).' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!VALID_BLOOD_GROUPS.includes(bloodGroupRaw as (typeof VALID_BLOOD_GROUPS)[number])) {
+      return new Response(JSON.stringify({ error: 'Invalid blood group provided.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const bloodGroup = bloodGroupRaw as (typeof VALID_BLOOD_GROUPS)[number];
+    const donationPreference: DonationPreference =
+      donationPreferenceRaw === 'platelets' ? 'platelets' : 'whole_blood';
+
+    // Verify ownership: logged in user must either own the donor profile (self) or have added it (referral)
+    const [donorRecord] = await db
+      .select({ id: donors.id, userId: donors.userId, addedByUserId: donors.addedByUserId })
+      .from(donors)
+      .where(
+        and(
+          eq(donors.id, donorId),
+          type === 'self' ? eq(donors.userId, userId) : eq(donors.addedByUserId, userId)
+        )
+      )
+      .limit(1);
+
+    if (!donorRecord) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: You do not have permission to modify this donor.' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Parse date and calculate cooldown
+    let lastDate: Date | null = null;
+    if (lastDonationDateRaw) {
+      const parsed = new Date(lastDonationDateRaw);
+      if (!isNaN(parsed.getTime())) {
+        lastDate = parsed;
+      }
+    }
+
+    const cooldown = calculateCooldown(lastDate, donationPreference);
+
+    // Update donor record
+    await db
+      .update(donors)
+      .set({
+        name,
+        phone,
+        bloodGroup,
+        location,
+        donationPreference,
+        status: cooldown.status,
+        lastDonationDate: lastDate,
+      })
+      .where(eq(donors.id, donorId));
+
+    // If last donation date provided and cooling down, record or update donation history
+    if (lastDate && cooldown.nextEligibleDate) {
+      try {
+        await db.insert(donations).values({
+          donorId,
+          donationDate: lastDate,
+          type: donationPreference,
+          nextEligibleDate: cooldown.nextEligibleDate,
+        });
+      } catch (logErr) {
+        console.warn('Could not update donation history record:', logErr);
+      }
+    }
+
+    const targetTab = type === 'self' ? 'profile' : 'referrals';
+    const redirectUrl = isEn
+      ? `/en/dashboard?success=updated&tab=${targetTab}`
+      : `/dashboard?success=updated&tab=${targetTab}`;
+
+    return redirect(redirectUrl, 303);
+  } catch (error) {
+    console.error('Error updating donor record:', error);
+    return new Response(
+      JSON.stringify({ error: 'Internal Server Error while updating donor.' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+};

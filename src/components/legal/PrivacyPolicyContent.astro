@@ -5,9 +5,9 @@ interface Props {
 
 const { lang } = Astro.props;
 const isBn = lang === 'bn';
-const homeUrl = isBn ? '/' : '/en';
-const switchLangUrl = isBn ? '/en/privacy-policy' : '/privacy-policy';
-const switchLangLabel = isBn ? 'English' : 'বাংলা';
+
+import Navbar from '@/components/common/Navbar.astro';
+import Footer from '@/components/common/Footer.astro';
 ---
 
 <!doctype html>
@@ -20,25 +20,7 @@ const switchLangLabel = isBn ? 'English' : 'বাংলা';
   </head>
   <body class="bg-gray-50 text-gray-800 antialiased min-h-screen flex flex-col">
     <!-- Header -->
-    <header class="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
-      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-        <a href={homeUrl} class="flex items-center gap-2 font-bold text-lg text-rose-600 hover:text-rose-700">
-          <img src="/logo.png" alt="Save Araf Logo" class="w-8 h-8 rounded object-contain" />
-          <span>Save Araf</span>
-        </a>
-        <div class="flex items-center gap-3">
-          <a
-            href={switchLangUrl}
-            class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
-          >
-            {switchLangLabel}
-          </a>
-          <a href={homeUrl} class="text-sm font-medium text-gray-600 hover:text-gray-900">
-            {isBn ? '← মূল পাতায় ফিরুন' : '← Back to Home'}
-          </a>
-        </div>
-      </div>
-    </header>
+    <Navbar lang={lang} />
 
     <!-- Main Content -->
     <main class="max-w-3xl mx-auto px-4 py-10 flex-1">
@@ -100,7 +82,7 @@ const switchLangLabel = isBn ? 'English' : 'বাংলা';
             <section>
               <h2 class="text-lg font-bold text-gray-900 mb-2">৬. যোগাযোগ</h2>
               <p>
-                গোপনীয়তা সংক্রান্ত যেকোনো প্রশ্ন বা তথ্য হালনাগাদের জন্য অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন: ইমেইল: <a href="mailto:support@savearaf.xyz" class="text-rose-600 underline">support@savearaf.xyz</a>।
+                গোপনীয়তা সংক্রান্ত যেকোনো প্রশ্ন বা তথ্য হালনাগাদের জন্য অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন: ইমেইল: <a href="mailto:savemdaraf@gmail.com" class="text-rose-600 underline">savemdaraf@gmail.com</a>।
               </p>
             </section>
           </div>
@@ -154,7 +136,7 @@ const switchLangLabel = isBn ? 'English' : 'বাংলা';
             <section>
               <h2 class="text-lg font-bold text-gray-900 mb-2">6. Contact Us</h2>
               <p>
-                For questions regarding this Privacy Policy or your data, please contact us at: <a href="mailto:support@savearaf.xyz" class="text-rose-600 underline">support@savearaf.xyz</a>.
+                For questions regarding this Privacy Policy or your data, please contact us at: <a href="mailto:savemdaraf@gmail.com" class="text-rose-600 underline">savemdaraf@gmail.com</a>.
               </p>
             </section>
           </div>
@@ -163,8 +145,6 @@ const switchLangLabel = isBn ? 'English' : 'বাংলা';
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-gray-200 bg-white py-6 mt-12 text-center text-xs text-gray-500">
-      <p>&copy; 2026 Save Araf Campaign. All rights reserved.</p>
-    </footer>
+    <Footer lang={lang} />
   </body>
 </html>
