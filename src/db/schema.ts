@@ -5,7 +5,6 @@ import {
   text,
   int,
   bigint,
-  serial,
   decimal,
   boolean,
   timestamp,
@@ -81,7 +80,9 @@ export const verificationTokens = mysqlTable(
 // 2. Donors Table (Blood Donor CRM)
 // ==========================================
 export const donors = mysqlTable('donors', {
-  id: serial('id').primaryKey(),
+  id: bigint('id', { mode: 'number', unsigned: true })
+    .autoincrement()
+    .primaryKey(),
   userId: varchar('user_id', { length: 255 }).references(() => users.id, {
     onDelete: 'set null',
   }),
@@ -120,7 +121,9 @@ export const donors = mysqlTable('donors', {
 // 3. Donations Table (Donation History & Cooldown)
 // ==========================================
 export const donations = mysqlTable('donations', {
-  id: serial('id').primaryKey(),
+  id: bigint('id', { mode: 'number', unsigned: true })
+    .autoincrement()
+    .primaryKey(),
   donorId: bigint('donor_id', { mode: 'number', unsigned: true })
     .notNull()
     .references(() => donors.id, { onDelete: 'cascade' }),
@@ -135,7 +138,9 @@ export const donations = mysqlTable('donations', {
 // 4. Fund Tracker Table
 // ==========================================
 export const fundTracker = mysqlTable('fund_tracker', {
-  id: serial('id').primaryKey(),
+  id: bigint('id', { mode: 'number', unsigned: true })
+    .autoincrement()
+    .primaryKey(),
   totalReceived: decimal('total_received', { precision: 12, scale: 2 })
     .notNull()
     .default('0.00'),
@@ -152,7 +157,9 @@ export const fundTracker = mysqlTable('fund_tracker', {
 // 5. Bank Accounts Table
 // ==========================================
 export const bankAccounts = mysqlTable('bank_accounts', {
-  id: serial('id').primaryKey(),
+  id: bigint('id', { mode: 'number', unsigned: true })
+    .autoincrement()
+    .primaryKey(),
   bankName: varchar('bank_name', { length: 255 }).notNull(),
   accountName: varchar('account_name', { length: 255 }).notNull(),
   accountNumber: varchar('account_number', { length: 100 }).notNull(),
@@ -167,7 +174,9 @@ export const bankAccounts = mysqlTable('bank_accounts', {
 // 6. Patient Updates / Blog Table (TinyMCE Content)
 // ==========================================
 export const updates = mysqlTable('updates', {
-  id: serial('id').primaryKey(),
+  id: bigint('id', { mode: 'number', unsigned: true })
+    .autoincrement()
+    .primaryKey(),
   title: varchar('title', { length: 255 }).notNull(),
   content: text('content').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

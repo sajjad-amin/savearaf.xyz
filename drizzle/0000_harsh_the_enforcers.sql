@@ -14,7 +14,7 @@ CREATE TABLE `accounts` (
 );
 --> statement-breakpoint
 CREATE TABLE `bank_accounts` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`bank_name` varchar(255) NOT NULL,
 	`account_name` varchar(255) NOT NULL,
 	`account_number` varchar(100) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE `bank_accounts` (
 );
 --> statement-breakpoint
 CREATE TABLE `donations` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`donor_id` bigint unsigned NOT NULL,
 	`donation_date` timestamp NOT NULL,
 	`type` enum('whole_blood','platelets') NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE `donations` (
 );
 --> statement-breakpoint
 CREATE TABLE `donors` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`user_id` varchar(255),
 	`added_by_user_id` varchar(255),
 	`name` varchar(255) NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE `donors` (
 );
 --> statement-breakpoint
 CREATE TABLE `fund_tracker` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`total_received` decimal(12,2) NOT NULL DEFAULT '0.00',
 	`total_spent` decimal(12,2) NOT NULL DEFAULT '0.00',
 	`target_goal` decimal(12,2) NOT NULL DEFAULT '0.00',
@@ -70,7 +70,7 @@ CREATE TABLE `sessions` (
 );
 --> statement-breakpoint
 CREATE TABLE `updates` (
-	`id` serial AUTO_INCREMENT NOT NULL,
+	`id` bigint unsigned AUTO_INCREMENT NOT NULL,
 	`title` varchar(255) NOT NULL,
 	`content` text NOT NULL,
 	`created_at` timestamp NOT NULL DEFAULT (now()),

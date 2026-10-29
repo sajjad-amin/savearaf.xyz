@@ -22,8 +22,7 @@ pnpm-debug.log*
 .DS_Store
 
 # sensitive / private patient documents and photos
-documents
-documents/*
-images_araf/*
-facebook_posts/*
+documents/
+images_araf/
+facebook_posts/
 all_documents_so_far.pdf
