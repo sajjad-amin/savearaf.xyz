@@ -13,6 +13,7 @@ const termsUrl = isBn ? '/terms-of-service' : '/en/terms-of-service';
 
 const session = Astro.locals.session;
 const user = Astro.locals.user;
+const isDeleted = Astro.url.searchParams.get('deleted') === 'true';
 ---
 
 <!doctype html>
@@ -53,6 +54,12 @@ const user = Astro.locals.user;
                 <span class="text-[11px] text-gray-500 leading-tight">{user.email}</span>
               </div>
               <a
+                href="/profile"
+                class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition"
+              >
+                {isBn ? 'প্রোফাইল' : 'Profile'}
+              </a>
+              <a
                 href="/api/auth/signout"
                 class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition"
               >
@@ -72,6 +79,16 @@ const user = Astro.locals.user;
     </header>
 
     <main class="max-w-4xl mx-auto px-4 py-12 flex-1">
+      {isDeleted && (
+        <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center gap-2">
+          <span>ℹ️</span>
+          <span>
+            {isBn
+              ? 'আপনার অ্যাকাউন্ট ও ব্যক্তিগত তথ্য সফলভাবে অপসারণ করা হয়েছে।'
+              : 'Your account and personal data have been successfully deleted.'}
+          </span>
+        </div>
+      )}
       <h1 class="text-3xl font-bold tracking-tight">
         {isBn ? 'আরাফকে বাঁচান (Save Araf)' : 'Save Araf Fundraising & Blood Donor CRM'}
       </h1>
