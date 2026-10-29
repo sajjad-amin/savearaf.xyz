@@ -10,6 +10,9 @@ const switchLangLabel = isBn ? 'English' : 'বাংলা';
 
 const privacyUrl = isBn ? '/privacy-policy' : '/en/privacy-policy';
 const termsUrl = isBn ? '/terms-of-service' : '/en/terms-of-service';
+
+const session = Astro.locals.session;
+const user = Astro.locals.user;
 ---
 
 <!doctype html>
@@ -21,18 +24,50 @@ const termsUrl = isBn ? '/terms-of-service' : '/en/terms-of-service';
     <title>{isBn ? 'আরাফকে বাঁচান - Save Araf' : 'Save Araf - Emergency Appeal'}</title>
   </head>
   <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
-    <header class="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
+    <header class="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-xs">
       <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <img src="/logo.png" alt="Save Araf Logo" class="w-10 h-10 rounded-lg object-contain shadow-sm" />
+          <img src="/logo.png" alt="Save Araf Logo" class="w-10 h-10 rounded-lg object-contain shadow-xs" />
           <span class="font-bold text-xl text-rose-600">Save Araf</span>
         </div>
-        <a
-          href={switchLangUrl}
-          class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
-        >
-          {switchLangLabel}
-        </a>
+        <div class="flex items-center gap-3">
+          <a
+            href={switchLangUrl}
+            class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
+          >
+            {switchLangLabel}
+          </a>
+
+          {user ? (
+            <div class="flex items-center gap-2">
+              {user.image && (
+                <img src={user.image} alt={user.name || 'User'} class="w-8 h-8 rounded-full border border-gray-300" />
+              )}
+              <div class="hidden sm:flex flex-col text-left">
+                <span class="text-xs font-bold text-gray-800 leading-tight flex items-center gap-1">
+                  {user.name}
+                  {user.role === 'admin' && (
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-100 text-rose-700 font-bold">Admin</span>
+                  )}
+                </span>
+                <span class="text-[11px] text-gray-500 leading-tight">{user.email}</span>
+              </div>
+              <a
+                href="/api/auth/signout"
+                class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition"
+              >
+                {isBn ? 'লগআউট' : 'Sign Out'}
+              </a>
+            </div>
+          ) : (
+            <a
+              href="/api/auth/signin"
+              class="text-xs px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-medium shadow-xs transition"
+            >
+              {isBn ? 'লগইন করুন' : 'Sign In'}
+            </a>
+          )}
+        </div>
       </div>
     </header>
 
@@ -42,20 +77,35 @@ const termsUrl = isBn ? '/terms-of-service' : '/en/terms-of-service';
       </h1>
       <p class="mt-4 text-gray-600">
         {isBn
-          ? 'ব্র্যান্ডিং এবং গুগল ও-অথ এর জন্য প্রয়োজনীয় লিগ্যাল পেইজ প্রস্তুত। ভাষা: বাংলা (ডিফল্ট - প্রিফিক্স মুক্ত)'
-          : 'Branding assets and legal pages for Google OAuth verification are ready. Current locale: English (/en)'}
+          ? 'ব্র্যান্ডিং, গুগল ও-অথ (Auth.js) এবং ইউজার অনবোর্ডিং ফ্লো সফলভাবে প্রস্তুত। ভাষা: বাংলা (ডিফল্ট)'
+          : 'Branding, Google OAuth (Auth.js), and user onboarding flow are ready. Current locale: English (/en)'}
       </p>
+
+      {user && (
+        <div class="mt-6 p-4 rounded-xl bg-white border border-gray-200 shadow-xs max-w-lg">
+          <h2 class="text-sm font-bold text-gray-800 mb-2">
+            {isBn ? 'বর্তমান ব্যবহারকারীর বিবরণ:' : 'Current User Details:'}
+          </h2>
+          <ul class="text-xs space-y-1 text-gray-600">
+            <li><strong>Name:</strong> {user.name}</li>
+            <li><strong>Email:</strong> {user.email}</li>
+            <li><strong>Role:</strong> <span class="capitalize font-semibold text-rose-600">{user.role}</span></li>
+            <li><strong>Phone:</strong> {user.phone || 'N/A'}</li>
+            <li><strong>Onboarded:</strong> {user.is_onboarded ? '✅ Yes' : '❌ No'}</li>
+          </ul>
+        </div>
+      )}
 
       <div class="mt-8 flex flex-wrap gap-4">
         <a
           href={privacyUrl}
-          class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition"
+          class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-xs transition"
         >
           {isBn ? 'গোপনীয়তা নীতি (Privacy Policy)' : 'Privacy Policy'}
         </a>
         <a
           href={termsUrl}
-          class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition"
+          class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-xs transition"
         >
           {isBn ? 'ব্যবহারের শর্তাবলি (Terms of Service)' : 'Terms of Service'}
         </a>

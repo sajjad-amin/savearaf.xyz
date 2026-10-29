@@ -1,7 +1,10 @@
 {
   "extends": "astro/tsconfigs/strict",
+  "include": ["src/**/*", "auth.config.ts"],
+  "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "strictNullChecks": true,
+    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
