@@ -84,6 +84,9 @@ export default {
     },
   },
   basePath: '/api/auth',
+  pages: {
+    signIn: '/donate-blood',
+  },
   trustHost: true,
   secret:
     import.meta.env.AUTH_SECRET ||

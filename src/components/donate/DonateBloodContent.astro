@@ -1,0 +1,287 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+
+import Navbar from '@/components/common/Navbar.astro';
+import Footer from '@/components/common/Footer.astro';
+
+const session = Astro.locals.session;
+const user = Astro.locals.user;
+
+// If user is already authenticated, redirect to appropriate destination
+if (session && user) {
+  if (user.is_onboarded) {
+    return Astro.redirect(isBn ? '/dashboard' : '/en/dashboard');
+  } else {
+    return Astro.redirect(isBn ? '/onboarding' : '/en/onboarding');
+  }
+}
+
+const bloodTypes = [
+  { group: 'B+', role: isBn ? 'আরাফের রক্তের গ্রুপ (সর্বোচ্চ অগ্রাধিকার)' : "Araf's Blood Type (Top Priority)", highlight: true },
+  { group: 'O+', role: isBn ? 'জরুরি রক্ত ও সার্বজনীন ম্যাচিং' : 'Emergency Red Cells & Matching', highlight: true },
+  { group: 'O-', role: isBn ? 'সার্বজনীন জরুরি রক্তদাতা' : 'Universal Red Cell Donor', highlight: true },
+  { group: 'A+', role: isBn ? 'প্লাটিলেট ও এক্সচেঞ্জ ম্যাচিং' : 'Platelet & Exchange Matching', highlight: false },
+  { group: 'AB+', role: isBn ? 'প্লাটিলেটের জন্য অত্যন্ত উপযোগী' : 'Ideal for Platelet Matching', highlight: false },
+  { group: 'B-', role: isBn ? 'জরুরি বি-নেগেটিভ রিজার্ভ' : 'Emergency B- Negative Reserve', highlight: false },
+  { group: 'A-', role: isBn ? 'জরুরি রিজার্ভ ও ম্যাচিং' : 'Emergency Reserve & Matching', highlight: false },
+  { group: 'AB-', role: isBn ? 'জরুরি রিজার্ভ ও প্লাটিলেট' : 'Emergency Reserve & Platelets', highlight: false },
+];
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{isBn ? 'রক্ত দিন — আরাফকে বাঁচান' : 'Donate Blood — Save Araf Campaign'}</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
+    <!-- Navbar -->
+    <Navbar lang={lang} />
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-8 sm:py-12 flex-1 w-full">
+      <!-- Hero Appeal Header -->
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-700 mb-3 shadow-xs">
+          <span>🩸</span>
+          <span>{isBn ? 'জরুরি রক্ত ও প্লাটিলেটের আবেদন' : 'Urgent Blood & Platelet Appeal'}</span>
+        </span>
+        <h1 class="text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+          {isBn ? 'আরাফের চিকিৎসায় আপনার রক্তই হতে পারে নতুন জীবনের আশা' : 'Your Blood Donation Can Give Araf a Second Chance at Life'}
+        </h1>
+        <p class="mt-3 text-sm sm:text-base text-gray-600 leading-relaxed">
+          {isBn
+            ? 'ব্লাড ক্যান্সারে আক্রান্ত ১৯ বছর বয়সী তরুণ আরাফের কেমোথেরাপি চলাকালীন নিয়মিত রক্তের প্লাটিলেট (SDP) ও সম্পূর্ণ রক্তের প্রয়োজন। আপনার রক্তদানের মাধ্যমেই নিশ্চিত হতে পারে তার পরবর্তী চিকিৎসা।'
+            : '19-year-old Araf is courageously battling acute blood cancer. During his intensive chemotherapy cycles, he requires regular transfusions of platelets (SDP) and whole blood to stay alive.'}
+        </p>
+      </div>
+
+      <!-- Main Info Cards -->
+      <div class="space-y-8">
+        <!-- 1. The Exact Needs Breakdown Card -->
+        <section class="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 sm:p-8">
+          <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>💉</span>
+            <span>{isBn ? 'চিকিৎসায় কী ধরনের রক্ত প্রয়োজন?' : 'What Types of Transfusions Are Needed?'}</span>
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Platelets (SDP) -->
+            <div class="p-5 rounded-2xl bg-rose-50/70 border border-rose-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-rose-900">
+                  {isBn ? '১. প্লাটিলেট / এফারিসিস (SDP)' : '1. Platelets / SDP (Apheresis)'}
+                </span>
+                <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-rose-200 text-rose-800">
+                  {isBn ? 'বিরতি: ১৫ দিন' : 'Cooldown: 15 Days'}
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-rose-800 leading-relaxed">
+                {isBn
+                  ? 'কেমোথেরাপির কারণে আরাফের রক্তের প্লাটিলেট কাউন্ট বিপজ্জনক মাত্রায় নেমে যায়। প্লাটিলেট কেবল ৫ দিন সংরক্ষণ করা যায়, তাই প্রতি কয়েকদিন পরপর নতুন রক্তদাতার প্রয়োজন হয়। প্লাটিলেট দান করলে মাত্র ১৫ দিন পর আবারও নিরাপদভাবে দান করা সম্ভব।'
+                  : 'Chemotherapy rapidly depletes Araf’s platelet count to life-threatening levels. Because platelets have a shelf life of only 5 days, donors are required frequently on short notice. Platelet donors recover in just 15 days.'}
+              </p>
+            </div>
+
+            <!-- Whole Blood -->
+            <div class="p-5 rounded-2xl bg-amber-50/70 border border-amber-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-bold text-amber-900">
+                  {isBn ? '২. সম্পূর্ণ রক্ত (Whole Blood)' : '2. Whole Blood (RBC)'}
+                </span>
+                <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-800">
+                  {isBn ? 'বিরতি: ৯০ দিন' : 'Cooldown: 90 Days'}
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-amber-800 leading-relaxed">
+                {isBn
+                  ? 'হিমোগ্লোবিন ঠিক রাখতে নির্দিষ্ট সময় অন্তর সম্পূর্ণ রক্ত সঞ্চালন করতে হয়। সম্পূর্ণ রক্তদানের ক্ষেত্রে চিকিৎসা বিজ্ঞানের নিয়ম অনুযায়ী রক্তদাতার নিরাপদ শারীরিক পুনরুদ্ধারের জন্য ৯০ দিনের বিরতি অনুসরণ করা হয়।'
+                  : 'Whole blood transfusions are essential to maintain safe hemoglobin levels during high-dose treatment. Whole blood donation requires a medically standard 90-day rest interval to safeguard donor health.'}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Blood Groups & Universality Card -->
+        <section class="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 sm:p-8">
+          <div class="max-w-2xl mb-6">
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+              <span>🩸</span>
+              <span>{isBn ? 'রক্তের গ্রুপ ও ম্যাচিং তথ্য' : 'Blood Types & Matching Information'}</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-gray-600 mt-1.5 leading-relaxed">
+              {isBn ? (
+                <span>
+                  আরাফের রক্তের গ্রুপ <strong>B+ (বি পজিটিভ)</strong>। চিকিৎসাধীন অবস্থায় কখনো কখনো অ্যান্টিজেন বৈচিত্র্যের কারণে এবং নিয়মিত রক্তের প্রয়োজনে B+ ছাড়াও O+, O- এবং অন্যান্য রক্তের গ্রুপের রক্ত ও প্লাটিলেট প্রয়োজন হতে পারে।
+                </span>
+              ) : (
+                <span>
+                  Araf’s blood group is <strong>B Positive (B+)</strong>. Due to occasional antigen variations during treatment and the ongoing demand for fresh blood and platelets, donors of B+, O+, O-, and other groups are critically important.
+                </span>
+              )}
+            </p>
+          </div>
+
+          <!-- Blood Type Pills Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {bloodTypes.map((bt) => (
+              <div class={`p-3.5 rounded-2xl border transition ${
+                bt.highlight
+                  ? 'bg-rose-50 border-rose-300 ring-2 ring-rose-200'
+                  : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div class="flex items-center justify-between mb-1">
+                  <span class={`text-lg font-extrabold ${bt.highlight ? 'text-rose-600' : 'text-gray-900'}`}>
+                    {bt.group}
+                  </span>
+                  {bt.highlight && (
+                    <span class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-rose-600 text-white">
+                      {isBn ? 'অগ্রাধিকার' : 'Priority'}
+                    </span>
+                  )}
+                </div>
+                <span class="text-[11px] text-gray-500 leading-tight block">
+                  {bt.role}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <!-- Emotional Callout for All Blood Types -->
+          <div class="mt-6 p-5 rounded-2xl bg-gray-50 border border-gray-200 text-xs sm:text-sm text-gray-700 leading-relaxed">
+            <p class="font-bold text-gray-900 mb-2 flex items-center gap-1.5 text-sm sm:text-base">
+              <span>🤝</span>
+              <span>
+                {isBn
+                  ? 'অন্যান্য রক্তের গ্রুপের দাতারা কেন নিবন্ধন করবেন?'
+                  : 'Why Donors of All Blood Groups Should Register:'}
+              </span>
+            </p>
+            {isBn ? (
+              <div class="space-y-2 text-gray-600">
+                <p>
+                  • <strong>ব্লাড ব্যাংক এক্সচেঞ্জ:</strong> হাসপাতালে চিকিৎসার সময় নির্দিষ্ট গ্রুপের রক্তের তাৎক্ষণিক সংকটে ব্লাড ব্যাংক থেকে জরুরি এক্সচেঞ্জ (রক্ত বদল) করতে হয়।
+                </p>
+                <p>
+                  • <strong>প্লাটিলেট সমন্বয়:</strong> বিশেষ পরিস্থিতিতে চিকিৎসকদের পরামর্শে সামঞ্জস্যপূর্ণ অন্যান্য গ্রুপ থেকেও প্লাটিলেট ম্যাচিং করা সম্ভব হয়।
+                </p>
+                <p>
+                  • <strong>অন্যান্য মুমূর্ষু রোগীর পাশে দাঁড়ানো:</strong> হাসপাতালে চিকিৎসাধীন অন্যান্য ক্যান্সার ও গুরুতর রোগীদের জরুরি রক্তের সংকটেও আমাদের এই প্ল্যাটফর্ম থেকে সরাসরি সহযোগিতা করা সম্ভব হবে। আপনার রক্তদান শুধু আরাফ নয়, আরও অনেক মানুষের জীবন বাঁচাতে পারে।
+                </p>
+              </div>
+            ) : (
+              <div class="space-y-2 text-gray-600">
+                <p>
+                  • <strong>Blood Bank Exchange:</strong> When an exact match is momentarily unavailable, donors of any blood group allow reciprocal blood bank exchanges to secure blood for Araf without delay.
+                </p>
+                <p>
+                  • <strong>Platelet Compatibility:</strong> Platelet matching protocols often permit cross-group donations under clinical supervision to prevent critical bleeding emergencies.
+                </p>
+                <p>
+                  • <strong>Supporting Other Critical Patients:</strong> Beyond Araf, when other critically ill patients in the hospital urgently require blood or platelets, our verified volunteer network can be mobilized to save their lives as well.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <!-- 3. Safe Medical Cooldown Guarantee -->
+        <section class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl border border-emerald-200 shadow-xs p-6 sm:p-8">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl font-bold shrink-0">
+              🛡️
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-emerald-950">
+                {isBn ? 'রক্তদাতার স্বাস্থ্য সুরক্ষায় আমাদের অঙ্গীকার' : 'Donor Health & Safety Guarantee'}
+              </h3>
+              <p class="text-xs sm:text-sm text-emerald-900 mt-1.5 leading-relaxed">
+                {isBn
+                  ? 'আমাদের প্ল্যাটফর্ম চিকিৎসাবিজ্ঞানের নিরাপদ বিরতির নিয়ম (প্লাটিলেট ১৫ দিন ও সম্পূর্ণ রক্ত ৯০ দিন) কঠোরভাবে বজায় রাখে। আপনি রক্তদানের তারিখ জানালে স্বয়ংক্রিয়ভাবে কুলডাউন হিসাব করা হয় এবং নিরাপদ বিরতি শেষ না হওয়া পর্যন্ত আপনাকে কোনো অনুরোধ পাঠানো হয় না।'
+                  : 'Our system strictly calculates and enforces medical cooldown periods (15 days for platelets, 90 days for whole blood). You will never be contacted for a donation while in a recovery interval.'}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Sign in with Google Action Card -->
+        <section class="bg-white rounded-3xl border-2 border-rose-200 shadow-md p-6 sm:p-10 text-center relative overflow-hidden">
+          <div class="max-w-xl mx-auto">
+            <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-3xl mx-auto mb-4 shadow-xs">
+              ❤️
+            </div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-gray-900">
+              {isBn ? 'রক্তদাতা হিসেবে যুক্ত হতে সাইন ইন করুন' : 'Sign in to Register as a Life-saving Donor'}
+            </h2>
+            <p class="text-xs sm:text-sm text-gray-600 mt-2 leading-relaxed">
+              {isBn
+                ? 'গুগল দিয়ে মাত্র এক ক্লিকে সাইন ইন করে আপনার ফোন নম্বর ও রক্তের গ্রুপ প্রদান করুন। পাসওয়ার্ড বা জটিল ফর্মের কোনো ঝামেলা নেই।'
+                : 'Sign in securely in one click with Google to enter your contact number and blood group. No complex forms or passwords.'}
+            </p>
+
+            <!-- Google Sign-In Action Button -->
+            <div class="mt-8 flex flex-col items-center justify-center">
+              <button
+                type="button"
+                id="google-signin-btn"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-3 py-3.5 px-8 rounded-2xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 font-bold text-sm shadow-sm hover:shadow-md transition cursor-pointer transform active:scale-[0.99] focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+              >
+                <!-- Official Google "G" Logo SVG -->
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span id="google-signin-btn-text">
+                  {isBn ? 'গুগল দিয়ে সাইন ইন করুন' : 'Sign in with Google'}
+                </span>
+              </button>
+
+              <p class="text-[11px] text-gray-400 mt-3">
+                🔒 {isBn ? 'আপনার ব্যক্তিগত তথ্যের পূর্ণ গোপনীয়তা নিশ্চিত করা হয়।' : 'Your personal information is handled with strict confidentiality.'}
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Client-side Google Signin Script -->
+    <script>
+      import { signIn } from 'auth-astro/client';
+
+      const signinBtn = document.getElementById('google-signin-btn');
+      const btnText = document.getElementById('google-signin-btn-text');
+
+      signinBtn?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (btnText) {
+          btnText.textContent = 'Connecting...';
+        }
+        signinBtn.setAttribute('disabled', 'true');
+        signinBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+        try {
+          await signIn('google', {
+            callbackUrl: window.location.pathname.startsWith('/en') ? '/en/dashboard' : '/dashboard',
+          });
+        } catch (err) {
+          console.error('Google signin error:', err);
+          // Fallback to direct signin URL
+          window.location.href = '/api/auth/signin/google';
+        }
+      });
+    </script>
+
+    <!-- Global Footer -->
+    <Footer lang={lang} />
+  </body>
+</html>

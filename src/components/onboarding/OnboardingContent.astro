@@ -125,16 +125,30 @@ if (user.is_onboarded) {
         <!-- Account Switcher / Sign Out -->
         <div class="mt-6 pt-5 border-t border-gray-200 text-center">
           <p class="text-xs text-gray-500">
-            {isBn ? 'ভুল অ্যাকাউন্টে লগইন করেছেন?' : 'Wrong account?'}
-            <a
-              href="/api/auth/signout"
-              class="text-rose-600 hover:text-rose-700 font-semibold underline ml-1"
+            {isBn ? 'ভুল অ্যাকাউন্টে যুক্ত হয়েছেন?' : 'Wrong account?'}
+            <button
+              type="button"
+              id="onboarding-logout-btn"
+              class="text-rose-600 hover:text-rose-700 font-semibold underline ml-1 cursor-pointer bg-transparent border-0 p-0 text-xs inline"
             >
-              {isBn ? 'লগআউট করুন (Sign Out)' : 'Sign Out'}
-            </a>
+              {isBn ? 'লগআউট করুন' : 'Sign Out'}
+            </button>
           </p>
         </div>
       </div>
     </div>
+
+    <script>
+      import { signOut } from 'auth-astro/client';
+      const logoutBtn = document.getElementById('onboarding-logout-btn');
+      logoutBtn?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+          await signOut({ callbackUrl: '/' });
+        } catch {
+          window.location.href = '/';
+        }
+      });
+    </script>
   </body>
 </html>

@@ -58,7 +58,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
       pathname === '/profile' ||
       pathname === '/en/profile'
     ) {
-      return context.redirect(isEnglishPath ? '/en' : '/');
+      return context.redirect(isEnglishPath ? '/en/donate-blood' : '/donate-blood');
     }
     return next();
   }
@@ -100,9 +100,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  // If user is ALREADY onboarded, prevent access to onboarding page
-  if (isOnboarded && (pathname === '/onboarding' || pathname === '/en/onboarding')) {
-    return context.redirect(isEnglishPath ? '/en' : '/');
+  // If user is ALREADY onboarded, prevent access to onboarding and donate-blood login pages
+  if (
+    isOnboarded &&
+    (pathname === '/onboarding' ||
+      pathname === '/en/onboarding' ||
+      pathname === '/donate-blood' ||
+      pathname === '/en/donate-blood')
+  ) {
+    return context.redirect(isEnglishPath ? '/en/dashboard' : '/dashboard');
   }
 
   return next();

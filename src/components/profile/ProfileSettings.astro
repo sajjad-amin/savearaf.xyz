@@ -17,7 +17,7 @@ const user = Astro.locals.user;
 
 // Only logged in users can access profile settings
 if (!session || !user) {
-  return Astro.redirect('/api/auth/signin');
+  return Astro.redirect(isBn ? '/donate-blood' : '/en/donate-blood');
 }
 
 // Fetch latest user data from DB

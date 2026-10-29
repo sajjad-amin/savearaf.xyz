@@ -182,11 +182,11 @@ const today = new Date().toISOString().split('T')[0];
           </div>
 
           <!-- Quick Action: Refer Button -->
-          <div>
+          <div class="w-full sm:w-auto">
             <button
               type="button"
               id="open-referral-modal-btn"
-              class="inline-flex items-center gap-2 py-2.5 px-5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-xs transition cursor-pointer"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-xs transition cursor-pointer"
             >
               <span class="text-base">➕</span>
               <span>{isBn ? 'নতুন রক্তদাতা রেফার করুন' : 'Refer New Donor'}</span>
@@ -244,7 +244,7 @@ const today = new Date().toISOString().split('T')[0];
       </section>
 
       <!-- Dashboard Tabs Switcher -->
-      <div class="flex items-center gap-2 border-b border-gray-200 mb-8" role="tablist">
+      <div class="flex items-center gap-2 border-b border-gray-200 mb-8 overflow-x-auto whitespace-nowrap pb-px" role="tablist">
         <button
           type="button"
           id="tab-btn-profile"

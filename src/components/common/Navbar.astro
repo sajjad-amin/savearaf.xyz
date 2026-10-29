@@ -32,18 +32,19 @@ if (pathname === '/en' || pathname === '/en/') {
 const homeUrl = isBn ? '/' : '/en';
 const dashboardUrl = isBn ? '/dashboard' : '/en/dashboard';
 const profileUrl = isBn ? '/profile' : '/en/profile';
+const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
 ---
 
 <header class="border-b border-gray-200 bg-white sticky top-0 z-30 shadow-xs">
-  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+  <div class="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between">
     <!-- Left: Brand Logo & Title -->
-    <a href={homeUrl} class="flex items-center gap-2.5 font-bold text-lg text-rose-600 hover:text-rose-700 transition">
-      <img src="/logo.png" alt="Save Araf Logo" class="w-8 h-8 rounded-lg object-contain shadow-xs" />
+    <a href={homeUrl} class="flex items-center gap-2 sm:gap-2.5 font-bold text-base sm:text-lg text-rose-600 hover:text-rose-700 transition shrink-0">
+      <img src="/logo.png" alt="Save Araf Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shadow-xs" />
       <span class="tracking-tight">Save Araf</span>
     </a>
 
-    <!-- Right: User Dropdown & Compact Language Switcher -->
-    <div class="flex items-center gap-4">
+    <!-- Right: Actions, User Dropdown & Compact Language Switcher -->
+    <div class="flex items-center gap-2 sm:gap-4">
       {user ? (
         <!-- User Context Menu Dropdown -->
         <div class="relative" id="user-menu-container">
@@ -52,12 +53,12 @@ const profileUrl = isBn ? '/profile' : '/en/profile';
             id="user-menu-btn"
             aria-expanded="false"
             aria-haspopup="true"
-            class="flex items-center gap-2 py-1.5 px-2.5 rounded-full border border-gray-200 hover:border-gray-300 bg-gray-50/80 hover:bg-gray-100 transition cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+            class="flex items-center gap-1.5 sm:gap-2 py-1 sm:py-1.5 px-2 sm:px-2.5 rounded-full border border-gray-200 hover:border-gray-300 bg-gray-50/80 hover:bg-gray-100 transition cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-rose-500"
           >
             {user.image ? (
-              <img src={user.image} alt={user.name || 'User'} class="w-7 h-7 rounded-full object-cover border border-gray-300" />
+              <img src={user.image} alt={user.name || 'User'} class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover border border-gray-300" />
             ) : (
-              <div class="w-7 h-7 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs">
+              <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs">
                 {user.name ? user.name[0] : 'U'}
               </div>
             )}
@@ -72,7 +73,7 @@ const profileUrl = isBn ? '/profile' : '/en/profile';
           <!-- Dropdown Menu -->
           <div
             id="user-dropdown"
-            class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-200 py-2 hidden z-40 transform origin-top-right transition-all"
+            class="absolute right-0 mt-2 w-52 sm:w-56 bg-white rounded-2xl shadow-xl border border-gray-200 py-2 hidden z-40 transform origin-top-right transition-all max-w-[calc(100vw-1.5rem)]"
             role="menu"
             aria-orientation="vertical"
           >
@@ -108,31 +109,33 @@ const profileUrl = isBn ? '/profile' : '/en/profile';
               </a>
             </div>
 
-            <!-- Sign Out -->
+            <!-- Direct One-Click Sign Out -->
             <div class="border-t border-gray-100 pt-1">
-              <a
-                href="/api/auth/signout"
+              <button
+                type="button"
+                id="header-logout-btn"
                 role="menuitem"
-                class="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition"
+                class="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition cursor-pointer text-left"
               >
                 <span>🚪</span>
                 <span>{isBn ? 'লগআউট' : 'Sign Out'}</span>
-              </a>
+              </button>
             </div>
           </div>
         </div>
       ) : (
-        <!-- Sign In Button for Guests -->
+        <!-- "Donate Blood" (Custom Login Action) Button -->
         <a
-          href="/api/auth/signin"
-          class="text-xs px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-xs transition"
+          href={donateBloodUrl}
+          class="inline-flex items-center gap-1.5 text-xs px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-xs hover:shadow-sm transition cursor-pointer whitespace-nowrap"
         >
-          {isBn ? 'লগইন করুন' : 'Sign In'}
+          <span>🩸</span>
+          <span>{isBn ? 'রক্ত দিন' : 'Donate Blood'}</span>
         </a>
       )}
 
       <!-- Compact Language Switcher on the Far Right (BN | EN) -->
-      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50 text-xs font-bold shadow-xs">
+      <div class="flex items-center gap-1.5 px-2 py-1 sm:px-2.5 rounded-full border border-gray-200 bg-gray-50 text-xs font-bold shadow-xs shrink-0">
         {isBn ? (
           <>
             <span class="text-rose-600">BN</span>
@@ -155,23 +158,24 @@ const profileUrl = isBn ? '/profile' : '/en/profile';
   </div>
 </header>
 
-<script is:inline>
-  (() => {
-    const btn = document.getElementById('user-menu-btn');
-    const dropdown = document.getElementById('user-dropdown');
-    const arrow = document.getElementById('user-menu-arrow');
+<script>
+  import { signOut } from 'auth-astro/client';
 
-    if (!btn || !dropdown) return;
+  // Dropdown toggle logic
+  const btn = document.getElementById('user-menu-btn');
+  const dropdown = document.getElementById('user-dropdown');
+  const arrow = document.getElementById('user-menu-arrow');
 
+  if (btn && dropdown) {
     function toggleMenu() {
-      const isHidden = dropdown.classList.contains('hidden');
+      const isHidden = dropdown?.classList.contains('hidden');
       if (isHidden) {
-        dropdown.classList.remove('hidden');
-        btn.setAttribute('aria-expanded', 'true');
+        dropdown?.classList.remove('hidden');
+        btn?.setAttribute('aria-expanded', 'true');
         arrow?.classList.add('rotate-180');
       } else {
-        dropdown.classList.add('hidden');
-        btn.setAttribute('aria-expanded', 'false');
+        dropdown?.classList.add('hidden');
+        btn?.setAttribute('aria-expanded', 'false');
         arrow?.classList.remove('rotate-180');
       }
     }
@@ -183,7 +187,7 @@ const profileUrl = isBn ? '/profile' : '/en/profile';
 
     // Close on click outside
     document.addEventListener('click', (e) => {
-      if (!dropdown.classList.contains('hidden') && !btn.contains(e.target) && !dropdown.contains(e.target)) {
+      if (!dropdown.classList.contains('hidden') && !btn.contains(e.target as Node) && !dropdown.contains(e.target as Node)) {
         dropdown.classList.add('hidden');
         btn.setAttribute('aria-expanded', 'false');
         arrow?.classList.remove('rotate-180');
@@ -198,5 +202,20 @@ const profileUrl = isBn ? '/profile' : '/en/profile';
         arrow?.classList.remove('rotate-180');
       }
     });
-  })();
+  }
+
+  // Direct One-Click Signout Handler (No Auth.js confirmation page)
+  const logoutBtn = document.getElementById('header-logout-btn');
+  logoutBtn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    logoutBtn.setAttribute('disabled', 'true');
+    logoutBtn.classList.add('opacity-50', 'cursor-wait');
+
+    try {
+      await signOut({ callbackUrl: '/' });
+    } catch (err) {
+      console.error('Error during one-click signout:', err);
+      window.location.href = '/';
+    }
+  });
 </script>
