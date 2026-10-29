@@ -49,8 +49,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // 4. User is NOT logged in
   if (!session || !session.user) {
-    // Cannot access onboarding without an account
-    if (pathname === '/onboarding' || pathname === '/en/onboarding') {
+    // Cannot access onboarding, dashboard, or profile without an account
+    if (
+      pathname === '/onboarding' ||
+      pathname === '/en/onboarding' ||
+      pathname === '/dashboard' ||
+      pathname === '/en/dashboard' ||
+      pathname === '/profile' ||
+      pathname === '/en/profile'
+    ) {
       return context.redirect(isEnglishPath ? '/en' : '/');
     }
     return next();

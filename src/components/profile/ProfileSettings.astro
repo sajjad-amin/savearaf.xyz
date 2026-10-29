@@ -51,6 +51,7 @@ try {
 }
 
 const homeUrl = isBn ? '/' : '/en';
+const dashboardUrl = isBn ? '/dashboard' : '/en/dashboard';
 const switchLangUrl = isBn ? '/en/profile' : '/profile';
 const switchLangLabel = isBn ? 'English' : 'বাংলা';
 const isUpdated = Astro.url.searchParams.get('updated') === 'true';
@@ -78,6 +79,9 @@ const isUpdated = Astro.url.searchParams.get('updated') === 'true';
             class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
           >
             {switchLangLabel}
+          </a>
+          <a href={dashboardUrl} class="text-sm font-semibold text-rose-600 hover:text-rose-700 transition">
+            {isBn ? 'ড্যাশবোর্ড' : 'Dashboard'}
           </a>
           <a href={homeUrl} class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">
             {isBn ? '← মূল পাতায় ফিরুন' : '← Back to Home'}

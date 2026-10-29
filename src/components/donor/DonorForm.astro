@@ -1,0 +1,182 @@
+---
+import type { DonationPreference } from '@/lib/cooldown';
+
+interface Props {
+  lang: 'bn' | 'en';
+  registrationType?: 'self' | 'referral';
+  defaultName?: string;
+  defaultPhone?: string;
+  defaultBloodGroup?: string;
+  defaultLocation?: string;
+  defaultPreference?: DonationPreference;
+  defaultLastDonationDate?: string;
+  formId?: string;
+  isUpdate?: boolean;
+}
+
+const {
+  lang,
+  registrationType = 'referral',
+  defaultName = '',
+  defaultPhone = '',
+  defaultBloodGroup = '',
+  defaultLocation = '',
+  defaultPreference = 'whole_blood',
+  defaultLastDonationDate = '',
+  formId = 'donor-form',
+  isUpdate = false,
+} = Astro.props;
+
+const isBn = lang === 'bn';
+const isSelf = registrationType === 'self';
+
+// Calculate today's date formatted as YYYY-MM-DD for datepicker max constraint
+const today = new Date().toISOString().split('T')[0];
+
+const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
+---
+
+<form method="POST" action="/api/donor/register" id={formId} class="space-y-5">
+  <input type="hidden" name="registration_type" value={registrationType} />
+
+  <!-- Name -->
+  <div>
+    <label for={`${formId}-name`} class="block text-sm font-semibold text-gray-800 mb-1.5">
+      {isBn ? 'রক্তদাতার পূর্ণ নাম' : 'Full Name'} <span class="text-rose-600">*</span>
+    </label>
+    <input
+      type="text"
+      id={`${formId}-name`}
+      name="name"
+      value={defaultName}
+      required
+      placeholder={isBn ? 'রক্তদাতার নাম লিখুন' : "Enter donor's full name"}
+      class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
+    />
+  </div>
+
+  <!-- Phone Number -->
+  <div>
+    <label for={`${formId}-phone`} class="block text-sm font-semibold text-gray-800 mb-1.5">
+      {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর' : 'Phone / WhatsApp Number'} <span class="text-rose-600">*</span>
+    </label>
+    <input
+      type="tel"
+      id={`${formId}-phone`}
+      name="phone"
+      value={defaultPhone}
+      required
+      placeholder="017XXXXXXXX বা +88017XXXXXXXX"
+      class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
+    />
+    <p class="mt-1 text-xs text-gray-500">
+      {isBn
+        ? 'জরুরি রক্তদান বা প্লাটিলেট সমন্বয়ের সুবিধার্থে হোয়াটসঅ্যাপ সক্রিয় নম্বর উৎসাহিত করা হয়।'
+        : 'A WhatsApp-active number is strongly encouraged for urgent donor coordination.'}
+    </p>
+  </div>
+
+  <!-- Blood Group & Location in 2 Columns -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- Blood Group -->
+    <div>
+      <label for={`${formId}-blood-group`} class="block text-sm font-semibold text-gray-800 mb-1.5">
+        {isBn ? 'রক্তের গ্রুপ' : 'Blood Group'} <span class="text-rose-600">*</span>
+      </label>
+      <select
+        id={`${formId}-blood-group`}
+        name="blood_group"
+        required
+        class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:border-rose-500 focus:ring-rose-500 text-sm transition bg-white"
+      >
+        <option value="" disabled selected={!defaultBloodGroup}>
+          {isBn ? '-- রক্তের গ্রুপ নির্বাচন করুন --' : '-- Select Blood Group --'}
+        </option>
+        {bloodGroups.map((bg) => (
+          <option value={bg} selected={defaultBloodGroup === bg}>
+            {bg}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <!-- Location -->
+    <div>
+      <label for={`${formId}-location`} class="block text-sm font-semibold text-gray-800 mb-1.5">
+        {isBn ? 'বর্তমান এলাকা / শহর' : 'Current City / Area'}
+      </label>
+      <input
+        type="text"
+        id={`${formId}-location`}
+        name="location"
+        value={defaultLocation}
+        placeholder={isBn ? 'যেমন: ধানমন্ডি, ঢাকা' : 'e.g. Dhanmondi, Dhaka'}
+        class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
+      />
+    </div>
+  </div>
+
+  <!-- Donation Preference -->
+  <div>
+    <label for={`${formId}-donation-preference`} class="block text-sm font-semibold text-gray-800 mb-1.5">
+      {isBn ? 'রক্তদানের ধরন / অগ্রাধিকার' : 'Donation Preference'} <span class="text-rose-600">*</span>
+    </label>
+    <select
+      id={`${formId}-donation-preference`}
+      name="donation_preference"
+      required
+      class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:border-rose-500 focus:ring-rose-500 text-sm transition bg-white"
+    >
+      <option value="whole_blood" selected={defaultPreference === 'whole_blood'}>
+        {isBn
+          ? 'সম্পূর্ণ রক্ত (Whole Blood) — নিরাপদ বিরতি ৯০ দিন'
+          : 'Whole Blood (Safe cooldown 90 days)'}
+      </option>
+      <option value="platelets" selected={defaultPreference === 'platelets'}>
+        {isBn
+          ? 'প্লাটিলেট / এফারিসিস (Platelets / SDP) — নিরাপদ বিরতি ১৫ দিন'
+          : 'Platelets / SDP (Safe cooldown 15 days)'}
+      </option>
+    </select>
+  </div>
+
+  <!-- Last Donation Date -->
+  <div>
+    <label for={`${formId}-last-donation-date`} class="block text-sm font-semibold text-gray-800 mb-1.5">
+      {isBn ? 'সর্বশেষ রক্তদানের তারিখ (ঐচ্ছিক)' : 'Last Donation Date (Optional)'}
+    </label>
+    <input
+      type="date"
+      id={`${formId}-last-donation-date`}
+      name="last_donation_date"
+      max={today}
+      value={defaultLastDonationDate}
+      class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:border-rose-500 focus:ring-rose-500 text-sm transition bg-white"
+    />
+    <p class="mt-1 text-xs text-gray-500">
+      {isBn
+        ? 'সর্বশেষ রক্তদানের তারিখ দিলে স্বয়ংক্রিয়ভাবে কুলডাউন ও পরবর্তী রক্তদানের তারিখ হিসাব করা হবে।'
+        : 'Providing the last donation date automatically computes cooldown status and next eligibility date.'}
+    </p>
+  </div>
+
+  <!-- Submit Button -->
+  <div class="pt-2">
+    <button
+      type="submit"
+      class="w-full sm:w-auto inline-flex justify-center items-center py-2.5 px-6 border border-transparent rounded-xl shadow-xs text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition cursor-pointer"
+    >
+      {isSelf
+        ? isUpdate
+          ? isBn
+            ? 'ডোনার প্রোফাইল হালনাগাদ করুন'
+            : 'Update Donor Profile'
+          : isBn
+            ? 'রক্তদাতা হিসেবে নিবন্ধন করুন'
+            : 'Register as Donor'
+        : isBn
+          ? 'রক্তদাতা সংরক্ষণ করুন'
+          : 'Save Referred Donor'}
+    </button>
+  </div>
+</form>
