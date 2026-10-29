@@ -17,7 +17,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const userId = session.user.id;
 
   try {
-    // 1. Soft-delete user personal data (preserve user ID so donation records remain intact)
+    // 1. Soft-delete user personal data and free up email for future Google logins
+    const freedEmail = `deleted_${Date.now()}_${userId}@savearaf.xyz`;
     await db
       .update(users)
       .set({
@@ -25,6 +26,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
         phone: null,
         image: null,
         isOnboarded: false,
+        email: freedEmail,
       })
       .where(eq(users.id, userId));
 
@@ -46,8 +48,11 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       cookies.delete(cookieName, { path: '/' });
     }
 
-    // 4. Redirect to home page
-    return redirect('/?deleted=true', 303);
+    // 4. Redirect to home page with locale preservation
+    const referer = request.headers.get('referer') || '';
+    const isEn = referer.includes('/en');
+    const redirectUrl = isEn ? '/en?deleted=true' : '/?deleted=true';
+    return redirect(redirectUrl, 303);
   } catch (error) {
     console.error('Error performing soft-delete on user:', error);
     return new Response(

@@ -63,7 +63,10 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       })
       .where(eq(users.id, session.user.id));
 
-    return redirect('/profile?updated=true', 303);
+    const referer = request.headers.get('referer') || '';
+    const isEn = referer.includes('/en');
+    const redirectUrl = isEn ? '/en/profile?updated=true' : '/profile?updated=true';
+    return redirect(redirectUrl, 303);
   } catch (error) {
     console.error('Error updating profile in database:', error);
     return new Response(

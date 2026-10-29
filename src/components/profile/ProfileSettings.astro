@@ -1,0 +1,352 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+
+import { db } from '@/db';
+import { users } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+const session = Astro.locals.session;
+const user = Astro.locals.user;
+
+// Only logged in users can access profile settings
+if (!session || !user) {
+  return Astro.redirect('/api/auth/signin');
+}
+
+// Fetch latest user data from DB
+let currentName = user.name || '';
+let currentEmail = user.email || '';
+let currentPhone = user.phone || '';
+let currentImage = user.image;
+let currentRole = user.role || 'user';
+
+try {
+  const [dbUser] = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      phone: users.phone,
+      image: users.image,
+      role: users.role,
+    })
+    .from(users)
+    .where(eq(users.id, user.id))
+    .limit(1);
+
+  if (dbUser) {
+    currentName = dbUser.name || currentName;
+    currentEmail = dbUser.email || currentEmail;
+    currentPhone = dbUser.phone || currentPhone;
+    currentImage = dbUser.image || currentImage;
+    currentRole = dbUser.role || currentRole;
+  }
+} catch (error) {
+  console.error('Error fetching user profile from database:', error);
+}
+
+const homeUrl = isBn ? '/' : '/en';
+const switchLangUrl = isBn ? '/en/profile' : '/profile';
+const switchLangLabel = isBn ? 'English' : 'বাংলা';
+const isUpdated = Astro.url.searchParams.get('updated') === 'true';
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{isBn ? 'প্রোফাইল সেটিংস - Save Araf' : 'Profile Settings - Save Araf'}</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
+    <!-- Header -->
+    <header class="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-xs">
+      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <a href={homeUrl} class="flex items-center gap-2 font-bold text-lg text-rose-600 hover:text-rose-700">
+          <img src="/logo.png" alt="Save Araf Logo" class="w-8 h-8 rounded-lg object-contain" />
+          <span>Save Araf</span>
+        </a>
+        <div class="flex items-center gap-3">
+          <a
+            href={switchLangUrl}
+            class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
+          >
+            {switchLangLabel}
+          </a>
+          <a href={homeUrl} class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+            {isBn ? '← মূল পাতায় ফিরুন' : '← Back to Home'}
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-3xl mx-auto px-4 py-10 flex-1 w-full">
+      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900">
+            {isBn ? 'প্রোফাইল সেটিংস' : 'Profile Settings'}
+          </h1>
+          <p class="text-sm text-gray-500 mt-1">
+            {isBn
+              ? 'আপনার নাম এবং যোগাযোগের ফোন নম্বর পরিচালনা করুন'
+              : 'Manage your contact name and active phone number'}
+          </p>
+        </div>
+
+        {currentImage && (
+          <div class="flex items-center gap-3 bg-white p-2 pr-4 rounded-full border border-gray-200 shadow-xs w-fit">
+            <img src={currentImage} alt={currentName} class="w-10 h-10 rounded-full object-cover" />
+            <div class="text-left">
+              <span class="block text-xs font-bold text-gray-900">{currentName}</span>
+              <span class="block text-[11px] text-gray-500 capitalize">{currentRole}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- Success Notification Banner -->
+      {isUpdated && (
+        <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3">
+          <span class="text-lg">✅</span>
+          <span>
+            {isBn
+              ? 'আপনার প্রোফাইল তথ্য সফলভাবে হালনাগাদ করা হয়েছে।'
+              : 'Your profile information has been updated successfully.'}
+          </span>
+        </div>
+      )}
+
+      <!-- Profile Update Form Card -->
+      <section class="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 sm:p-8 mb-8">
+        <h2 class="text-lg font-bold text-gray-900 mb-6 pb-3 border-b border-gray-100 flex items-center gap-2">
+          <span>👤</span>
+          <span>{isBn ? 'ব্যক্তিগত বিবরণ (Personal Details)' : 'Personal Details'}</span>
+        </h2>
+
+        <form method="POST" action="/api/profile/update" class="space-y-6">
+          <!-- Full Name -->
+          <div>
+            <label for="name" class="block text-sm font-semibold text-gray-800 mb-1.5">
+              {isBn ? 'পূর্ণ নাম (Full Name)' : 'Full Name'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={currentName}
+              required
+              class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
+            />
+          </div>
+
+          <!-- Email (Read-only) -->
+          <div>
+            <label for="email" class="block text-sm font-semibold text-gray-800 mb-1.5">
+              {isBn ? 'ইমেইল ঠিকানা (Email Address)' : 'Email Address'}
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={currentEmail}
+              disabled
+              class="block w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 px-4 text-gray-500 cursor-not-allowed text-sm"
+            />
+            <p class="mt-1.5 text-xs text-gray-400">
+              🔒 {isBn
+                ? 'গুগল অ্যাকাউন্ট দ্বারা সুরক্ষিত হওয়ায় ইমেইল পরিবর্তনযোগ্য নয় (Managed by Google OAuth).'
+                : 'Locked to your Google OAuth account for identity verification.'}
+            </p>
+          </div>
+
+          <!-- Phone Number -->
+          <div>
+            <label for="phone" class="block text-sm font-semibold text-gray-800 mb-1.5">
+              {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর (Phone / WhatsApp)' : 'Mobile / WhatsApp Number'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={currentPhone}
+              required
+              placeholder={isBn ? '017XXXXXXXX বা +88017XXXXXXXX' : '+88017XXXXXXXX or 017XXXXXXXX'}
+              class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
+            />
+            <p class="mt-1.5 text-xs text-gray-500">
+              {isBn
+                ? 'জরুরি রক্তদান বা প্লাটিলেট সমন্বয়ের সুবিধার্থে হোয়াটসঅ্যাপ সংযুক্ত নম্বর উৎসাহিত করা হয়।'
+                : 'A WhatsApp-connected number is recommended for rapid emergency coordination.'}
+            </p>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="pt-2">
+            <button
+              type="submit"
+              class="inline-flex justify-center py-2.5 px-6 border border-transparent rounded-xl shadow-xs text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition cursor-pointer"
+            >
+              {isBn ? 'পরিবর্তন সংরক্ষণ করুন (Save Changes)' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Danger Zone: Delete Account Card -->
+      <section class="bg-rose-50/50 rounded-3xl border border-rose-200 shadow-xs p-6 sm:p-8">
+        <h2 class="text-lg font-bold text-rose-900 mb-2 flex items-center gap-2">
+          <span>⚠️</span>
+          <span>{isBn ? 'বিপদজনক এলাকা (Danger Zone)' : 'Danger Zone'}</span>
+        </h2>
+        <p class="text-xs sm:text-sm text-rose-800 leading-relaxed mb-6">
+          {isBn
+            ? 'আপনি যদি এই প্ল্যাটফর্ম থেকে আপনার ব্যক্তিগত তথ্য অপসারণ করতে চান, তবে অ্যাকাউন্ট মুছে ফেলতে পারেন। আপনার নাম "Anonymous Donor" এ পরিবর্তিত হবে এবং ফোন নম্বর ও ছবি মুছে যাবে। আপনি পরবর্তীতে চাইলে আবার একই গুগল অ্যাকাউন্ট দিয়ে নতুনভাবে লগইন করতে পারবেন।'
+            : 'If you wish to remove your account and personal data from this platform, you can delete it below. Your name will be anonymized to "Anonymous Donor", and phone and photo cleared. You can always sign in again with the same Google account in the future.'}
+        </p>
+
+        <!-- Open Custom Delete Modal Button -->
+        <button
+          type="button"
+          id="open-delete-modal-btn"
+          class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl border border-rose-300 bg-white hover:bg-rose-600 text-rose-700 hover:text-white font-bold text-sm shadow-xs transition duration-150 cursor-pointer"
+        >
+          {isBn ? 'অ্যাকাউন্ট মুছে ফেলুন (Delete Account)' : 'Delete Account'}
+        </button>
+      </section>
+    </main>
+
+    <!-- Custom Modern Delete Confirmation Modal -->
+    <div
+      id="delete-modal"
+      class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-headline"
+    >
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-rose-200 transform transition-all">
+        <!-- Modal Header -->
+        <div class="flex items-center gap-3 text-rose-600 mb-4">
+          <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-xl font-bold">
+            ⚠️
+          </div>
+          <h3 id="modal-headline" class="text-lg font-bold text-gray-900">
+            {isBn ? 'অ্যাকাউন্ট স্থায়ীভাবে অপসারণ' : 'Permanently Delete Account'}
+          </h3>
+        </div>
+
+        <!-- Modal Body / Warning Text -->
+        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed mb-4">
+          {isBn
+            ? 'এই প্রক্রিয়া সম্পন্ন হলে আপনার ব্যক্তিগত নাম, ফোন নম্বর ও প্রোফাইল ছবি স্থায়ীভাবে মুছে যাবে। আপনি পরবর্তীতে চাইলে একই গুগল অ্যাকাউন্ট দিয়ে পুনরায় নতুনভাবে যুক্ত হতে পারবেন।'
+            : 'This will permanently anonymize your name and remove your phone number and profile picture. You can re-register anytime with your Google account.'}
+        </p>
+
+        <!-- Typed Confirmation Prompt -->
+        <div class="mb-6 p-4 rounded-2xl bg-gray-50 border border-gray-200">
+          <label for="delete-confirm-input" class="block text-xs font-semibold text-gray-700 mb-2">
+            {isBn ? (
+              <span>
+                নিশ্চিত করতে নিচের বক্সে <strong class="text-rose-600 font-extrabold">DELETE</strong> লিখুন:
+              </span>
+            ) : (
+              <span>
+                Please type <strong class="text-rose-600 font-extrabold">DELETE</strong> to confirm:
+              </span>
+            )}
+          </label>
+          <input
+            type="text"
+            id="delete-confirm-input"
+            autocomplete="off"
+            placeholder="DELETE"
+            class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-center font-mono font-bold tracking-widest text-rose-600 uppercase focus:border-rose-500 focus:ring-rose-500 text-sm"
+          />
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            id="close-delete-modal-btn"
+            class="flex-1 py-2.5 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold text-sm transition cursor-pointer"
+          >
+            {isBn ? 'বাতিল করুন' : 'Cancel'}
+          </button>
+
+          <form method="POST" action="/api/profile/delete" class="flex-1 m-0">
+            <button
+              type="submit"
+              id="confirm-delete-btn"
+              disabled
+              class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-xs transition cursor-pointer"
+            >
+              {isBn ? 'মুছে ফেলুন' : 'Confirm Delete'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client Script for Typed Confirmation Modal -->
+    <script is:inline>
+      (() => {
+        const modal = document.getElementById('delete-modal');
+        const openBtn = document.getElementById('open-delete-modal-btn');
+        const closeBtn = document.getElementById('close-delete-modal-btn');
+        const input = document.getElementById('delete-confirm-input');
+        const confirmBtn = document.getElementById('confirm-delete-btn');
+
+        if (!modal || !openBtn || !closeBtn || !input || !confirmBtn) return;
+
+        function openModal() {
+          modal.classList.remove('hidden');
+          input.value = '';
+          confirmBtn.disabled = true;
+          setTimeout(() => input.focus(), 50);
+        }
+
+        function closeModal() {
+          modal.classList.add('hidden');
+          input.value = '';
+          confirmBtn.disabled = true;
+        }
+
+        openBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+
+        // Close on clicking backdrop
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeModal();
+        });
+
+        // Close on Escape key
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            closeModal();
+          }
+        });
+
+        // Enable confirm button only when typed word matches "DELETE"
+        input.addEventListener('input', () => {
+          const val = input.value.trim().toUpperCase();
+          if (val === 'DELETE') {
+            confirmBtn.disabled = false;
+          } else {
+            confirmBtn.disabled = true;
+          }
+        });
+      })();
+    </script>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-500">
+      <p>&copy; 2026 Save Araf Campaign. All rights reserved.</p>
+    </footer>
+  </body>
+</html>

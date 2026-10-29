@@ -19,7 +19,23 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  // 2. Retrieve session and inject into Astro.locals
+  // 2. Track/persist language preference via cookie
+  const isEnglishPath = pathname === '/en' || pathname.startsWith('/en/');
+  if (isEnglishPath) {
+    context.cookies.set('app_locale', 'en', {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+    });
+  } else if (!pathname.startsWith('/api/')) {
+    context.cookies.set('app_locale', 'bn', {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+    });
+  }
+
+  // 3. Retrieve session and inject into Astro.locals
   let session = null;
   try {
     session = await getSession(context.request);
@@ -31,16 +47,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.user = session?.user ?? null;
   context.locals.getSession = async () => session;
 
-  // 3. User is NOT logged in
+  // 4. User is NOT logged in
   if (!session || !session.user) {
     // Cannot access onboarding without an account
-    if (pathname === '/onboarding') {
-      return context.redirect('/');
+    if (pathname === '/onboarding' || pathname === '/en/onboarding') {
+      return context.redirect(isEnglishPath ? '/en' : '/');
     }
     return next();
   }
 
-  // 4. User is logged in: verify onboarding status
+  // 5. User is logged in: verify onboarding status
   let isOnboarded = session.user.is_onboarded;
 
   // If session says not onboarded, query the database once to confirm it wasn't just updated
@@ -70,15 +86,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // If user is NOT onboarded, enforce onboarding redirection (prevent redirect loop)
   if (!isOnboarded) {
-    if (pathname !== '/onboarding') {
-      return context.redirect('/onboarding');
+    if (pathname !== '/onboarding' && pathname !== '/en/onboarding') {
+      const targetOnboarding = isEnglishPath ? '/en/onboarding' : '/onboarding';
+      return context.redirect(targetOnboarding);
     }
     return next();
   }
 
   // If user is ALREADY onboarded, prevent access to onboarding page
-  if (isOnboarded && pathname === '/onboarding') {
-    return context.redirect('/');
+  if (isOnboarded && (pathname === '/onboarding' || pathname === '/en/onboarding')) {
+    return context.redirect(isEnglishPath ? '/en' : '/');
   }
 
   return next();

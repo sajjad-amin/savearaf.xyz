@@ -58,8 +58,10 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       })
       .where(eq(users.id, session.user.id));
 
-    // Redirect to home upon success (303 for clean form submission)
-    return redirect('/', 303);
+    // Redirect to home upon success with locale preservation
+    const referer = request.headers.get('referer') || '';
+    const isEn = referer.includes('/en');
+    return redirect(isEn ? '/en' : '/', 303);
   } catch (error) {
     console.error('Error updating onboarding status in database:', error);
     return new Response(

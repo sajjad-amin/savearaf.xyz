@@ -1,0 +1,140 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+
+const session = Astro.locals.session;
+const user = Astro.locals.user;
+
+const homeUrl = isBn ? '/' : '/en';
+const switchLangUrl = isBn ? '/en/onboarding' : '/onboarding';
+const switchLangLabel = isBn ? 'English' : 'বাংলা';
+
+// If accessed directly without an active session, redirect to home
+if (!session || !user) {
+  return Astro.redirect(homeUrl);
+}
+
+// If user is already onboarded, redirect to home
+if (user.is_onboarded) {
+  return Astro.redirect(homeUrl);
+}
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{isBn ? 'যোগাযোগের তথ্য প্রদান করুন - Save Araf' : 'Complete Contact Profile - Save Araf'}</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 antialiased">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+      <!-- Top Language Switcher & Logo -->
+      <div class="flex items-center justify-between mb-4 px-2">
+        <a href={homeUrl} class="flex items-center gap-2">
+          <img src="/logo.png" alt="Save Araf Logo" class="w-12 h-12 rounded-xl shadow-xs object-contain" />
+        </a>
+        <a
+          href={switchLangUrl}
+          class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
+        >
+          {switchLangLabel}
+        </a>
+      </div>
+
+      <h1 class="text-center text-2xl font-extrabold text-gray-900 tracking-tight">
+        {isBn ? 'প্রোফাইল সম্পন্ন করুন' : 'Complete Your Profile'}
+      </h1>
+      <p class="mt-1 text-center text-sm text-gray-600">
+        {isBn
+          ? 'জরুরি রক্তদান ও প্লাটিলেট সমন্বয়ের জন্য ফোন নম্বর দিন'
+          : 'Provide your phone number for emergency blood/platelet coordination'}
+      </p>
+
+      {user.image && (
+        <div class="mt-4 flex items-center justify-center gap-3 bg-white py-2 px-4 rounded-full shadow-xs border border-gray-200 w-fit mx-auto">
+          <img src={user.image} alt={user.name || 'User'} class="w-7 h-7 rounded-full object-cover" />
+          <span class="text-xs font-medium text-gray-700">{user.name || user.email}</span>
+        </div>
+      )}
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
+      <div class="bg-white py-8 px-6 shadow-sm rounded-3xl border border-gray-200 sm:px-10">
+        <!-- Guidance Notice -->
+        <div class="rounded-2xl bg-rose-50 p-4 border border-rose-100 mb-6 text-sm">
+          <p class="font-semibold text-rose-900 mb-1 flex items-center gap-1.5">
+            <span>📱</span>
+            <span>{isBn ? 'সচল ফোন নম্বর প্রদান জরুরি' : 'Active Phone Number Required'}</span>
+          </p>
+          <p class="text-rose-800 leading-relaxed text-xs sm:text-sm">
+            {isBn ? (
+              <span>
+                আরাফের জরুরি রক্তের প্লাটিলেট (SDP) বা হোল ব্লাড সমন্বয়ের জন্য আপনার সচল ফোন নম্বর প্রয়োজন। আমরা <strong>হোয়াটসঅ্যাপ (WhatsApp)</strong> সংযুক্ত নম্বর দেওয়ার জন্য উৎসাহিত করছি, তবে <strong>যেকোনো সক্রিয় ও বৈধ মোবাইল নম্বর পুরোপুরি গ্রহণযোগ্য</strong>।
+              </span>
+            ) : (
+              <span>
+                An active contact number is needed to coordinate urgent blood or platelet transfusions for Araf. A <strong>WhatsApp-connected</strong> number is strongly encouraged for fast coordination, but <strong>any valid phone number is completely acceptable</strong>.
+              </span>
+            )}
+          </p>
+        </div>
+
+        <!-- Onboarding Form -->
+        <form method="POST" action="/api/onboard" class="space-y-6">
+          <div>
+            <label for="phone" class="block text-sm font-semibold text-gray-900 mb-1.5">
+              {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর' : 'Mobile / WhatsApp Number'} <span class="text-rose-600">*</span>
+            </label>
+            <div class="relative rounded-xl shadow-xs">
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                required
+                autocomplete="tel"
+                placeholder={isBn ? 'যেমন: 017XXXXXXXX অথবা +88017XXXXXXXX' : 'e.g. +88017XXXXXXXX or 017XXXXXXXX'}
+                class="block w-full rounded-xl border border-gray-300 py-3 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-base transition sm:text-sm"
+              />
+            </div>
+            <p class="mt-2 text-xs text-gray-500 flex items-center gap-1">
+              <span>🔒</span>
+              <span>
+                {isBn
+                  ? 'আপনার নম্বরটি শুধুমাত্র জরুরি রক্তদান সমন্বয়কারী দলের কাছে থাকবে।'
+                  : 'Your phone number is strictly kept for emergency donor coordination.'}
+              </span>
+            </p>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition cursor-pointer"
+            >
+              {isBn ? 'সংরক্ষণ করুন ও এগিয়ে যান →' : 'Save & Continue →'}
+            </button>
+          </div>
+        </form>
+
+        <!-- Account Switcher / Sign Out -->
+        <div class="mt-6 pt-5 border-t border-gray-200 text-center">
+          <p class="text-xs text-gray-500">
+            {isBn ? 'ভুল অ্যাকাউন্টে লগইন করেছেন?' : 'Wrong account?'}
+            <a
+              href="/api/auth/signout"
+              class="text-rose-600 hover:text-rose-700 font-semibold underline ml-1"
+            >
+              {isBn ? 'লগআউট করুন (Sign Out)' : 'Sign Out'}
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
