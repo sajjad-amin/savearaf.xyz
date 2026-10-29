@@ -1,0 +1,34 @@
+---
+export const prerender = false;
+
+const { lang } = Astro.params;
+
+// Validate locale
+const supportedLocales = ['bn', 'en'];
+if (!lang || !supportedLocales.includes(lang)) {
+  return Astro.redirect('/bn');
+}
+
+const isBengali = lang === 'bn';
+---
+
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{isBengali ? "আরাফকে বাঁচান - Save Araf" : "Save Araf - Emergency Appeal"}</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900 min-h-screen">
+    <main class="max-w-4xl mx-auto px-4 py-12">
+      <h1 class="text-3xl font-bold tracking-tight">
+        {isBengali ? "আরাফকে বাঁচান (Save Araf)" : "Save Araf Fundraising & Blood Donor CRM"}
+      </h1>
+      <p class="mt-4 text-gray-600">
+        {isBengali
+          ? "প্রজেক্ট সেটআপ এবং স্কিমা সম্পন্ন হয়েছে। ভাষা: বাংলা"
+          : "Base setup and database schema initialized. Current locale: English"}
+      </p>
+    </main>
+  </body>
+</html>

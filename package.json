@@ -1,0 +1,32 @@
+{
+  "name": "savearaf.xyz",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Fundraising and blood donor CRM for Save Araf",
+  "dependencies": {
+    "@astrojs/node": "^9.5.5",
+    "@astrojs/tailwind": "^6.0.2",
+    "astro": "^5.18.2",
+    "drizzle-orm": "^0.45.4",
+    "mysql2": "^3.24.6",
+    "tailwindcss": "^3.4.19"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "drizzle-kit": "^0.31.11",
+    "typescript": "^5.9.3"
+  }
+}
