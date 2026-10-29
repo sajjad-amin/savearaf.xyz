@@ -1,17 +1,13 @@
 ---
-export const prerender = false;
-
-const { lang } = Astro.params;
-
-const supportedLocales = ['bn', 'en'];
-if (!lang || !supportedLocales.includes(lang)) {
-  return Astro.redirect('/bn/privacy-policy');
+interface Props {
+  lang: 'bn' | 'en';
 }
 
+const { lang } = Astro.props;
 const isBn = lang === 'bn';
-const otherLang = isBn ? 'en' : 'bn';
-const otherLangUrl = `/${otherLang}/privacy-policy`;
-const homeUrl = `/${lang}`;
+const homeUrl = isBn ? '/' : '/en';
+const switchLangUrl = isBn ? '/en/privacy-policy' : '/privacy-policy';
+const switchLangLabel = isBn ? 'English' : 'বাংলা';
 ---
 
 <!doctype html>
@@ -27,15 +23,15 @@ const homeUrl = `/${lang}`;
     <header class="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
       <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
         <a href={homeUrl} class="flex items-center gap-2 font-bold text-lg text-rose-600 hover:text-rose-700">
-          <img src="/favicon.svg" alt="Save Araf Logo" class="w-7 h-7" />
+          <img src="/logo.png" alt="Save Araf Logo" class="w-8 h-8 rounded object-contain" />
           <span>Save Araf</span>
         </a>
         <div class="flex items-center gap-3">
           <a
-            href={otherLangUrl}
+            href={switchLangUrl}
             class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
           >
-            {isBn ? 'English' : 'বাংলা'}
+            {switchLangLabel}
           </a>
           <a href={homeUrl} class="text-sm font-medium text-gray-600 hover:text-gray-900">
             {isBn ? '← মূল পাতায় ফিরুন' : '← Back to Home'}

@@ -1,63 +1,63 @@
 ---
-export const prerender = false;
-
-const { lang } = Astro.params;
-
-// Validate locale
-const supportedLocales = ['bn', 'en'];
-if (!lang || !supportedLocales.includes(lang)) {
-  return Astro.redirect('/bn');
+interface Props {
+  lang: 'bn' | 'en';
 }
 
-const isBengali = lang === 'bn';
-const otherLang = isBengali ? 'en' : 'bn';
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+const switchLangUrl = isBn ? '/en' : '/';
+const switchLangLabel = isBn ? 'English' : 'বাংলা';
+
+const privacyUrl = isBn ? '/privacy-policy' : '/en/privacy-policy';
+const termsUrl = isBn ? '/terms-of-service' : '/en/terms-of-service';
 ---
 
+<!doctype html>
 <html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{isBengali ? "আরাফকে বাঁচান - Save Araf" : "Save Araf - Emergency Appeal"}</title>
+    <title>{isBn ? 'আরাফকে বাঁচান - Save Araf' : 'Save Araf - Emergency Appeal'}</title>
   </head>
   <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
-    <header class="border-b border-gray-200 bg-white">
+    <header class="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
       <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <img src="/logo.png" alt="Save Araf Logo" class="w-10 h-10 rounded-lg object-contain shadow-sm" />
           <span class="font-bold text-xl text-rose-600">Save Araf</span>
         </div>
         <a
-          href={`/${otherLang}`}
+          href={switchLangUrl}
           class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
         >
-          {isBengali ? 'English' : 'বাংলা'}
+          {switchLangLabel}
         </a>
       </div>
     </header>
 
     <main class="max-w-4xl mx-auto px-4 py-12 flex-1">
       <h1 class="text-3xl font-bold tracking-tight">
-        {isBengali ? "আরাফকে বাঁচান (Save Araf)" : "Save Araf Fundraising & Blood Donor CRM"}
+        {isBn ? 'আরাফকে বাঁচান (Save Araf)' : 'Save Araf Fundraising & Blood Donor CRM'}
       </h1>
       <p class="mt-4 text-gray-600">
-        {isBengali
-          ? "ব্র্যান্ডিং এবং গুগল ও-অথ এর জন্য প্রয়োজনীয় লিগ্যাল পেইজ প্রস্তুত। ভাষা: বাংলা"
-          : "Branding assets and legal pages for Google OAuth verification are ready. Current locale: English"}
+        {isBn
+          ? 'ব্র্যান্ডিং এবং গুগল ও-অথ এর জন্য প্রয়োজনীয় লিগ্যাল পেইজ প্রস্তুত। ভাষা: বাংলা (ডিফল্ট - প্রিফিক্স মুক্ত)'
+          : 'Branding assets and legal pages for Google OAuth verification are ready. Current locale: English (/en)'}
       </p>
 
       <div class="mt-8 flex flex-wrap gap-4">
         <a
-          href={`/${lang}/privacy-policy`}
+          href={privacyUrl}
           class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition"
         >
-          {isBengali ? 'গোপনীয়তা নীতি (Privacy Policy)' : 'Privacy Policy'}
+          {isBn ? 'গোপনীয়তা নীতি (Privacy Policy)' : 'Privacy Policy'}
         </a>
         <a
-          href={`/${lang}/terms-of-service`}
+          href={termsUrl}
           class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition"
         >
-          {isBengali ? 'ব্যবহারের শর্তাবলি (Terms of Service)' : 'Terms of Service'}
+          {isBn ? 'ব্যবহারের শর্তাবলি (Terms of Service)' : 'Terms of Service'}
         </a>
       </div>
     </main>

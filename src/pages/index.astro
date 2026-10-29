@@ -1,4 +1,6 @@
 ---
 export const prerender = false;
-return Astro.redirect('/bn');
+import HomeContent from '@/components/home/HomeContent.astro';
 ---
+
+<HomeContent lang="bn" />
