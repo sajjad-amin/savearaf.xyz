@@ -1,0 +1,174 @@
+---
+export const prerender = false;
+
+const { lang } = Astro.params;
+
+const supportedLocales = ['bn', 'en'];
+if (!lang || !supportedLocales.includes(lang)) {
+  return Astro.redirect('/bn/privacy-policy');
+}
+
+const isBn = lang === 'bn';
+const otherLang = isBn ? 'en' : 'bn';
+const otherLangUrl = `/${otherLang}/privacy-policy`;
+const homeUrl = `/${lang}`;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{isBn ? 'গোপনীয়তা নীতি - Save Araf' : 'Privacy Policy - Save Araf'}</title>
+  </head>
+  <body class="bg-gray-50 text-gray-800 antialiased min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
+      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <a href={homeUrl} class="flex items-center gap-2 font-bold text-lg text-rose-600 hover:text-rose-700">
+          <img src="/favicon.svg" alt="Save Araf Logo" class="w-7 h-7" />
+          <span>Save Araf</span>
+        </a>
+        <div class="flex items-center gap-3">
+          <a
+            href={otherLangUrl}
+            class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
+          >
+            {isBn ? 'English' : 'বাংলা'}
+          </a>
+          <a href={homeUrl} class="text-sm font-medium text-gray-600 hover:text-gray-900">
+            {isBn ? '← মূল পাতায় ফিরুন' : '← Back to Home'}
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto px-4 py-10 flex-1">
+      <article class="bg-white p-6 sm:p-10 rounded-2xl shadow-sm border border-gray-200">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
+          {isBn ? 'গোপনীয়তা নীতি (Privacy Policy)' : 'Privacy Policy'}
+        </h1>
+        <p class="text-sm text-gray-500 mb-8">
+          {isBn ? 'সর্বশেষ হালনাগাদ: ২৯ অক্টোবর, ২০২৬' : 'Last Updated: October 29, 2026'}
+        </p>
+
+        {isBn ? (
+          <div class="space-y-6 text-gray-700 leading-relaxed">
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">১. ভূমিকা ও উদ্দেশ্য</h2>
+              <p>
+                "Save Araf" (savearaf.xyz) ব্লাড ক্যান্সারে আক্রান্ত আরাফের চিকিৎসা তহবিল সংগ্রহ এবং জরুরি রক্তের প্লাটিলেট ও রক্তদাতা সমন্বয়ের জন্য পরিচালিত একটি অলাভজনক মানবিক উদ্যোগ। এই প্ল্যাটফর্মে ব্যবহারকারীর তথ্যের সর্বোচ্চ নিরাপত্তা এবং গোপনীয়তা রক্ষা করতে আমরা দায়বদ্ধ।
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">২. আমরা কী কী তথ্য সংগ্রহ করি</h2>
+              <ul class="list-disc pl-5 space-y-1.5">
+                <li><strong>গুগল অ্যাকাউন্ট তথ্য (Google OAuth):</strong> আপনার নাম, ইমেইল ঠিকানা এবং প্রোফাইল ছবি যা স্বয়ংক্রিয় যাচাইকরণের উদ্দেশ্যে সংগ্রহ করা হয়।</li>
+                <li><strong>যোগাযোগের তথ্য:</strong> আপনার সজ্ঞানে প্রদানকৃত সক্রিয় ফোন নম্বর (হোয়াটসঅ্যাপ সংযুক্ত নম্বর উৎসাহিত করা হয়) এবং এলাকা/লোকেশন।</li>
+                <li><strong>রক্তদান সংক্রান্ত তথ্য:</strong> রক্তের গ্রুপ, দানের ধরন (হোল ব্লাড বা প্লাটিলেট/এসডিপি) এবং বিগত রক্তদানের তারিখ।</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">৩. তথ্যের ব্যবহার</h2>
+              <p>সংগৃহীত তথ্য কেবলমাত্র নিম্নলিখিত মানবিক উদ্দেশ্যে ব্যবহৃত হবে:</p>
+              <ul class="list-disc pl-5 space-y-1.5 mt-2">
+                <li>জরুরি রক্ত বা প্লাটিলেটের প্রয়োজনে রোগীর পরিবারের পক্ষ থেকে সরাসরি ফোনকল বা হোয়াটসঅ্যাপের মাধ্যমে আপনার সাথে যোগাযোগ করা।</li>
+                <li>নিরাপদ রক্তদান বিরতি (কুলডাউন সময়) হিসাব করে পুনরায় অনুরোধ করার উপযুক্ত সময় নির্ধারণ।</li>
+                <li>চিকিৎসা অনুদান এবং তহবিলের হালনাগাদ নোটিফিকেশন প্রদান করা।</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">৪. তথ্য সুরক্ষা ও গোপনীয়তা</h2>
+              <p>
+                আমরা নিশ্চিত করছি যে:
+              </p>
+              <ul class="list-disc pl-5 space-y-1.5 mt-2">
+                <li>আপনার ব্যক্তিগত তথ্য, ফোন নম্বর বা ইমেইল কোনো তৃতীয় পক্ষ, বিজ্ঞাপনী সংস্থা বা বাণিজ্যিক প্রতিষ্ঠানের কাছে বিক্রি বা শেয়ার করা হবে না।</li>
+                <li>গুগল থেকে প্রাপ্ত তথ্যের ব্যবহার Google API Services User Data Policy (Limited Use) নির্দেশিকা কঠোরভাবে মেনে চলে।</li>
+                <li>ডাটাবেজ উচ্চ নিরাপত্তাযুক্ত প্রোটোকলের মাধ্যমে সংরক্ষিত।</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">৫. তথ্য অপসারণ ও অধিকার</h2>
+              <p>
+                আপনি যেকোনো সময় আপনার ফোন নম্বর পরিবর্তন অথবা রক্তদাতা তালিকা থেকে আপনার তথ্য অপসারণের জন্য আমাদের সাথে যোগাযোগ করতে পারেন। অনুরোধের প্রেক্ষিতে অবিলম্বে আপনার রেকর্ড মুছে ফেলা বা নিষ্ক্রিয় করা হবে।
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">৬. যোগাযোগ</h2>
+              <p>
+                গোপনীয়তা সংক্রান্ত যেকোনো প্রশ্ন বা তথ্য হালনাগাদের জন্য অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন: ইমেইল: <a href="mailto:support@savearaf.xyz" class="text-rose-600 underline">support@savearaf.xyz</a>।
+              </p>
+            </section>
+          </div>
+        ) : (
+          <div class="space-y-6 text-gray-700 leading-relaxed">
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">1. Overview and Purpose</h2>
+              <p>
+                "Save Araf" (savearaf.xyz) is a dedicated humanitarian initiative established to coordinate medical fundraising and emergency blood/platelet donor matching for Araf, who is currently undergoing critical treatment for blood cancer. We are committed to safeguarding the privacy and confidentiality of our donors and supporters.
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">2. Information We Collect</h2>
+              <ul class="list-disc pl-5 space-y-1.5">
+                <li><strong>Google Account Information (Google OAuth):</strong> Name, email address, and profile picture provided through Google Sign-In for secure authentication.</li>
+                <li><strong>Contact Information:</strong> Active phone number (WhatsApp enabled preferred) and location/city voluntarily provided during onboarding.</li>
+                <li><strong>Donor Details:</strong> Blood group, donation preference (whole blood or apheresis/platelets), and date of last donation.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">3. How We Use Your Data</h2>
+              <p>Your data is used strictly for the following humanitarian coordination purposes:</p>
+              <ul class="list-disc pl-5 space-y-1.5 mt-2">
+                <li>Direct telephone or WhatsApp communication by verified campaign coordinators when emergency blood or platelet transfusions are required.</li>
+                <li>Automated tracking of medically safe donation cooldown intervals (15 days for platelets, 90 days for whole blood).</li>
+                <li>Providing authentic medical status and fundraising progress updates.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">4. Data Sharing and Protection</h2>
+              <p>
+                We adhere to strict data security standards:
+              </p>
+              <ul class="list-disc pl-5 space-y-1.5 mt-2">
+                <li>Your personal information, phone numbers, and email will NEVER be sold, rented, or distributed to third-party commercial entities or marketing agencies.</li>
+                <li>Our use and transfer of information received from Google APIs adhere to the Google API Services User Data Policy, including the Limited Use requirements.</li>
+                <li>All sensitive data is stored securely in encrypted server databases.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">5. User Control and Data Deletion</h2>
+              <p>
+                You retain complete control over your personal records. You may request deletion or deactivation of your donor profile and contact number at any time by contacting our support team.
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">6. Contact Us</h2>
+              <p>
+                For questions regarding this Privacy Policy or your data, please contact us at: <a href="mailto:support@savearaf.xyz" class="text-rose-600 underline">support@savearaf.xyz</a>.
+              </p>
+            </section>
+          </div>
+        )}
+      </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 bg-white py-6 mt-12 text-center text-xs text-gray-500">
+      <p>&copy; 2026 Save Araf Campaign. All rights reserved.</p>
+    </footer>
+  </body>
+</html>

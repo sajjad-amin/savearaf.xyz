@@ -1,0 +1,168 @@
+---
+export const prerender = false;
+
+const { lang } = Astro.params;
+
+const supportedLocales = ['bn', 'en'];
+if (!lang || !supportedLocales.includes(lang)) {
+  return Astro.redirect('/bn/terms-of-service');
+}
+
+const isBn = lang === 'bn';
+const otherLang = isBn ? 'en' : 'bn';
+const otherLangUrl = `/${otherLang}/terms-of-service`;
+const homeUrl = `/${lang}`;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{isBn ? 'ব্যবহারের শর্তাবলি - Save Araf' : 'Terms of Service - Save Araf'}</title>
+  </head>
+  <body class="bg-gray-50 text-gray-800 antialiased min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
+      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <a href={homeUrl} class="flex items-center gap-2 font-bold text-lg text-rose-600 hover:text-rose-700">
+          <img src="/favicon.svg" alt="Save Araf Logo" class="w-7 h-7" />
+          <span>Save Araf</span>
+        </a>
+        <div class="flex items-center gap-3">
+          <a
+            href={otherLangUrl}
+            class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
+          >
+            {isBn ? 'English' : 'বাংলা'}
+          </a>
+          <a href={homeUrl} class="text-sm font-medium text-gray-600 hover:text-gray-900">
+            {isBn ? '← মূল পাতায় ফিরুন' : '← Back to Home'}
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto px-4 py-10 flex-1">
+      <article class="bg-white p-6 sm:p-10 rounded-2xl shadow-sm border border-gray-200">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
+          {isBn ? 'ব্যবহারের শর্তাবলি (Terms of Service)' : 'Terms of Service'}
+        </h1>
+        <p class="text-sm text-gray-500 mb-8">
+          {isBn ? 'সর্বশেষ হালনাগাদ: ২৯ অক্টোবর, ২০২৬' : 'Last Updated: October 29, 2026'}
+        </p>
+
+        {isBn ? (
+          <div class="space-y-6 text-gray-700 leading-relaxed">
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">১. প্ল্যাটফর্মের উদ্দেশ্য</h2>
+              <p>
+                "Save Araf" একটি অলাভজনক ও সম্পূর্ণ মানবিক সহায়তা প্ল্যাটফর্ম। এর মূল উদ্দেশ্য ব্লাড ক্যান্সারে আক্রান্ত আরাফের চিকিৎসা সহায়তার জন্য স্বেচ্ছাসেবী রক্তদাতা (হোল ব্লাড ও প্লাটিলেট) সমন্বয় করা এবং চিকিৎসা তহবিলের স্বচ্ছ হালনাগাদ প্রদান করা।
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">২. শর্তাবলি গ্রহণ ও ব্যবহারকারীর প্রতিশ্রুতি</h2>
+              <p>
+                এই প্ল্যাটফর্ম ব্যবহার বা রক্তদাতা হিসেবে নিবন্ধন করার মাধ্যমে আপনি নিম্নোক্ত বিষয়গুলোতে সম্মত হচ্ছেন:
+              </p>
+              <ul class="list-disc pl-5 space-y-1.5 mt-2">
+                <li>আপনার প্রদত্ত নাম, রক্তের গ্রুপ এবং ফোন নম্বর সঠিক ও সক্রিয়।</li>
+                <li>জরুরি প্রয়োজনে সমন্বয়ক বা রোগীর পরিবারের পক্ষ থেকে যোগাযোগ করা হলে আপনি মানবিক দৃষ্টিভঙ্গি থেকে সহযোগিতা করবেন।</li>
+                <li>প্ল্যাটফর্মে কোনো মিথ্যা, বিভ্রান্তিকর বা অনৈতিক তথ্য প্রদান করবেন না।</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">৩. রক্তদান সংক্রান্ত নীতি</h2>
+              <ul class="list-disc pl-5 space-y-1.5">
+                <li><strong>স্বেচ্ছাসেবী ও অবাণিজ্যিক:</strong> রক্ত বা প্লাটিলেট দান সম্পূর্ণ নিঃস্বার্থ এবং অবাণিজ্যিক। কোনো প্রকার আর্থিক লেনদেন বা পারিশ্রমিক গ্রহণযোগ্য নয়।</li>
+                <li><strong>মেডিকেল যোগ্যতা:</strong> রক্তদানের চূড়ান্ত উপযোগিতা সংশ্লিষ্ট হাসপাতাল ও ব্লাড ব্যাংকের চিকিৎসক কর্তৃক স্বাস্থ্য পরীক্ষার মাধ্যমে নির্ধারিত হবে।</li>
+                <li><strong>নিরাপদ বিরতি (Cooldown):</strong> রক্তদাতার শারীরিক সুস্থতা আমাদের অগ্রাধিকার। প্লাটিলেট দানের জন্য ১৫ দিন এবং হোল ব্লাড দানের জন্য ৯০ দিনের নিরাপদ বিরতি মেনে চলা আবশ্যক।</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">৪. আর্থিক অনুদান সংক্রান্ত</h2>
+              <p>
+                চিকিৎসার জন্য অনুদান সরাসরি রোগীর পরিবার কর্তৃক পরিচালিত ব্যাংক অ্যাকাউন্ট বা অনুমোদিত মোবাইল ব্যাংকিংয়ে জমা হয়। প্ল্যাটফর্মটি কোনো প্রকার মধ্যস্থতাকারী ফি বা কমিশন গ্রহণ করে না। সকল খরচের বিবরণী ওয়েবসাইটে নিয়মিত হালনাগাদ করা হয়।
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">৫. দায় সীমাবদ্ধতা (Limitation of Liability)</h2>
+              <p>
+                "Save Araf" কেবল একটি মানবিক সমন্বয় মাধ্যম হিসেবে কাজ করে। রক্তদান, হাসপাতাল ভর্তি বা চিকিৎসাগত প্রক্রিয়ার সরাসরি ব্যবস্থাপনা বা ফলাফলের কোনো আইনি দায় এই ওয়েবসাইটের ওপর বর্তাবে না। চিকিৎসা সংক্রান্ত সকল সিদ্ধান্ত চিকিৎসক ও হাসপাতালের তত্ত্বাবধানে গৃহীত হয়।
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">৬. শর্তাবলি পরিবর্তন ও যোগাযোগ</h2>
+              <p>
+                মানবিক উদ্যোগের স্বার্থে প্ল্যাটফর্মের শর্তাবলি যেকোনো সময় পরিমার্জনের অধিকার কর্তৃপক্ষ সংরক্ষণ করে। এ সংক্রান্ত যেকোনো প্রশ্নের জন্য ইমেইল করুন: <a href="mailto:support@savearaf.xyz" class="text-rose-600 underline">support@savearaf.xyz</a>।
+              </p>
+            </section>
+          </div>
+        ) : (
+          <div class="space-y-6 text-gray-700 leading-relaxed">
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">1. Platform Mission</h2>
+              <p>
+                "Save Araf" is a non-profit humanitarian portal dedicated exclusively to coordinating emergency voluntary blood/platelet donors and facilitating medical fund transparency for Araf's blood cancer treatment.
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">2. User Agreement & Conduct</h2>
+              <p>
+                By accessing this platform or registering as a blood/platelet donor, you acknowledge and agree that:
+              </p>
+              <ul class="list-disc pl-5 space-y-1.5 mt-2">
+                <li>All provided contact details (name, active phone number, blood group) are accurate and truthful.</li>
+                <li>You agree to receive phone calls or WhatsApp messages from campaign coordinators strictly regarding urgent transfusion needs.</li>
+                <li>You will not misrepresent identity or submit malicious or fraudulent data.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">3. Blood Donation Standards</h2>
+              <ul class="list-disc pl-5 space-y-1.5">
+                <li><strong>Voluntary and Non-Commercial:</strong> All blood and platelet donations are purely humanitarian and uncompensated gifts of life. No commercial transactions are permitted.</li>
+                <li><strong>Medical Eligibility:</strong> Final clearance for any donation rests solely with qualified transfusion medicine specialists and hospital staff based on clinical screening.</li>
+                <li><strong>Safe Donation Intervals:</strong> Donor health is strictly respected with mandatory minimum rest periods (15 days for apheresis/platelets and 90 days for whole blood).</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">4. Financial Donations</h2>
+              <p>
+                All financial contributions are directed explicitly to verified patient family bank accounts and mobile financial channels. The platform deducts zero platform fees or administrative commissions. Medical expenditures and receipts are posted publicly for community transparency.
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">5. Limitation of Liability</h2>
+              <p>
+                "Save Araf" serves solely as a volunteer coordination bridge between willing donors and the patient's family. We do not provide medical services, clinical diagnosis, or hospital supervision. All medical procedures occur exclusively under the care of certified healthcare institutions.
+              </p>
+            </section>
+
+            <section>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">6. Modifications & Contact</h2>
+              <p>
+                We reserve the right to revise these terms to better serve patient coordination. For inquiries or concerns, please reach us at: <a href="mailto:support@savearaf.xyz" class="text-rose-600 underline">support@savearaf.xyz</a>.
+              </p>
+            </section>
+          </div>
+        )}
+      </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 bg-white py-6 mt-12 text-center text-xs text-gray-500">
+      <p>&copy; 2026 Save Araf Campaign. All rights reserved.</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Soft circular background -->
+  <rect width="64" height="64" rx="16" fill="#FEE2E2" />
+  
+  <!-- Stylized Blood Drop -->
+  <path
+    d="M32 10C32 10 18 27.5 18 38C18 45.732 24.268 52 32 52C39.732 52 46 45.732 46 38C46 27.5 32 10 32 10Z"
+    fill="url(#dropGradient)"
+  />
+
+  <!-- Subtle Care / Heart / Highlight Arc inside drop -->
+  <path
+    d="M26 36C26 31 29 26 32 23C32 23 28 29 28 35C28 39 30 42 32 44C28.5 43.5 26 40 26 36Z"
+    fill="#FFFFFF"
+    opacity="0.45"
+  />
+
+  <!-- Supporting Cupped Hands Motif -->
+  <path
+    d="M21 44C23.5 48 27.5 50.5 32 50.5C36.5 50.5 40.5 48 43 44C39.5 47 35 48.5 32 48.5C29 48.5 24.5 47 21 44Z"
+    fill="#991B1B"
+    opacity="0.6"
+  />
+
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="dropGradient" x1="32" y1="10" x2="32" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EF4444" />
+      <stop offset="100%" stop-color="#B91C1C" />
+    </linearGradient>
+  </defs>
+</svg>

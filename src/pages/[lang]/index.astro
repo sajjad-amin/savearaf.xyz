@@ -10,6 +10,7 @@ if (!lang || !supportedLocales.includes(lang)) {
 }
 
 const isBengali = lang === 'bn';
+const otherLang = isBengali ? 'en' : 'bn';
 ---
 
 <html lang={lang}>
@@ -19,16 +20,50 @@ const isBengali = lang === 'bn';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{isBengali ? "আরাফকে বাঁচান - Save Araf" : "Save Araf - Emergency Appeal"}</title>
   </head>
-  <body class="bg-gray-50 text-gray-900 min-h-screen">
-    <main class="max-w-4xl mx-auto px-4 py-12">
+  <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+    <header class="border-b border-gray-200 bg-white">
+      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="/logo.png" alt="Save Araf Logo" class="w-10 h-10 rounded-lg object-contain shadow-sm" />
+          <span class="font-bold text-xl text-rose-600">Save Araf</span>
+        </div>
+        <a
+          href={`/${otherLang}`}
+          class="text-xs px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-100 font-medium text-gray-700 transition"
+        >
+          {isBengali ? 'English' : 'বাংলা'}
+        </a>
+      </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-12 flex-1">
       <h1 class="text-3xl font-bold tracking-tight">
         {isBengali ? "আরাফকে বাঁচান (Save Araf)" : "Save Araf Fundraising & Blood Donor CRM"}
       </h1>
       <p class="mt-4 text-gray-600">
         {isBengali
-          ? "প্রজেক্ট সেটআপ এবং স্কিমা সম্পন্ন হয়েছে। ভাষা: বাংলা"
-          : "Base setup and database schema initialized. Current locale: English"}
+          ? "ব্র্যান্ডিং এবং গুগল ও-অথ এর জন্য প্রয়োজনীয় লিগ্যাল পেইজ প্রস্তুত। ভাষা: বাংলা"
+          : "Branding assets and legal pages for Google OAuth verification are ready. Current locale: English"}
       </p>
+
+      <div class="mt-8 flex flex-wrap gap-4">
+        <a
+          href={`/${lang}/privacy-policy`}
+          class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition"
+        >
+          {isBengali ? 'গোপনীয়তা নীতি (Privacy Policy)' : 'Privacy Policy'}
+        </a>
+        <a
+          href={`/${lang}/terms-of-service`}
+          class="inline-flex items-center px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition"
+        >
+          {isBengali ? 'ব্যবহারের শর্তাবলি (Terms of Service)' : 'Terms of Service'}
+        </a>
+      </div>
     </main>
+
+    <footer class="border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-500">
+      <p>&copy; 2026 Save Araf Campaign. All rights reserved.</p>
+    </footer>
   </body>
 </html>
