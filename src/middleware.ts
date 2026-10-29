@@ -29,6 +29,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   context.locals.session = session;
   context.locals.user = session?.user ?? null;
+  context.locals.getSession = async () => session;
 
   // 3. User is NOT logged in
   if (!session || !session.user) {

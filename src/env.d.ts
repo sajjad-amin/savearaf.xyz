@@ -25,6 +25,7 @@ declare global {
     interface Locals {
       session: import('@auth/core/types').Session | null;
       user: import('@auth/core/types').Session['user'] | null;
+      getSession: () => Promise<import('@auth/core/types').Session | null>;
     }
   }
 }

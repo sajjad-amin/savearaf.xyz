@@ -65,6 +65,7 @@ export default {
       return session;
     },
   },
+  basePath: '/api/auth',
   trustHost: true,
   secret: process.env.AUTH_SECRET || 'development_secret_only_change_in_production',
 } satisfies AuthConfig;
