@@ -20,3 +20,10 @@ pnpm-debug.log*
 
 # macOS
 .DS_Store
+
+# sensitive / private patient documents and photos
+documents
+documents/*
+images_araf/*
+facebook_posts/*
+all_documents_so_far.pdf
