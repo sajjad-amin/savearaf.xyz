@@ -275,8 +275,16 @@ const bloodTypes = [
           });
         } catch (err) {
           console.error('Google signin error:', err);
-          // Fallback to direct signin URL
-          window.location.href = '/api/auth/signin/google';
+          signinBtn.removeAttribute('disabled');
+          signinBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+          if (btnText) {
+            btnText.textContent = window.location.pathname.startsWith('/en')
+              ? 'Sign in with Google'
+              : 'গুগল দিয়ে সাইন ইন করুন';
+          }
+          alert(window.location.pathname.startsWith('/en')
+            ? 'Sign in temporarily unavailable. Please try again.'
+            : 'সাইন ইন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
         }
       });
     </script>
