@@ -4,8 +4,14 @@ import type { APIRoute } from 'astro';
 import { getSession } from '@/lib/auth';
 import { db } from '@/db';
 import { donors, donations } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or, inArray } from 'drizzle-orm';
 import { calculateCooldown, type DonationPreference } from '@/lib/cooldown';
+import {
+  sanitizeName,
+  sanitizePhone,
+  sanitizeLocation,
+  getPhoneVariants,
+} from '@/lib/sanitize';
 
 const VALID_BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
 
@@ -23,15 +29,16 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   try {
     const formData = await request.formData();
-    const name = formData.get('name')?.toString().trim();
-    const phone = formData.get('phone')?.toString().trim();
+
+    // 2. Sanitize and strictly type all user inputs (XSS sanitization)
+    const name = sanitizeName(formData.get('name'));
+    const phone = sanitizePhone(formData.get('phone'));
+    const location = sanitizeLocation(formData.get('location'));
     const bloodGroupRaw = formData.get('blood_group')?.toString().trim();
-    const location = formData.get('location')?.toString().trim() || null;
     const donationPreferenceRaw = formData.get('donation_preference')?.toString().trim();
     const lastDonationDateRaw = formData.get('last_donation_date')?.toString().trim() || null;
     const registrationType = formData.get('registration_type')?.toString().trim() || 'referral';
 
-    // 2. Validate required inputs
     if (!name || !phone || !bloodGroupRaw) {
       return new Response(
         JSON.stringify({ error: 'Name, phone number, and blood group are required.' }),
@@ -61,22 +68,35 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
     const cooldown = calculateCooldown(lastDate, donationPreference);
 
-    // 4. Handle self-registration vs offline referral
+    // 4. Deduplication Check: Check if a donor record with this phone (or current user) exists
+    const phoneVariants = getPhoneVariants(phone);
+    const existingConditions = [inArray(donors.phone, phoneVariants)];
     if (registrationType === 'self') {
-      // Check if user already has a self-registered donor profile
-      const [existingDonor] = await db
-        .select({ id: donors.id })
-        .from(donors)
-        .where(eq(donors.userId, userId))
-        .limit(1);
+      existingConditions.push(eq(donors.userId, userId));
+    }
 
-      let donorId: number;
+    const [existingDonor] = await db
+      .select({
+        id: donors.id,
+        userId: donors.userId,
+        addedByUserId: donors.addedByUserId,
+      })
+      .from(donors)
+      .where(or(...existingConditions))
+      .limit(1);
 
-      if (existingDonor) {
-        // Update existing donor profile
+    let donorId: number;
+
+    if (existingDonor) {
+      // UPSERT: Update existing record and transfer/claim ownership
+      donorId = existingDonor.id;
+
+      if (registrationType === 'self') {
         await db
           .update(donors)
           .set({
+            userId,
+            addedByUserId: null,
             name,
             phone,
             bloodGroup,
@@ -86,42 +106,28 @@ export const POST: APIRoute = async ({ request, redirect }) => {
             lastDonationDate: lastDate,
           })
           .where(eq(donors.id, existingDonor.id));
-
-        donorId = existingDonor.id;
       } else {
-        // Insert new self-registered donor profile
-        const [insertResult] = await db.insert(donors).values({
-          userId,
-          addedByUserId: null,
-          name,
-          phone,
-          bloodGroup,
-          location,
-          donationPreference,
-          status: cooldown.status,
-          lastDonationDate: lastDate,
-        });
-        donorId = Number(insertResult.insertId);
-      }
-
-      // If last donation date provided and cooling down, record in donations history table
-      if (lastDate && cooldown.nextEligibleDate && donorId) {
-        try {
-          await db.insert(donations).values({
-            donorId,
-            donationDate: lastDate,
-            type: donationPreference,
-            nextEligibleDate: cooldown.nextEligibleDate,
-          });
-        } catch (donErr) {
-          console.warn('Could not record initial donation log:', donErr);
-        }
+        // Referral: update information and set addedByUserId to current user
+        await db
+          .update(donors)
+          .set({
+            userId: existingDonor.userId, // keep user account link intact if present
+            addedByUserId: userId,
+            name,
+            phone,
+            bloodGroup,
+            location,
+            donationPreference,
+            status: cooldown.status,
+            lastDonationDate: lastDate,
+          })
+          .where(eq(donors.id, existingDonor.id));
       }
     } else {
-      // Offline referral added by current user
+      // INSERT: Create new donor record
       const [insertResult] = await db.insert(donors).values({
-        userId: null,
-        addedByUserId: userId,
+        userId: registrationType === 'self' ? userId : null,
+        addedByUserId: registrationType === 'self' ? null : userId,
         name,
         phone,
         bloodGroup,
@@ -131,24 +137,24 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         lastDonationDate: lastDate,
       });
 
-      const donorId = Number(insertResult.insertId);
+      donorId = Number(insertResult.insertId);
+    }
 
-      // Record in donations table if last donation date was given
-      if (lastDate && cooldown.nextEligibleDate && donorId) {
-        try {
-          await db.insert(donations).values({
-            donorId,
-            donationDate: lastDate,
-            type: donationPreference,
-            nextEligibleDate: cooldown.nextEligibleDate,
-          });
-        } catch (donErr) {
-          console.warn('Could not record initial donation log for referral:', donErr);
-        }
+    // 5. If last donation date provided and cooling down, record in donations history table
+    if (lastDate && cooldown.nextEligibleDate && donorId) {
+      try {
+        await db.insert(donations).values({
+          donorId,
+          donationDate: lastDate,
+          type: donationPreference,
+          nextEligibleDate: cooldown.nextEligibleDate,
+        });
+      } catch (donErr) {
+        console.warn('Could not record initial donation log:', donErr);
       }
     }
 
-    // 5. Redirect back to dashboard preserving language and active tab
+    // 6. Redirect back to dashboard preserving language and active tab
     const referer = request.headers.get('referer') || '';
     const isEn = referer.includes('/en');
     const targetTab = registrationType === 'self' ? 'profile' : 'referrals';

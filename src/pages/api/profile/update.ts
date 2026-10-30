@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { sanitizeName, sanitizePhone } from '@/lib/sanitize';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   const session = await getSession(request);
@@ -14,15 +15,15 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     });
   }
 
-  let name = '';
-  let phone = '';
+  let rawName = '';
+  let rawPhone = '';
 
   const contentType = request.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
     try {
       const body = await request.json();
-      name = (body.name || '').trim();
-      phone = (body.phone || '').trim();
+      rawName = body.name || '';
+      rawPhone = body.phone || '';
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
         status: 400,
@@ -31,12 +32,16 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     }
   } else {
     const formData = await request.formData();
-    name = (formData.get('name')?.toString() || '').trim();
-    phone = (formData.get('phone')?.toString() || '').trim();
+    rawName = formData.get('name')?.toString() || '';
+    rawPhone = formData.get('phone')?.toString() || '';
   }
 
+  // Sanitize inputs (strip HTML/scripts)
+  const cleanedName = sanitizeName(rawName);
+  const cleanedPhone = sanitizePhone(rawPhone);
+
   // Name validation
-  if (!name || name.length < 2) {
+  if (!cleanedName || cleanedName.length < 2) {
     return new Response(
       JSON.stringify({ error: 'অনুগ্রহ করে একটি সঠিক নাম লিখুন (Name required)' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -44,7 +49,6 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   }
 
   // Phone validation
-  const cleanedPhone = phone.replace(/[\s\-()]/g, '');
   if (!cleanedPhone || cleanedPhone.length < 8 || !/^\+?[0-9]{8,18}$/.test(cleanedPhone)) {
     return new Response(
       JSON.stringify({
@@ -58,7 +62,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     await db
       .update(users)
       .set({
-        name,
+        name: cleanedName,
         phone: cleanedPhone,
       })
       .where(eq(users.id, session.user.id));

@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { sanitizePhone } from '@/lib/sanitize';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   const session = await getSession(request);
@@ -14,13 +15,13 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     });
   }
 
-  let phone = '';
+  let rawPhone = '';
   const contentType = request.headers.get('content-type') || '';
 
   if (contentType.includes('application/json')) {
     try {
       const body = await request.json();
-      phone = (body.phone || '').trim();
+      rawPhone = body.phone || '';
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
         status: 400,
@@ -29,11 +30,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     }
   } else {
     const formData = await request.formData();
-    phone = (formData.get('phone')?.toString() || '').trim();
+    rawPhone = formData.get('phone')?.toString() || '';
   }
 
-  // Normalize phone number (strip whitespace, dashes, parens)
-  const cleanedPhone = phone.replace(/[\s\-()]/g, '');
+  // Sanitize input (strip HTML, script tags, whitespace, dashes, and parens)
+  const cleanedPhone = sanitizePhone(rawPhone);
 
   // Validation: Accept any valid phone number (minimum 8 digits, e.g. BD 11-digit or international)
   if (!cleanedPhone || cleanedPhone.length < 8 || !/^\+?[0-9]{8,18}$/.test(cleanedPhone)) {
@@ -58,10 +59,10 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       })
       .where(eq(users.id, session.user.id));
 
-    // Redirect to home upon success with locale preservation
+    // Redirect to dashboard upon onboarding success with locale preservation
     const referer = request.headers.get('referer') || '';
     const isEn = referer.includes('/en');
-    return redirect(isEn ? '/en' : '/', 303);
+    return redirect(isEn ? '/en/dashboard' : '/dashboard', 303);
   } catch (error) {
     console.error('Error updating onboarding status in database:', error);
     return new Response(

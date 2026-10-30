@@ -4,8 +4,14 @@ import type { APIRoute } from 'astro';
 import { getSession } from '@/lib/auth';
 import { db } from '@/db';
 import { donors, donations } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, ne, inArray } from 'drizzle-orm';
 import { calculateCooldown, type DonationPreference } from '@/lib/cooldown';
+import {
+  sanitizeName,
+  sanitizePhone,
+  sanitizeLocation,
+  getPhoneVariants,
+} from '@/lib/sanitize';
 
 const VALID_BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
 
@@ -25,10 +31,12 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   try {
     const formData = await request.formData();
     const donorIdRaw = formData.get('donor_id')?.toString().trim();
-    const name = formData.get('name')?.toString().trim();
-    const phone = formData.get('phone')?.toString().trim();
+
+    // Sanitize all inputs
+    const name = sanitizeName(formData.get('name'));
+    const phone = sanitizePhone(formData.get('phone'));
+    const location = sanitizeLocation(formData.get('location'));
     const bloodGroupRaw = formData.get('blood_group')?.toString().trim();
-    const location = formData.get('location')?.toString().trim() || null;
     const donationPreferenceRaw = formData.get('donation_preference')?.toString().trim();
     const lastDonationDateRaw = formData.get('last_donation_date')?.toString().trim() || null;
     const type = formData.get('type')?.toString().trim() || 'referral';
@@ -69,6 +77,20 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         JSON.stringify({ error: 'Forbidden: You do not have permission to modify this donor.' }),
         { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Deduplication check during update: check if another donor record already has this phone number
+    const phoneVariants = getPhoneVariants(phone);
+    const [duplicateDonor] = await db
+      .select({ id: donors.id })
+      .from(donors)
+      .where(and(inArray(donors.phone, phoneVariants), ne(donors.id, donorId)))
+      .limit(1);
+
+    if (duplicateDonor) {
+      // Remove redundant duplicate record to keep the phone number unique
+      await db.delete(donations).where(eq(donations.donorId, duplicateDonor.id));
+      await db.delete(donors).where(eq(donors.id, duplicateDonor.id));
     }
 
     // Parse date and calculate cooldown
