@@ -4,7 +4,7 @@ import type { APIRoute } from 'astro';
 import { getSession } from '@/lib/auth';
 import { db } from '@/db';
 import { donors, donations, users, accounts, sessions } from '@/db/schema';
-import { eq, or, inArray } from 'drizzle-orm';
+import { eq, and, ne, or, inArray } from 'drizzle-orm';
 import { calculateCooldown, type DonationPreference } from '@/lib/cooldown';
 import {
   sanitizeName,
@@ -26,6 +26,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   }
 
   const userId = session.user.id;
+  const referer = request.headers.get('referer') || '';
+  const isEn = referer.includes('/en');
 
   try {
     const formData = await request.formData();
@@ -68,12 +70,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
     const cooldown = calculateCooldown(lastDate, donationPreference);
 
-    // 4. Deduplication Check: Check if a donor record with this phone (or current user) exists
+    // 4. Deduplication Check: Query donors table using phoneVariants
     const phoneVariants = getPhoneVariants(phone);
-    const existingConditions = [inArray(donors.phone, phoneVariants)];
-    if (registrationType === 'self') {
-      existingConditions.push(eq(donors.userId, userId));
-    }
 
     const [existingDonor] = await db
       .select({
@@ -82,14 +80,25 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         addedByUserId: donors.addedByUserId,
       })
       .from(donors)
-      .where(or(...existingConditions))
+      .where(inArray(donors.phone, phoneVariants))
       .limit(1);
+
+    // If self-registering, also check if current user already has a self-donor record
+    let selfExistingDonor: { id: number } | null = null;
+    if (registrationType === 'self') {
+      const [ownDonor] = await db
+        .select({ id: donors.id })
+        .from(donors)
+        .where(eq(donors.userId, userId))
+        .limit(1);
+      selfExistingDonor = ownDonor || null;
+    }
 
     let donorId: number;
 
     if (existingDonor) {
-      // Capture candidate old user IDs that may lose ownership or association
-      const candidateOldUserIds = Array.from(
+      // Find candidate users associated with this donor (other than the current user)
+      const candidateUserIds = Array.from(
         new Set(
           [existingDonor.userId, existingDonor.addedByUserId].filter(
             (id): id is string => Boolean(id && id !== userId)
@@ -97,7 +106,39 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         )
       );
 
-      // UPSERT: Update existing record and transfer/claim ownership
+      let hasActiveUser = false;
+      const zombieUserIds: string[] = [];
+
+      for (const candidateId of candidateUserIds) {
+        const [u] = await db
+          .select({ id: users.id, name: users.name, email: users.email })
+          .from(users)
+          .where(eq(users.id, candidateId))
+          .limit(1);
+
+        if (u) {
+          const isZombie =
+            u.name === 'Anonymous Donor' || Boolean(u.email && u.email.startsWith('deleted_'));
+          if (!isZombie) {
+            hasActiveUser = true;
+            break;
+          } else {
+            zombieUserIds.push(candidateId);
+          }
+        }
+      }
+
+      if (hasActiveUser) {
+        // Condition A (Active User): strictly REJECT the operation. Do not overwrite.
+        const targetTab = registrationType === 'self' ? 'profile' : 'referrals';
+        const redirectUrl = isEn
+          ? `/en/dashboard?error=phone_exists_active&tab=${targetTab}`
+          : `/dashboard?error=phone_exists_active&tab=${targetTab}`;
+        return redirect(redirectUrl, 303);
+      }
+
+      // Condition B (Zombie User or claiming record): ALLOW the operation.
+      // Update existing donor record to belong to the current user (taking ownership)
       donorId = existingDonor.id;
 
       if (registrationType === 'self') {
@@ -115,12 +156,18 @@ export const POST: APIRoute = async ({ request, redirect }) => {
             lastDonationDate: lastDate,
           })
           .where(eq(donors.id, existingDonor.id));
+
+        // If user already had another self-donor record, delete the old duplicate self record
+        if (selfExistingDonor && selfExistingDonor.id !== existingDonor.id) {
+          await db.delete(donations).where(eq(donations.donorId, selfExistingDonor.id));
+          await db.delete(donors).where(eq(donors.id, selfExistingDonor.id));
+        }
       } else {
         // Referral: update information and set addedByUserId to current user
         await db
           .update(donors)
           .set({
-            userId: existingDonor.userId, // keep user account link intact if present
+            userId: null, // transferred away from zombie user to offline referral
             addedByUserId: userId,
             name,
             phone,
@@ -133,31 +180,27 @@ export const POST: APIRoute = async ({ request, redirect }) => {
           .where(eq(donors.id, existingDonor.id));
       }
 
-      // Zombie cleanup: check if any prior associated user is now orphaned and soft-deleted
-      for (const oldUserId of candidateOldUserIds) {
-        const [remainingDonor] = await db
-          .select({ id: donors.id })
-          .from(donors)
-          .where(or(eq(donors.userId, oldUserId), eq(donors.addedByUserId, oldUserId)))
-          .limit(1);
-
-        if (!remainingDonor) {
-          const [oldUser] = await db
-            .select({ id: users.id, name: users.name, email: users.email })
-            .from(users)
-            .where(eq(users.id, oldUserId))
-            .limit(1);
-
-          if (
-            oldUser &&
-            (oldUser.name === 'Anonymous Donor' || (oldUser.email && oldUser.email.startsWith('deleted_')))
-          ) {
-            await db.delete(accounts).where(eq(accounts.userId, oldUserId));
-            await db.delete(sessions).where(eq(sessions.userId, oldUserId));
-            await db.delete(users).where(eq(users.id, oldUserId));
-          }
-        }
+      // After successful transfer, execute a HARD DELETE on that zombie user record from the users table
+      for (const zombieId of zombieUserIds) {
+        await db.delete(accounts).where(eq(accounts.userId, zombieId));
+        await db.delete(sessions).where(eq(sessions.userId, zombieId));
+        await db.delete(users).where(eq(users.id, zombieId));
       }
+    } else if (selfExistingDonor) {
+      // User is updating their existing self-donor profile with an available phone number
+      donorId = selfExistingDonor.id;
+      await db
+        .update(donors)
+        .set({
+          name,
+          phone,
+          bloodGroup,
+          location,
+          donationPreference,
+          status: cooldown.status,
+          lastDonationDate: lastDate,
+        })
+        .where(eq(donors.id, selfExistingDonor.id));
     } else {
       // INSERT: Create new donor record
       const [insertResult] = await db.insert(donors).values({
@@ -190,8 +233,6 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     }
 
     // 6. Redirect back to dashboard preserving language and active tab
-    const referer = request.headers.get('referer') || '';
-    const isEn = referer.includes('/en');
     const targetTab = registrationType === 'self' ? 'profile' : 'referrals';
     const redirectUrl = isEn
       ? `/en/dashboard?success=registered&tab=${targetTab}`

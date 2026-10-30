@@ -3,7 +3,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getSession } from '@/lib/auth';
 import { db } from '@/db';
-import { donors, donations } from '@/db/schema';
+import { donors, donations, users, accounts, sessions } from '@/db/schema';
 import { eq, and, ne, inArray } from 'drizzle-orm';
 import { calculateCooldown, type DonationPreference } from '@/lib/cooldown';
 import {
@@ -83,17 +83,71 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     const targetTab = type === 'self' ? 'profile' : 'referrals';
     const phoneVariants = getPhoneVariants(phone);
     const [duplicateDonor] = await db
-      .select({ id: donors.id })
+      .select({
+        id: donors.id,
+        userId: donors.userId,
+        addedByUserId: donors.addedByUserId,
+      })
       .from(donors)
       .where(and(inArray(donors.phone, phoneVariants), ne(donors.id, donorId)))
       .limit(1);
 
     if (duplicateDonor) {
-      // Conflict: phone belongs to another donor. Do not overwrite or delete.
-      const redirectUrl = isEn
-        ? `/en/dashboard?error=phone_exists&tab=${targetTab}`
-        : `/dashboard?error=phone_exists&tab=${targetTab}`;
-      return redirect(redirectUrl, 303);
+      // Find candidate users associated with this donor (other than the current user)
+      const candidateUserIds = Array.from(
+        new Set(
+          [duplicateDonor.userId, duplicateDonor.addedByUserId].filter(
+            (id): id is string => Boolean(id && id !== userId)
+          )
+        )
+      );
+
+      let hasActiveUser = false;
+      const zombieUserIds: string[] = [];
+
+      // If duplicate donor is directly associated with current user (e.g. user trying to duplicate phone on another record)
+      if (duplicateDonor.userId === userId || duplicateDonor.addedByUserId === userId) {
+        hasActiveUser = true;
+      }
+
+      for (const candidateId of candidateUserIds) {
+        const [u] = await db
+          .select({ id: users.id, name: users.name, email: users.email })
+          .from(users)
+          .where(eq(users.id, candidateId))
+          .limit(1);
+
+        if (u) {
+          const isZombie =
+            u.name === 'Anonymous Donor' || Boolean(u.email && u.email.startsWith('deleted_'));
+          if (!isZombie) {
+            hasActiveUser = true;
+            break;
+          } else {
+            zombieUserIds.push(candidateId);
+          }
+        }
+      }
+
+      if (hasActiveUser) {
+        // Condition A (Active User): strictly REJECT. Do not overwrite.
+        const redirectUrl = isEn
+          ? `/en/dashboard?error=phone_exists_active&tab=${targetTab}`
+          : `/dashboard?error=phone_exists_active&tab=${targetTab}`;
+        return redirect(redirectUrl, 303);
+      }
+
+      // Condition B (Zombie User): ALLOW the operation.
+      // Remove the orphaned duplicate record from the zombie user
+      await db.delete(donations).where(eq(donations.donorId, duplicateDonor.id));
+      await db.delete(donors).where(eq(donors.id, duplicateDonor.id));
+
+      // After successful transfer, execute a HARD DELETE on that zombie user record from the users table
+      for (const zombieId of zombieUserIds) {
+        await db.delete(accounts).where(eq(accounts.userId, zombieId));
+        await db.delete(sessions).where(eq(sessions.userId, zombieId));
+        await db.delete(users).where(eq(users.id, zombieId));
+      }
     }
 
     // Parse date and calculate cooldown
