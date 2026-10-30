@@ -26,3 +26,7 @@ documents/
 images_araf/
 facebook_posts/
 all_documents_so_far.pdf
+
+# deployment guide
+deploy.md
+
