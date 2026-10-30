@@ -161,33 +161,27 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
     const cooldown = calculateCooldown(lastDate, donationPreference);
 
-    // Update donor record
+    // Update donor record ONLY (do not touch donations table)
+    const updatePayload: Record<string, any> = {
+      name,
+      phone,
+      bloodGroup,
+      location,
+      donationPreference,
+      status: cooldown.status,
+      updatedAt: new Date(),
+    };
+
+    if (donationPreference === 'platelets') {
+      updatePayload.plateletDonationDate = lastDate;
+    } else {
+      updatePayload.lastDonationDate = lastDate;
+    }
+
     await db
       .update(donors)
-      .set({
-        name,
-        phone,
-        bloodGroup,
-        location,
-        donationPreference,
-        status: cooldown.status,
-        lastDonationDate: lastDate,
-      })
+      .set(updatePayload)
       .where(eq(donors.id, donorId));
-
-    // If last donation date provided and cooling down, record or update donation history
-    if (lastDate && cooldown.nextEligibleDate) {
-      try {
-        await db.insert(donations).values({
-          donorId,
-          donationDate: lastDate,
-          type: donationPreference,
-          nextEligibleDate: cooldown.nextEligibleDate,
-        });
-      } catch (logErr) {
-        console.warn('Could not update donation history record:', logErr);
-      }
-    }
 
     const redirectUrl = isEn
       ? `/en/dashboard?success=updated&tab=${targetTab}`

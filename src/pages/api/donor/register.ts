@@ -212,27 +212,14 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         location,
         donationPreference,
         status: cooldown.status,
-        lastDonationDate: lastDate,
+        lastDonationDate: donationPreference === 'whole_blood' ? lastDate : null,
+        plateletDonationDate: donationPreference === 'platelets' ? lastDate : null,
       });
 
       donorId = Number(insertResult.insertId);
     }
 
-    // 5. If last donation date provided and cooling down, record in donations history table
-    if (lastDate && cooldown.nextEligibleDate && donorId) {
-      try {
-        await db.insert(donations).values({
-          donorId,
-          donationDate: lastDate,
-          type: donationPreference,
-          nextEligibleDate: cooldown.nextEligibleDate,
-        });
-      } catch (donErr) {
-        console.warn('Could not record initial donation log:', donErr);
-      }
-    }
-
-    // 6. Redirect back to dashboard preserving language and active tab
+    // 5. Redirect back to dashboard preserving language and active tab
     const targetTab = registrationType === 'self' ? 'profile' : 'referrals';
     const redirectUrl = isEn
       ? `/en/dashboard?success=registered&tab=${targetTab}`

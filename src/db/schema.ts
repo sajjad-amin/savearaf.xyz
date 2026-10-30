@@ -113,6 +113,8 @@ export const donors = mysqlTable('donors', {
     .notNull()
     .default('available'),
   lastDonationDate: timestamp('last_donation_date', { mode: 'date' }),
+  plateletDonationDate: timestamp('platelet_donation_date', { mode: 'date' }),
+  isGuest: boolean('is_guest').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
@@ -128,9 +130,15 @@ export const donations = mysqlTable('donations', {
     .notNull()
     .references(() => donors.id, { onDelete: 'cascade' }),
   donationDate: timestamp('donation_date', { mode: 'date' }).notNull(),
-  type: mysqlEnum('type', ['whole_blood', 'platelets']).notNull(),
+  donationType: mysqlEnum('donation_type', ['whole_blood', 'platelet', 'platelets'])
+    .notNull()
+    .default('whole_blood'),
+  type: mysqlEnum('type', ['whole_blood', 'platelet', 'platelets'])
+    .notNull()
+    .default('whole_blood'),
+  notes: text('notes'),
   hospital: varchar('hospital', { length: 255 }),
-  nextEligibleDate: timestamp('next_eligible_date', { mode: 'date' }).notNull(),
+  nextEligibleDate: timestamp('next_eligible_date', { mode: 'date' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

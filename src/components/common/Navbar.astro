@@ -45,6 +45,16 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
 
     <!-- Right: Actions, User Dropdown & Compact Language Switcher -->
     <div class="flex items-center gap-2 sm:gap-4">
+      {user && user.role === 'admin' && (
+        <a
+          href={isBn ? '/admin/crm' : '/en/admin/crm'}
+          class="inline-flex items-center gap-1.5 py-1 sm:py-1.5 px-2.5 sm:px-3 rounded-full text-xs font-black bg-rose-600 text-white hover:bg-rose-700 shadow-xs transition shrink-0"
+        >
+          <span>🛡️</span>
+          <span>{isBn ? 'অ্যাডমিন প্যানেল' : 'Admin Panel'}</span>
+        </a>
+      )}
+
       {user ? (
         <!-- User Context Menu Dropdown -->
         <div class="relative" id="user-menu-container">

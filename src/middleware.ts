@@ -1,5 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
-import { getSession } from '@/lib/auth';
+import { getSession, isAdmin } from '@/lib/auth';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -47,7 +47,60 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.user = session?.user ?? null;
   context.locals.getSession = async () => session;
 
-  // 4. User is NOT logged in
+  // 4. Admin routes protection (/admin, /en/admin, /api/admin)
+  const isAdminRoute =
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    pathname === '/en/admin' ||
+    pathname.startsWith('/en/admin/') ||
+    pathname === '/api/admin' ||
+    pathname.startsWith('/api/admin/');
+
+  if (isAdminRoute) {
+    if (!session || !session.user) {
+      if (pathname.startsWith('/api/admin')) {
+        return new Response(JSON.stringify({ error: 'Unauthorized: Admin authentication required' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return context.redirect(isEnglishPath ? '/en/donate-blood' : '/donate-blood');
+    }
+
+    // Verify admin access strictly by checking user role in session or database
+    let userRole = session.user.role;
+    if (userRole !== 'admin' && session.user.id) {
+      try {
+        const [dbUser] = await db
+          .select({ role: users.role })
+          .from(users)
+          .where(eq(users.id, session.user.id))
+          .limit(1);
+
+        if (dbUser?.role === 'admin') {
+          userRole = 'admin';
+          session.user.role = 'admin';
+          if (context.locals.user) {
+            context.locals.user.role = 'admin';
+          }
+        }
+      } catch (err) {
+        console.error('Middleware DB admin check error:', err);
+      }
+    }
+
+    if (!isAdmin(userRole)) {
+      if (pathname.startsWith('/api/admin')) {
+        return new Response(JSON.stringify({ error: 'Forbidden: Admin access only' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return context.redirect(isEnglishPath ? '/en/dashboard?error=admin_required' : '/dashboard?error=admin_required');
+    }
+  }
+
+  // 5. User is NOT logged in
   if (!session || !session.user) {
     // Cannot access onboarding, dashboard, or profile without an account
     if (

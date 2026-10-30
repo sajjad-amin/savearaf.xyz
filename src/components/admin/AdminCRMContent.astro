@@ -1,0 +1,1370 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+
+import Navbar from '@/components/common/Navbar.astro';
+import Footer from '@/components/common/Footer.astro';
+import { db } from '@/db';
+import { donors, donations, users } from '@/db/schema';
+import { calculateTwoStepCooldown } from '@/lib/cooldown';
+import { desc } from 'drizzle-orm';
+
+const session = Astro.locals.session;
+const user = Astro.locals.user;
+const isAdmin = user?.role === 'admin';
+
+// 1. Fetch all donors, past donations, and users
+const allDonors = await db
+  .select()
+  .from(donors)
+  .orderBy(desc(donors.createdAt));
+
+const allDonations = await db
+  .select()
+  .from(donations)
+  .orderBy(desc(donations.donationDate));
+
+const allUsers = await db
+  .select({
+    id: users.id,
+    name: users.name,
+    email: users.email,
+  })
+  .from(users);
+
+const userMap = new Map<string, { id: string; name: string | null; email: string }>();
+for (const u of allUsers) {
+  userMap.set(u.id, u);
+}
+
+// Map donations by donorId
+const donationsByDonorId = new Map<number, typeof allDonations>();
+for (const d of allDonations) {
+  const list = donationsByDonorId.get(d.donorId) || [];
+  list.push(d);
+  donationsByDonorId.set(d.donorId, list);
+}
+
+const now = new Date();
+
+// 2. Enrich donors with two-step cooldown results and addedBy user info
+const enrichedDonors = allDonors.map((d) => {
+  const history = donationsByDonorId.get(d.id) || [];
+  const cooldown = calculateTwoStepCooldown(
+    d.lastDonationDate,
+    d.plateletDonationDate,
+    history,
+    now
+  );
+
+  const addedByUser = d.addedByUserId ? userMap.get(d.addedByUserId) : null;
+  const addedByUserName = addedByUser?.name || addedByUser?.email || null;
+
+  return {
+    ...d,
+    cooldown,
+    history,
+    historyCount: history.length,
+    addedByUserName,
+  };
+});
+
+// 3. Stats summary
+const stats = {
+  total: enrichedDonors.length,
+  available: enrichedDonors.filter((d) => d.cooldown.status === 'available').length,
+  bloodCooldown: enrichedDonors.filter((d) => !d.cooldown.isBloodEligible).length,
+  plateletCooldown: enrichedDonors.filter((d) => !d.cooldown.isPlateletEligible).length,
+  guests: enrichedDonors.filter((d) => d.isGuest).length,
+};
+
+// URL query feedback
+const successParam = Astro.url.searchParams.get('success');
+const errorParam = Astro.url.searchParams.get('error');
+
+function formatDate(d: Date | string | null | undefined): string {
+  if (!d) return isBn ? 'তথ্য নেই' : 'N/A';
+  const dateObj = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(dateObj.getTime())) return isBn ? 'তথ্য নেই' : 'N/A';
+  return dateObj.toLocaleDateString(isBn ? 'bn-BD' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+---
+
+<!doctype html>
+<html lang={lang} class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{isBn ? 'ব্লাড সিআরএম ও ডোনার ম্যানেজমেন্ট (Admin)' : 'Blood CRM & Donor Management (Admin)'} - Save Araf</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
+    <!-- Navbar -->
+    <Navbar lang={lang} />
+
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <!-- Breadcrumb / Header Area -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-200">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-100 text-rose-700 uppercase tracking-wider">
+              {isBn ? 'অ্যাডমিন পোর্টাল' : 'Admin Portal'}
+            </span>
+            <span class="text-xs text-gray-400">/</span>
+            <span class="text-xs text-gray-500 font-semibold">{isBn ? 'ব্লাড ডোনার সিআরএম' : 'Blood CRM'}</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-black text-gray-900 mt-1 flex items-center gap-2.5">
+            <span>🩸</span>
+            <span>{isBn ? 'ব্লাড ডোনার ডিরেক্টরি ও ডোনেশন হিস্ট্রি' : 'Blood Donor CRM & Donation History'}</span>
+          </h1>
+          <p class="text-xs sm:text-sm text-gray-600 mt-1">
+            {isBn
+              ? 'সকল নিবন্ধিত ও অতিথি রক্তদাতার রিয়েল-টাইম দুই-ধাপ কুলডাউন ট্র্যাকিং (রক্ত ৯০ দিন, প্লাটিলেট ১৫ দিন) ও রেকর্ড সংরক্ষণ।'
+              : 'Real-time two-step cooldown tracking (Whole Blood 90d, Platelet 15d) and donation logs for all registered & guest donors.'}
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-3 shrink-0">
+          <button
+            type="button"
+            id="open-guest-modal-btn"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs sm:text-sm shadow-sm shadow-rose-600/20 transition cursor-pointer"
+          >
+            <span>➕</span>
+            <span>{isBn ? 'গেস্ট ডোনার যুক্ত করুন' : 'Add Guest Donor'}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Success / Error Feedback Alerts -->
+      {successParam === 'donation_logged' && (
+        <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">✓</span>
+            <span>{isBn ? 'ডোনেশন সফলভাবে রেকর্ড করা হয়েছে এবং কুলডাউন আপডেট করা হয়েছে!' : 'Donation logged successfully and cooldown dates updated!'}</span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer">✕</button>
+        </div>
+      )}
+
+      {successParam === 'donation_updated' && (
+        <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">✓</span>
+            <span>{isBn ? 'ডোনেশন রেকর্ড সফলভাবে পরিবর্তন ও কুলডাউন হালনাগাদ করা হয়েছে!' : 'Donation record updated and cooldown synchronized successfully!'}</span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer">✕</button>
+        </div>
+      )}
+
+      {successParam === 'donation_deleted' && (
+        <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">✓</span>
+            <span>{isBn ? 'ডোনেশন সফলভাবে মুছে ফেলা হয়েছে এবং পূর্ববর্তী রেকর্ডে কুলডাউন ফিরিয়ে নেওয়া হয়েছে!' : 'Donation deleted and donor cooldown rolled back successfully!'}</span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer">✕</button>
+        </div>
+      )}
+
+      {successParam === 'donor_created' && (
+        <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">✓</span>
+            <span>{isBn ? 'নতুন গেস্ট ডোনার সফলভাবে যুক্ত করা হয়েছে!' : 'Guest donor created successfully!'}</span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer">✕</button>
+        </div>
+      )}
+
+      {errorParam === 'phone_exists' && (
+        <div class="my-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">⚠️</span>
+            <span>{isBn ? 'এই ফোন নম্বরের একজন রক্তদাতা ইতোমধ্যে তালিকায় বিদ্যমান।' : 'A donor with this phone number already exists in the system.'}</span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 font-bold px-2 cursor-pointer">✕</button>
+        </div>
+      )}
+
+      <!-- Summary Stats Cards Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 my-6">
+        <!-- Stat 1: Total Donors -->
+        <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-xs">
+          <span class="text-xs font-bold text-gray-500 block">{isBn ? 'সর্বমোট ডোনার' : 'Total Donors'}</span>
+          <span class="text-2xl sm:text-3xl font-black text-gray-900 mt-1 block" id="stat-total">{stats.total}</span>
+          <span class="text-[11px] text-gray-400 font-medium">{isBn ? 'সিস্টেমে নিবন্ধিত' : 'In Directory'}</span>
+        </div>
+
+        <!-- Stat 2: Ready / Available -->
+        <div class="bg-white rounded-2xl p-4 border border-emerald-200 shadow-xs">
+          <span class="text-xs font-bold text-emerald-700 block">{isBn ? 'উপলব্ধ (Available)' : 'Available Donors'}</span>
+          <span class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1 block" id="stat-available">{stats.available}</span>
+          <span class="text-[11px] text-emerald-600/80 font-medium">{isBn ? 'রক্ত/প্লাটিলেট দিতে প্রস্তুত' : 'Ready to Donate'}</span>
+        </div>
+
+        <!-- Stat 3: Blood Cooldown (90 days) -->
+        <div class="bg-white rounded-2xl p-4 border border-amber-200 shadow-xs">
+          <span class="text-xs font-bold text-amber-700 block">{isBn ? 'রক্ত কুলডাউন (৯০ দিন)' : 'Blood Cooldown (90d)'}</span>
+          <span class="text-2xl sm:text-3xl font-black text-amber-600 mt-1 block" id="stat-blood-cd">{stats.bloodCooldown}</span>
+          <span class="text-[11px] text-amber-600/80 font-medium">{isBn ? 'নিরাপদ বিরতিতে আছেন' : 'Within 90-day window'}</span>
+        </div>
+
+        <!-- Stat 4: Platelet Cooldown (15 days) -->
+        <div class="bg-white rounded-2xl p-4 border border-blue-200 shadow-xs">
+          <span class="text-xs font-bold text-blue-700 block">{isBn ? 'প্লাটিলেট কুলডাউন (১৫ দিন)' : 'Platelet CD (15d)'}</span>
+          <span class="text-2xl sm:text-3xl font-black text-blue-600 mt-1 block" id="stat-platelet-cd">{stats.plateletCooldown}</span>
+          <span class="text-[11px] text-blue-600/80 font-medium">{isBn ? '১৫ দিনের বিরতিতে আছেন' : 'Within 15-day window'}</span>
+        </div>
+
+        <!-- Stat 5: Guest Donors -->
+        <div class="bg-white rounded-2xl p-4 border border-purple-200 shadow-xs col-span-2 sm:col-span-1">
+          <span class="text-xs font-bold text-purple-700 block">{isBn ? 'গেস্ট ডোনার' : 'Guest Donors'}</span>
+          <span class="text-2xl sm:text-3xl font-black text-purple-600 mt-1 block" id="stat-guests">{stats.guests}</span>
+          <span class="text-[11px] text-purple-600/80 font-medium">{isBn ? 'অ্যাডমিন কর্তৃক যুক্ত' : 'Manual / Offline'}</span>
+        </div>
+      </div>
+
+      <!-- Search, Filtering, and Controls Bar -->
+      <div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-xs mb-6 space-y-4">
+        <!-- Top Row: Search input + Blood Group Select + Sort Select -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+          <!-- Live Search Input -->
+          <div class="sm:col-span-6 relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+              🔍
+            </span>
+            <input
+              type="text"
+              id="crm-search-input"
+              placeholder={isBn ? 'নাম, মোবাইল নম্বর, ঠিকানা বা রক্তের গ্রুপ খুঁজুন...' : 'Search by name, phone, location, or blood group...'}
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-xs sm:text-sm text-gray-900 bg-gray-50/50"
+            />
+          </div>
+
+          <!-- Blood Group Dropdown -->
+          <div class="sm:col-span-3">
+            <select
+              id="filter-blood-group"
+              class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-xs sm:text-sm text-gray-800 bg-white cursor-pointer"
+            >
+              <option value="all">{isBn ? 'সকল রক্তের গ্রুপ (All Groups)' : 'All Blood Groups'}</option>
+              <option value="A+">A+ (A Positive)</option>
+              <option value="A-">A- (A Negative)</option>
+              <option value="B+">B+ (B Positive)</option>
+              <option value="B-">B- (B Negative)</option>
+              <option value="O+">O+ (O Positive)</option>
+              <option value="O-">O- (O Negative)</option>
+              <option value="AB+">AB+ (AB Positive)</option>
+              <option value="AB-">AB- (AB Negative)</option>
+            </select>
+          </div>
+
+          <!-- Sort Order Dropdown -->
+          <div class="sm:col-span-3">
+            <select
+              id="sort-donors-by"
+              class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-xs sm:text-sm text-gray-800 bg-white cursor-pointer"
+            >
+              <option value="newest">{isBn ? 'সর্বশেষ যুক্ত (Newest First)' : 'Newest First'}</option>
+              <option value="name_asc">{isBn ? 'নাম অনুযায়ী (A to Z)' : 'Name (A to Z)'}</option>
+              <option value="blood_asc">{isBn ? 'রক্তের গ্রুপ অনুযায়ী' : 'Blood Group'}</option>
+              <option value="history_desc">{isBn ? 'সর্বোচ্চ ডোনেশন সংখ্যা' : 'Most Donations'}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Filter Pills (Availability Status) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold pt-1">
+          <span class="text-gray-400 shrink-0 text-xs">{isBn ? 'ফিল্টার:' : 'Filter:'}</span>
+          <button
+            type="button"
+            class="status-filter-btn px-3 py-1.5 rounded-lg border border-rose-600 bg-rose-600 text-white transition cursor-pointer whitespace-nowrap active"
+            data-status="all"
+          >
+            {isBn ? 'সব ডোনার' : 'All'} ({stats.total})
+          </button>
+          <button
+            type="button"
+            class="status-filter-btn px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition cursor-pointer whitespace-nowrap"
+            data-status="available"
+          >
+            {isBn ? '✓ প্রস্তুত (Available)' : '✓ Available'} ({stats.available})
+          </button>
+          <button
+            type="button"
+            class="status-filter-btn px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition cursor-pointer whitespace-nowrap"
+            data-status="blood_cooldown"
+          >
+            {isBn ? '⏳ রক্ত কুলডাউন' : '⏳ Blood Cooldown'} ({stats.bloodCooldown})
+          </button>
+          <button
+            type="button"
+            class="status-filter-btn px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition cursor-pointer whitespace-nowrap"
+            data-status="platelet_cooldown"
+          >
+            {isBn ? '⏳ প্লাটিলেট কুলডাউন' : '⏳ Platelet Cooldown'} ({stats.plateletCooldown})
+          </button>
+          <button
+            type="button"
+            class="status-filter-btn px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition cursor-pointer whitespace-nowrap"
+            data-status="guest"
+          >
+            {isBn ? '👤 গেস্ট ডোনার' : '👤 Guest Donors'} ({stats.guests})
+          </button>
+        </div>
+      </div>
+
+      <!-- Donors Data Table Section -->
+      <div class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm divide-y divide-gray-200">
+            <thead class="bg-gray-50/80 text-gray-600 font-bold uppercase tracking-wider text-[11px]">
+              <tr>
+                <th scope="col" class="py-3.5 px-4 sm:px-6">{isBn ? 'রক্তদাতার বিবরণ' : 'Donor Info'}</th>
+                <th scope="col" class="py-3.5 px-4">{isBn ? 'গ্রুপ ও পছন্দ' : 'Blood & Preference'}</th>
+                <th scope="col" class="py-3.5 px-4">{isBn ? 'বর্তমান স্থিতি ও কুলডাউন' : 'Cooldown & Eligibility'}</th>
+                <th scope="col" class="py-3.5 px-4">{isBn ? 'ঠিকানা / এলাকা' : 'Location'}</th>
+                <th scope="col" class="py-3.5 px-4">{isBn ? 'ডোনেশন হিস্ট্রি' : 'Donations'}</th>
+                <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">{isBn ? 'অ্যাকশন' : 'Actions'}</th>
+              </tr>
+            </thead>
+            <tbody id="crm-table-body" class="divide-y divide-gray-100 bg-white text-gray-800">
+              {enrichedDonors.map((donor) => {
+                const cd = donor.cooldown;
+                return (
+                  <tr
+                    class="donor-row hover:bg-gray-50/60 transition"
+                    data-id={donor.id}
+                    data-name={donor.name.toLowerCase()}
+                    data-phone={donor.phone.toLowerCase()}
+                    data-blood={donor.bloodGroup}
+                    data-location={(donor.location || '').toLowerCase()}
+                    data-status={cd.status}
+                    data-is-blood-cd={(!cd.isBloodEligible).toString()}
+                    data-is-platelet-cd={(!cd.isPlateletEligible).toString()}
+                    data-is-guest={donor.isGuest ? 'true' : 'false'}
+                    data-history-count={donor.historyCount}
+                    data-created={donor.createdAt ? new Date(donor.createdAt).getTime() : 0}
+                  >
+                    <!-- Donor Name & Contact -->
+                    <td class="py-4 px-4 sm:px-6">
+                      <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-black text-xs shrink-0">
+                          {donor.name ? donor.name.trim()[0].toUpperCase() : 'D'}
+                        </div>
+                        <div>
+                          <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-extrabold text-gray-900 text-xs sm:text-sm">{donor.name}</span>
+                            {donor.userId === null && donor.addedByUserId ? (
+                              <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800" title={`Added by ${donor.addedByUserName || 'User'}`}>
+                                {donor.addedByUserName
+                                  ? (isBn ? `যুক্ত করেছেন: ${donor.addedByUserName}` : `Added by: ${donor.addedByUserName}`)
+                                  : (isBn ? 'গেস্ট' : 'Guest')}
+                              </span>
+                            ) : donor.isGuest || donor.userId === null ? (
+                              <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-700">
+                                Guest
+                              </span>
+                            ) : (
+                              <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-700">
+                                User
+                              </span>
+                            )}
+                          </div>
+                          <div class="flex items-center gap-2 mt-0.5">
+                            <a
+                              href={`tel:${donor.phone}`}
+                              class="text-xs font-mono font-medium text-gray-600 hover:text-rose-600 transition"
+                            >
+                              📞 {donor.phone}
+                            </a>
+                            <a
+                              href={`https://wa.me/${donor.phone.replace(/[^0-9]/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="text-[11px] text-emerald-600 hover:text-emerald-700 font-bold"
+                              title="Chat on WhatsApp"
+                            >
+                              💬 WA
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Blood Group & Preference -->
+                    <td class="py-4 px-4 whitespace-nowrap">
+                      <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-black bg-rose-600 text-white shadow-xs">
+                          {donor.bloodGroup}
+                        </span>
+                        <span class="text-xs text-gray-500 font-medium capitalize">
+                          {donor.donationPreference === 'platelets' ? 'SDP Platelet' : 'Whole Blood'}
+                        </span>
+                      </div>
+                    </td>
+
+                    <!-- Cooldown & Two-Step Eligibility Status -->
+                    <td class="py-4 px-4">
+                      <div>
+                        {cd.status === 'available' ? (
+                          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                            <span>✓</span>
+                            <span>{isBn ? 'উপলব্ধ (Available)' : 'Available'}</span>
+                          </span>
+                        ) : (
+                          <div class="space-y-1">
+                            {!cd.isBloodEligible && (
+                              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                                <span>🩸</span>
+                                <span>{isBn ? `রক্ত কুলডাউন (${cd.bloodDaysRemaining} দিন বাকি)` : `Blood CD (${cd.bloodDaysRemaining}d)`}</span>
+                              </span>
+                            )}
+                            {!cd.isPlateletEligible && (
+                              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">
+                                <span>🟡</span>
+                                <span>{isBn ? `প্লাটিলেট কুলডাউন (${cd.plateletDaysRemaining} দিন বাকি)` : `Platelet CD (${cd.plateletDaysRemaining}d)`}</span>
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <!-- Sub dates -->
+                        <div class="mt-1 text-[11px] text-gray-500 space-y-0.5">
+                          {donor.lastDonationDate && (
+                            <p>
+                              {isBn ? 'রক্ত:' : 'Blood:'} {formatDate(donor.lastDonationDate)}
+                              {cd.nextBloodEligibleDate && !cd.isBloodEligible && ` → ${formatDate(cd.nextBloodEligibleDate)}`}
+                            </p>
+                          )}
+                          {donor.plateletDonationDate && (
+                            <p>
+                              {isBn ? 'প্লাটিলেট:' : 'Platelet:'} {formatDate(donor.plateletDonationDate)}
+                              {cd.nextPlateletEligibleDate && !cd.isPlateletEligible && ` → ${formatDate(cd.nextPlateletEligibleDate)}`}
+                            </p>
+                          )}
+                          {!donor.lastDonationDate && !donor.plateletDonationDate && (
+                            <p class="text-gray-400 italic">{isBn ? 'পূর্বের কোনো রেকর্ড নেই' : 'No prior logs'}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Location -->
+                    <td class="py-4 px-4 text-xs text-gray-600">
+                      {donor.location ? (
+                        <div class="flex items-center gap-1.5">
+                          <span>📍</span>
+                          <span>{donor.location}</span>
+                        </div>
+                      ) : (
+                        <span class="text-gray-400 italic">{isBn ? 'উল্লেখ নেই' : 'Not specified'}</span>
+                      )}
+                    </td>
+
+                    <!-- Donations History -->
+                    <td class="py-4 px-4 whitespace-nowrap">
+                      <button
+                        type="button"
+                        class="view-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition cursor-pointer"
+                        data-donor-id={donor.id}
+                        data-donor-name={donor.name}
+                      >
+                        <span>📜</span>
+                        <span class="donor-history-count-text">{donor.historyCount} {isBn ? 'ডোনেশন' : 'Donations'}</span>
+                      </button>
+                    </td>
+
+                    <!-- Actions: Log Donation Button -->
+                    <td class="py-4 px-4 sm:px-6 text-right whitespace-nowrap">
+                      <button
+                        type="button"
+                        class="log-donation-btn inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                        data-donor-id={donor.id}
+                        data-donor-name={donor.name}
+                        data-donor-blood={donor.bloodGroup}
+                        data-donor-phone={donor.phone}
+                      >
+                        <span>💉</span>
+                        <span>{isBn ? 'ডোনেশন রেকর্ড করুন' : 'Log Donation'}</span>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty state when no donors match search -->
+        <div id="no-results-msg" class="hidden p-12 text-center text-gray-500">
+          <span class="text-3xl block mb-2">🔍</span>
+          <p class="font-bold text-sm text-gray-700">{isBn ? 'কোনো রক্তদাতা খুঁজে পাওয়া যায়নি' : 'No donors matched your search criteria'}</p>
+          <p class="text-xs text-gray-400 mt-1">{isBn ? 'অনুগ্রহ করে ভিন্ন নাম বা নম্বর দিয়ে খুঁজুন।' : 'Try clearing your filters or searching a different term.'}</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- ============================================== -->
+    <!-- MODAL 1: LOG DONATION (TRANSACTION) -->
+    <!-- ============================================== -->
+    <div
+      id="log-donation-modal"
+      class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">💉</span>
+            <h3 class="font-black text-gray-900 text-base sm:text-lg">
+              {isBn ? 'ডোনেশন রেকর্ড করুন (Log Donation)' : 'Log Blood / Platelet Donation'}
+            </h3>
+          </div>
+          <button
+            type="button"
+            id="close-log-modal-btn"
+            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form method="POST" action="/api/admin/log-donation" id="log-donation-form" class="space-y-4 pt-4 overflow-y-auto">
+          <input type="hidden" name="donorId" id="log-donor-id" value="" />
+
+          <!-- Donor Target Header -->
+          <div class="p-3 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-rose-600 font-bold block">{isBn ? 'নির্বাচিত রক্তদাতা:' : 'Selected Donor:'}</span>
+              <span class="text-sm font-black text-rose-950" id="log-donor-name">Donor Name</span>
+              <span class="text-xs text-gray-600 block" id="log-donor-phone">Phone</span>
+            </div>
+            <span class="px-3 py-1 rounded-xl bg-rose-600 text-white font-black text-xs" id="log-donor-blood">B+</span>
+          </div>
+
+          <!-- Donation Type Selection -->
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'ডোনেশনের ধরন' : 'Donation Type'} <span class="text-rose-600">*</span>
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="p-3 rounded-xl border border-gray-200 hover:border-rose-400 cursor-pointer flex items-start gap-2 bg-gray-50/50 has-checked:border-rose-600 has-checked:bg-rose-50/60">
+                <input type="radio" name="donationType" value="whole_blood" checked class="mt-0.5 text-rose-600 focus:ring-rose-500" />
+                <div>
+                  <span class="text-xs font-extrabold text-gray-900 block">{isBn ? 'সম্পূর্ণ রক্ত (Whole Blood)' : 'Whole Blood'}</span>
+                  <span class="text-[11px] text-gray-500">{isBn ? '৯০ দিন নিরাপদ বিরতি' : '90 days cooldown'}</span>
+                </div>
+              </label>
+
+              <label class="p-3 rounded-xl border border-gray-200 hover:border-rose-400 cursor-pointer flex items-start gap-2 bg-gray-50/50 has-checked:border-rose-600 has-checked:bg-rose-50/60">
+                <input type="radio" name="donationType" value="platelet" class="mt-0.5 text-rose-600 focus:ring-rose-500" />
+                <div>
+                  <span class="text-xs font-extrabold text-gray-900 block">{isBn ? 'এফেরেসিস প্লাটিলেট (SDP)' : 'SDP Platelets'}</span>
+                  <span class="text-[11px] text-gray-500">{isBn ? '১৫ দিন নিরাপদ বিরতি' : '15 days cooldown'}</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Donation Date -->
+          <div>
+            <label for="log-donation-date" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'ডোনেশনের তারিখ' : 'Donation Date'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="date"
+              name="donationDate"
+              id="log-donation-date"
+              required
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            />
+          </div>
+
+          <!-- Hospital / Center (Optional) -->
+          <div>
+            <label for="log-hospital" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'হাসপাতাল / ব্লাড ব্যাংক' : 'Hospital / Blood Bank'}
+            </label>
+            <input
+              type="text"
+              name="hospital"
+              id="log-hospital"
+              placeholder={isBn ? 'যেমন: ঢাকা মেডিকেল কলেজ হাসপাতাল' : 'e.g., DMCH Blood Bank'}
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            />
+          </div>
+
+          <!-- Admin Notes / Remarks -->
+          <div>
+            <label for="log-notes" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'অ্যাডমিন মন্তব্য / বিশেষ নোট' : 'Admin Remarks / Notes'}
+            </label>
+            <textarea
+              name="notes"
+              id="log-notes"
+              rows="2"
+              placeholder={isBn ? 'যেমন: ১ ব্যাগ প্লাটিলেট দিয়েছেন, কোনো শারীরিক জটিলতা নেই...' : 'e.g., Successfully collected 1 bag SDP, donor felt fine...'}
+              class="w-full py-2 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            ></textarea>
+          </div>
+
+          <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              id="cancel-log-btn"
+              class="py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition cursor-pointer"
+            >
+              {isBn ? 'বাতিল' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer"
+            >
+              {isBn ? 'সংরক্ষণ করুন (Save Donation)' : 'Save Donation'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 2: VIEW DONATION HISTORY -->
+    <!-- ============================================== -->
+    <div
+      id="view-history-modal"
+      data-is-admin={isAdmin ? 'true' : 'false'}
+      class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="relative bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div>
+            <h3 class="font-black text-gray-900 text-base" id="history-modal-title">
+              {isBn ? 'ডোনেশন হিস্ট্রি' : 'Donation History'}
+            </h3>
+            <p class="text-xs text-gray-500" id="history-modal-subtitle">Donor Logs</p>
+          </div>
+          <button
+            type="button"
+            id="close-history-modal-btn"
+            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div id="history-modal-content" class="py-4 space-y-3 overflow-y-auto flex-1">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <div class="pt-3 border-t border-gray-100 flex justify-end">
+          <button
+            type="button"
+            id="history-modal-close-action"
+            class="py-2 px-5 rounded-xl bg-gray-900 text-white font-bold text-xs hover:bg-gray-800 transition cursor-pointer"
+          >
+            {isBn ? 'বন্ধ করুন' : 'Close'}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 4: EDIT DONATION RECORD -->
+    <!-- ============================================== -->
+    <div
+      id="edit-donation-modal"
+      class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">✏️</span>
+            <div>
+              <h3 class="font-black text-gray-900 text-base">
+                {isBn ? 'ডোনেশন তথ্য সংশোধন' : 'Edit Donation Record'}
+              </h3>
+              <p class="text-xs text-gray-500">
+                {isBn ? 'তারিখ বা ধরন পরিবর্তন করলে কুলডাউন স্বয়ংক্রিয়ভাবে পুনঃগণনা করা হবে।' : 'Modifying date or type will automatically recalculate donor cooldown.'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            id="close-edit-modal-btn"
+            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form method="POST" action="/api/admin/edit-donation" class="py-4 space-y-4 overflow-y-auto flex-1">
+          <input type="hidden" name="donationId" id="edit-donation-id" />
+
+          <!-- Donation Type Selection -->
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'ডোনেশনের ধরন' : 'Donation Type'} <span class="text-rose-600">*</span>
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="p-3 rounded-xl border border-gray-200 hover:border-rose-400 cursor-pointer flex items-start gap-2 bg-gray-50/50 has-checked:border-rose-600 has-checked:bg-rose-50/60">
+                <input type="radio" name="donationType" id="edit-type-whole" value="whole_blood" class="mt-0.5 text-rose-600 focus:ring-rose-500" />
+                <div>
+                  <span class="text-xs font-extrabold text-gray-900 block">{isBn ? 'সম্পূর্ণ রক্ত (Whole Blood)' : 'Whole Blood'}</span>
+                  <span class="text-[11px] text-gray-500">{isBn ? '৯০ দিন নিরাপদ বিরতি' : '90 days cooldown'}</span>
+                </div>
+              </label>
+
+              <label class="p-3 rounded-xl border border-gray-200 hover:border-rose-400 cursor-pointer flex items-start gap-2 bg-gray-50/50 has-checked:border-rose-600 has-checked:bg-rose-50/60">
+                <input type="radio" name="donationType" id="edit-type-platelet" value="platelet" class="mt-0.5 text-rose-600 focus:ring-rose-500" />
+                <div>
+                  <span class="text-xs font-extrabold text-gray-900 block">{isBn ? 'এফেরেসিস প্লাটিলেট (SDP)' : 'SDP Platelets'}</span>
+                  <span class="text-[11px] text-gray-500">{isBn ? '১৫ দিন নিরাপদ বিরতি' : '15 days cooldown'}</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Donation Date -->
+          <div>
+            <label for="edit-donation-date" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'ডোনেশনের তারিখ' : 'Donation Date'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="date"
+              name="donationDate"
+              id="edit-donation-date"
+              required
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            />
+          </div>
+
+          <!-- Hospital / Center (Optional) -->
+          <div>
+            <label for="edit-hospital" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'হাসপাতাল / ব্লাড ব্যাংক' : 'Hospital / Blood Bank'}
+            </label>
+            <input
+              type="text"
+              name="hospital"
+              id="edit-hospital"
+              placeholder={isBn ? 'যেমন: ঢাকা মেডিকেল কলেজ হাসপাতাল' : 'e.g., DMCH Blood Bank'}
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            />
+          </div>
+
+          <!-- Admin Notes / Remarks -->
+          <div>
+            <label for="edit-notes" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'অ্যাডমিন মন্তব্য / বিশেষ নোট' : 'Admin Remarks / Notes'}
+            </label>
+            <textarea
+              name="notes"
+              id="edit-notes"
+              rows="2"
+              placeholder={isBn ? 'নোট বা মন্তব্য লিখুন...' : 'Write notes or remarks...'}
+              class="w-full py-2 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            ></textarea>
+          </div>
+
+          <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              id="cancel-edit-btn"
+              class="py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition cursor-pointer"
+            >
+              {isBn ? 'বাতিল' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer"
+            >
+              {isBn ? 'হালনাগাদ সংরক্ষণ করুন' : 'Update Donation'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 3: ADD GUEST DONOR -->
+    <!-- ============================================== -->
+    <div
+      id="add-guest-modal"
+      class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">👤</span>
+            <h3 class="font-black text-gray-900 text-base sm:text-lg">
+              {isBn ? 'গেস্ট ডোনার যুক্ত করুন' : 'Add Guest Donor'}
+            </h3>
+          </div>
+          <button
+            type="button"
+            id="close-guest-modal-btn"
+            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form method="POST" action="/api/admin/add-donor" id="add-guest-form" class="space-y-4 pt-4 overflow-y-auto">
+          <!-- Full Name -->
+          <div>
+            <label for="guest-name" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'রক্তদাতার পূর্ণ নাম' : 'Donor Full Name'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              id="guest-name"
+              required
+              placeholder={isBn ? 'যেমন: মোহাম্মদ রফিকুল ইসলাম' : 'e.g. Rafiqul Islam'}
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            />
+          </div>
+
+          <!-- Phone Number -->
+          <div>
+            <label for="guest-phone" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর' : 'Phone / WhatsApp'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              id="guest-phone"
+              required
+              placeholder="017XXXXXXXX"
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm font-mono text-gray-900 bg-white"
+            />
+          </div>
+
+          <!-- Blood Group & Preference -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="guest-blood" class="block text-xs font-bold text-gray-700 mb-1.5">
+                {isBn ? 'রক্তের গ্রুপ' : 'Blood Group'} <span class="text-rose-600">*</span>
+              </label>
+              <select
+                name="bloodGroup"
+                id="guest-blood"
+                required
+                class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+              >
+                <option value="B+">B+ (Positive)</option>
+                <option value="A+">A+ (Positive)</option>
+                <option value="O+">O+ (Positive)</option>
+                <option value="AB+">AB+ (Positive)</option>
+                <option value="B-">B- (Negative)</option>
+                <option value="A-">A- (Negative)</option>
+                <option value="O-">O- (Negative)</option>
+                <option value="AB-">AB- (Negative)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="guest-pref" class="block text-xs font-bold text-gray-700 mb-1.5">
+                {isBn ? 'ডোনেশনের পছন্দ' : 'Preference'}
+              </label>
+              <select
+                name="donationPreference"
+                id="guest-pref"
+                class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+              >
+                <option value="whole_blood">{isBn ? 'সম্পূর্ণ রক্ত (Whole Blood)' : 'Whole Blood'}</option>
+                <option value="platelets">{isBn ? 'প্লাটিলেট (SDP Platelets)' : 'SDP Platelets'}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div>
+            <label for="guest-location" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'বর্তমান ঠিকানা / এলাকা' : 'Location / City'}
+            </label>
+            <input
+              type="text"
+              name="location"
+              id="guest-location"
+              placeholder={isBn ? 'যেমন: ঢাকা, ধানমন্ডি' : 'e.g. Dhanmondi, Dhaka'}
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            />
+          </div>
+
+          <!-- Last Donation Date (Optional) -->
+          <div>
+            <label for="guest-last-date" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'সর্বশেষ রক্তদানের তারিখ (যদি থাকে)' : 'Last Donation Date (Optional)'}
+            </label>
+            <input
+              type="date"
+              name="lastDonationDate"
+              id="guest-last-date"
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            />
+          </div>
+
+          <!-- Notes -->
+          <div>
+            <label for="guest-notes" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'বিশেষ নোট / যোগাযোগের মন্তব্য' : 'Remarks / Reference'}
+            </label>
+            <textarea
+              name="notes"
+              id="guest-notes"
+              rows="2"
+              placeholder={isBn ? 'যেমন: অফিসের সহকর্মী, ফোন করে নিশ্চিত করা হয়েছে...' : 'e.g., Referred by friend, confirmed available on weekends...'}
+              class="w-full py-2 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            ></textarea>
+          </div>
+
+          <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              id="cancel-guest-btn"
+              class="py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition cursor-pointer"
+            >
+              {isBn ? 'বাতিল' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer"
+            >
+              {isBn ? 'গেস্ট ডোনার সংরক্ষণ করুন' : 'Save Guest Donor'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Client-Side Script: Search, Sorting, Filter, and Modals -->
+    <script is:inline>
+      (() => {
+        // 1. Elements
+        const searchInput = document.getElementById('crm-search-input');
+        const bloodSelect = document.getElementById('filter-blood-group');
+        const sortSelect = document.getElementById('sort-donors-by');
+        const statusButtons = document.querySelectorAll('.status-filter-btn');
+        const rows = Array.from(document.querySelectorAll('.donor-row'));
+        const noResultsMsg = document.getElementById('no-results-msg');
+        const tableBody = document.getElementById('crm-table-body');
+
+        let currentStatusFilter = 'all';
+
+        // 2. Filter & Sort Function
+        function filterAndSort() {
+          const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+          const selectedBlood = bloodSelect ? bloodSelect.value : 'all';
+          const sortVal = sortSelect ? sortSelect.value : 'newest';
+
+          let visibleCount = 0;
+
+          rows.forEach((row) => {
+            const name = row.getAttribute('data-name') || '';
+            const phone = row.getAttribute('data-phone') || '';
+            const blood = row.getAttribute('data-blood') || '';
+            const location = row.getAttribute('data-location') || '';
+            const status = row.getAttribute('data-status') || '';
+            const isBloodCd = row.getAttribute('data-is-blood-cd') === 'true';
+            const isPlateletCd = row.getAttribute('data-is-platelet-cd') === 'true';
+            const isGuest = row.getAttribute('data-is-guest') === 'true';
+
+            // Check Search
+            const matchesQuery =
+              !query ||
+              name.includes(query) ||
+              phone.includes(query) ||
+              location.includes(query) ||
+              blood.toLowerCase().includes(query);
+
+            // Check Blood Group
+            const matchesBlood = selectedBlood === 'all' || blood === selectedBlood;
+
+            // Check Status
+            let matchesStatus = true;
+            if (currentStatusFilter === 'available') {
+              matchesStatus = status === 'available';
+            } else if (currentStatusFilter === 'blood_cooldown') {
+              matchesStatus = isBloodCd;
+            } else if (currentStatusFilter === 'platelet_cooldown') {
+              matchesStatus = isPlateletCd;
+            } else if (currentStatusFilter === 'guest') {
+              matchesStatus = isGuest;
+            }
+
+            if (matchesQuery && matchesBlood && matchesStatus) {
+              row.style.display = '';
+              visibleCount++;
+            } else {
+              row.style.display = 'none';
+            }
+          });
+
+          // Sort visible rows
+          const sortedRows = rows.slice().sort((a, b) => {
+            if (sortVal === 'newest') {
+              return Number(b.getAttribute('data-created')) - Number(a.getAttribute('data-created'));
+            } else if (sortVal === 'name_asc') {
+              return (a.getAttribute('data-name') || '').localeCompare(b.getAttribute('data-name') || '');
+            } else if (sortVal === 'blood_asc') {
+              return (a.getAttribute('data-blood') || '').localeCompare(b.getAttribute('data-blood') || '');
+            } else if (sortVal === 'history_desc') {
+              return Number(b.getAttribute('data-history-count')) - Number(a.getAttribute('data-history-count'));
+            }
+            return 0;
+          });
+
+          sortedRows.forEach((row) => tableBody.appendChild(row));
+
+          if (noResultsMsg) {
+            noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+          }
+        }
+
+        // Event listeners
+        searchInput?.addEventListener('input', filterAndSort);
+        bloodSelect?.addEventListener('change', filterAndSort);
+        sortSelect?.addEventListener('change', filterAndSort);
+
+        statusButtons.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            statusButtons.forEach((b) => {
+              b.classList.remove('bg-rose-600', 'text-white', 'border-rose-600');
+              b.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+            });
+            btn.classList.add('bg-rose-600', 'text-white', 'border-rose-600');
+            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+
+            currentStatusFilter = btn.getAttribute('data-status') || 'all';
+            filterAndSort();
+          });
+        });
+
+        // 3. Log Donation Modal
+        const logModal = document.getElementById('log-donation-modal');
+        const closeLogBtn = document.getElementById('close-log-modal-btn');
+        const cancelLogBtn = document.getElementById('cancel-log-btn');
+        const logDonorId = document.getElementById('log-donor-id');
+        const logDonorName = document.getElementById('log-donor-name');
+        const logDonorPhone = document.getElementById('log-donor-phone');
+        const logDonorBlood = document.getElementById('log-donor-blood');
+        const logDonationDate = document.getElementById('log-donation-date');
+
+        document.querySelectorAll('.log-donation-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-donor-id');
+            const name = btn.getAttribute('data-donor-name');
+            const phone = btn.getAttribute('data-donor-phone');
+            const blood = btn.getAttribute('data-donor-blood');
+
+            if (logDonorId) logDonorId.value = id || '';
+            if (logDonorName) logDonorName.textContent = name || '';
+            if (logDonorPhone) logDonorPhone.textContent = phone || '';
+            if (logDonorBlood) logDonorBlood.textContent = blood || '';
+
+            // Default date to today
+            if (logDonationDate) {
+              const today = new Date().toISOString().split('T')[0];
+              logDonationDate.value = today;
+            }
+
+            if (logModal) logModal.classList.remove('hidden');
+          });
+        });
+
+        const closeLogModal = () => logModal?.classList.add('hidden');
+        closeLogBtn?.addEventListener('click', closeLogModal);
+        cancelLogBtn?.addEventListener('click', closeLogModal);
+
+        // 4. History Modal
+        const historyModal = document.getElementById('view-history-modal');
+        const closeHistoryBtn = document.getElementById('close-history-modal-btn');
+        const closeHistoryAction = document.getElementById('history-modal-close-action');
+        const historyTitle = document.getElementById('history-modal-title');
+        const historySubtitle = document.getElementById('history-modal-subtitle');
+        const historyContent = document.getElementById('history-modal-content');
+        const isClientBn = document.documentElement.lang === 'bn';
+        const isAdmin = historyModal?.getAttribute('data-is-admin') === 'true';
+
+        function escapeHtml(str) {
+          if (!str) return '';
+          return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        }
+
+        async function deleteDonation(donationId) {
+          const confirmMsg = isClientBn
+            ? 'আপনি কি নিশ্চিত যে এই ডোনেশন রেকর্ডটি মুছে ফেলতে চান? ডোনারের কুলডাউন পূর্ববর্তী রেকর্ডে স্বয়ংক্রিয়ভাবে ফিরিয়ে নেওয়া হবে।'
+            : 'Are you sure you want to delete this donation record? The donor cooldown will be automatically rolled back.';
+          if (!confirm(confirmMsg)) return;
+
+          try {
+            const res = await fetch('/api/admin/delete-donation', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ donationId }),
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              window.location.href = window.location.pathname + '?success=donation_deleted';
+            } else {
+              alert(data.error || 'Failed to delete donation');
+            }
+          } catch (err) {
+            alert('Network error deleting donation');
+          }
+        }
+
+        function openEditModal(itm) {
+          const editModal = document.getElementById('edit-donation-modal');
+          const editId = document.getElementById('edit-donation-id');
+          const editDate = document.getElementById('edit-donation-date');
+          const editHosp = document.getElementById('edit-hospital');
+          const editNotes = document.getElementById('edit-notes');
+          const typeWhole = document.getElementById('edit-type-whole');
+          const typePlatelet = document.getElementById('edit-type-platelet');
+
+          if (editId) editId.value = itm.id;
+          if (editDate && itm.donationDate) {
+            editDate.value = new Date(itm.donationDate).toISOString().split('T')[0];
+          }
+          if (editHosp) editHosp.value = itm.hospital || '';
+          if (editNotes) editNotes.value = itm.notes || '';
+
+          const isPlat = (itm.donationType || itm.type || '').toLowerCase().includes('platelet');
+          if (isPlat && typePlatelet) {
+            typePlatelet.checked = true;
+          } else if (typeWhole) {
+            typeWhole.checked = true;
+          }
+
+          closeHistoryModal();
+          if (editModal) editModal.classList.remove('hidden');
+        }
+
+        function renderHistory(donorId, donorName, historyList) {
+          if (historySubtitle) {
+            historySubtitle.textContent = isClientBn
+              ? `সর্বমোট ${historyList.length}টি ডোনেশন রেকর্ড`
+              : `Total ${historyList.length} donation records`;
+          }
+
+          if (!historyContent) return;
+
+          if (historyList.length === 0) {
+            historyContent.innerHTML = `
+              <div class="py-8 text-center text-gray-400">
+                <span class="text-3xl block mb-2">📜</span>
+                <p class="text-xs font-semibold">${isClientBn ? 'পূর্বে কোনো ডোনেশন রেকর্ড করা হয়নি।' : 'No donation records recorded yet.'}</p>
+              </div>
+            `;
+            return;
+          }
+
+          historyContent.innerHTML = '';
+          historyList.forEach((item) => {
+            const dateStr = item.donationDate
+              ? new Date(item.donationDate).toLocaleDateString(isClientBn ? 'bn-BD' : 'en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : 'N/A';
+            const nextDateStr = item.nextEligibleDate
+              ? new Date(item.nextEligibleDate).toLocaleDateString(isClientBn ? 'bn-BD' : 'en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : '';
+            const isPlatelet = (item.donationType || item.type || '').toLowerCase().includes('platelet');
+
+            const card = document.createElement('div');
+            card.className = 'p-3.5 rounded-2xl bg-gray-50 border border-gray-200 text-xs space-y-2';
+
+            const headerRow = document.createElement('div');
+            headerRow.className = 'flex items-center justify-between';
+
+            const badgeSpan = document.createElement('span');
+            badgeSpan.className = 'font-bold text-gray-900 flex items-center gap-1.5';
+            badgeSpan.innerHTML = `<span>${isPlatelet ? '🟡' : '🩸'}</span><span>${
+              isPlatelet
+                ? isClientBn
+                  ? 'প্লাটিলেট (SDP)'
+                  : 'Platelet (SDP)'
+                : isClientBn
+                  ? 'সম্পূর্ণ রক্ত (Whole Blood)'
+                  : 'Whole Blood'
+            }</span>`;
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'flex items-center gap-1.5';
+
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'font-mono text-gray-500 mr-1 text-[11px]';
+            dateSpan.textContent = dateStr;
+            actionsDiv.appendChild(dateSpan);
+
+            if (isAdmin) {
+              const editBtn = document.createElement('button');
+              editBtn.type = 'button';
+              editBtn.className =
+                'edit-item-btn p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer';
+              editBtn.title = isClientBn ? 'রেকর্ড সংশোধন করুন' : 'Edit record';
+              editBtn.textContent = '✏️';
+              editBtn.addEventListener('click', () => openEditModal(item));
+              actionsDiv.appendChild(editBtn);
+
+              const deleteBtn = document.createElement('button');
+              deleteBtn.type = 'button';
+              deleteBtn.className =
+                'delete-item-btn p-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition cursor-pointer';
+              deleteBtn.title = isClientBn ? 'রেকর্ড মুছে ফেলুন' : 'Delete record';
+              deleteBtn.textContent = '🗑️';
+              deleteBtn.addEventListener('click', () => deleteDonation(item.id));
+              actionsDiv.appendChild(deleteBtn);
+            }
+
+            headerRow.appendChild(badgeSpan);
+            headerRow.appendChild(actionsDiv);
+            card.appendChild(headerRow);
+
+            if (item.hospital) {
+              const hospP = document.createElement('p');
+              hospP.className = 'text-gray-600';
+              hospP.innerHTML = `🏥 <strong>${isClientBn ? 'স্থান:' : 'Hospital:'}</strong> ${escapeHtml(
+                item.hospital
+              )}`;
+              card.appendChild(hospP);
+            }
+
+            if (item.notes) {
+              const notesP = document.createElement('p');
+              notesP.className = 'text-gray-700 bg-white p-2 rounded-xl border border-gray-100';
+              notesP.innerHTML = `📝 <strong>${isClientBn ? 'মন্তব্য:' : 'Notes:'}</strong> ${escapeHtml(
+                item.notes
+              )}`;
+              card.appendChild(notesP);
+            }
+
+            if (nextDateStr) {
+              const nextP = document.createElement('p');
+              nextP.className = 'text-[11px] text-emerald-700 font-semibold';
+              nextP.textContent = `${
+                isClientBn ? 'পরবর্তী গ্রহণযোগ্য তারিখ:' : 'Next Eligible:'
+              } ${nextDateStr}`;
+              card.appendChild(nextP);
+            }
+
+            historyContent.appendChild(card);
+          });
+        }
+
+        document.querySelectorAll('.view-history-btn').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const donorId = btn.getAttribute('data-donor-id');
+            const donorName = btn.getAttribute('data-donor-name') || '';
+
+            if (historyTitle) {
+              historyTitle.textContent = `${donorName} — ${isClientBn ? 'ডোনেশন হিস্ট্রি' : 'Donation History'}`;
+            }
+            if (historySubtitle) {
+              historySubtitle.textContent = isClientBn ? 'তথ্য লোড হচ্ছে...' : 'Fetching records...';
+            }
+
+            if (historyContent) {
+              historyContent.innerHTML = `
+                <div class="py-8 text-center text-gray-500">
+                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-rose-600 border-t-transparent mb-2"></div>
+                  <p class="text-xs font-semibold">${isClientBn ? 'ডোনেশন হিস্ট্রি লোড হচ্ছে...' : 'Loading donation records...'}</p>
+                </div>
+              `;
+            }
+
+            if (historyModal) historyModal.classList.remove('hidden');
+
+            try {
+              const res = await fetch(`/api/admin/donors?donorId=${donorId}`);
+              const data = await res.json();
+              if (!res.ok || !data.success) {
+                throw new Error(data.error || 'Failed to fetch history');
+              }
+              const historyList = data.history || [];
+              renderHistory(donorId, donorName, historyList);
+            } catch (err) {
+              console.error('History fetch error:', err);
+              if (historyContent) {
+                historyContent.innerHTML = `
+                  <div class="py-8 text-center text-rose-600">
+                    <span class="text-2xl block mb-1">⚠️</span>
+                    <p class="text-xs font-semibold">${isClientBn ? 'রেকর্ড লোড করতে ব্যর্থ হয়েছে।' : 'Failed to load donation records.'}</p>
+                  </div>
+                `;
+              }
+            }
+          });
+        });
+
+        const closeHistoryModal = () => historyModal?.classList.add('hidden');
+        closeHistoryBtn?.addEventListener('click', closeHistoryModal);
+        closeHistoryAction?.addEventListener('click', closeHistoryModal);
+
+        // Edit Modal controls
+        const editModal = document.getElementById('edit-donation-modal');
+        const closeEditBtn = document.getElementById('close-edit-modal-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const closeEditModal = () => editModal?.classList.add('hidden');
+        closeEditBtn?.addEventListener('click', closeEditModal);
+        cancelEditBtn?.addEventListener('click', closeEditModal);
+
+        // 5. Guest Donor Modal
+        const guestModal = document.getElementById('add-guest-modal');
+        const openGuestBtn = document.getElementById('open-guest-modal-btn');
+        const closeGuestBtn = document.getElementById('close-guest-modal-btn');
+        const cancelGuestBtn = document.getElementById('cancel-guest-btn');
+
+        openGuestBtn?.addEventListener('click', () => guestModal?.classList.remove('hidden'));
+        const closeGuestModal = () => guestModal?.classList.add('hidden');
+        closeGuestBtn?.addEventListener('click', closeGuestModal);
+        cancelGuestBtn?.addEventListener('click', closeGuestModal);
+
+        // Close on escape
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeLogModal();
+            closeHistoryModal();
+            closeEditModal();
+            closeGuestModal();
+          }
+        });
+      })();
+    </script>
+
+    <!-- Footer -->
+    <Footer lang={lang} />
+  </body>
+</html>
+
