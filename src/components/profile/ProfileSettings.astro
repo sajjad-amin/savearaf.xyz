@@ -128,14 +128,14 @@ const errorParam = Astro.url.searchParams.get('error');
       <section class="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 sm:p-8 mb-8">
         <h2 class="text-lg font-bold text-gray-900 mb-6 pb-3 border-b border-gray-100 flex items-center gap-2">
           <span>👤</span>
-          <span>{isBn ? 'ব্যক্তিগত বিবরণ (Personal Details)' : 'Personal Details'}</span>
+          <span>{isBn ? 'ব্যক্তিগত বিবরণ' : 'Personal Details'}</span>
         </h2>
 
         <form method="POST" action="/api/profile/update" class="space-y-6">
           <!-- Full Name -->
           <div>
             <label for="name" class="block text-sm font-semibold text-gray-800 mb-1.5">
-              {isBn ? 'পূর্ণ নাম (Full Name)' : 'Full Name'} <span class="text-rose-600">*</span>
+              {isBn ? 'পূর্ণ নাম' : 'Full Name'} <span class="text-rose-600">*</span>
             </label>
             <input
               type="text"
@@ -150,7 +150,7 @@ const errorParam = Astro.url.searchParams.get('error');
           <!-- Email (Read-only) -->
           <div>
             <label for="email" class="block text-sm font-semibold text-gray-800 mb-1.5">
-              {isBn ? 'ইমেইল ঠিকানা (Email Address)' : 'Email Address'}
+              {isBn ? 'ইমেইল ঠিকানা' : 'Email Address'}
             </label>
             <input
               type="email"
@@ -161,7 +161,7 @@ const errorParam = Astro.url.searchParams.get('error');
             />
             <p class="mt-1.5 text-xs text-gray-400">
               🔒 {isBn
-                ? 'গুগল অ্যাকাউন্ট দ্বারা সুরক্ষিত হওয়ায় ইমেইল পরিবর্তনযোগ্য নয় (Managed by Google OAuth).'
+                ? 'গুগল অ্যাকাউন্ট দ্বারা সুরক্ষিত হওয়ায় ইমেইল পরিবর্তনযোগ্য নয়।'
                 : 'Locked to your Google OAuth account for identity verification.'}
             </p>
           </div>
@@ -169,7 +169,7 @@ const errorParam = Astro.url.searchParams.get('error');
           <!-- Phone Number -->
           <div>
             <label for="phone" class="block text-sm font-semibold text-gray-800 mb-1.5">
-              {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর (Phone / WhatsApp)' : 'Mobile / WhatsApp Number'} <span class="text-rose-600">*</span>
+              {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর' : 'Mobile / WhatsApp Number'} <span class="text-rose-600">*</span>
             </label>
             <input
               type="tel"
@@ -193,7 +193,7 @@ const errorParam = Astro.url.searchParams.get('error');
               type="submit"
               class="inline-flex justify-center py-2.5 px-6 border border-transparent rounded-xl shadow-xs text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition cursor-pointer"
             >
-              {isBn ? 'পরিবর্তন সংরক্ষণ করুন (Save Changes)' : 'Save Changes'}
+              {isBn ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}
             </button>
           </div>
         </form>
@@ -203,7 +203,7 @@ const errorParam = Astro.url.searchParams.get('error');
       <section class="bg-rose-50/50 rounded-3xl border border-rose-200 shadow-xs p-6 sm:p-8">
         <h2 class="text-lg font-bold text-rose-900 mb-2 flex items-center gap-2">
           <span>⚠️</span>
-          <span>{isBn ? 'বিপদজনক এলাকা (Danger Zone)' : 'Danger Zone'}</span>
+          <span>{isBn ? 'বিপদজনক এলাকা' : 'Danger Zone'}</span>
         </h2>
         <p class="text-xs sm:text-sm text-rose-800 leading-relaxed mb-6">
           {isBn
@@ -217,7 +217,7 @@ const errorParam = Astro.url.searchParams.get('error');
           id="open-delete-modal-btn"
           class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl border border-rose-300 bg-white hover:bg-rose-600 text-rose-700 hover:text-white font-bold text-sm shadow-xs transition duration-150 cursor-pointer"
         >
-          {isBn ? 'অ্যাকাউন্ট মুছে ফেলুন (Delete Account)' : 'Delete Account'}
+          {isBn ? 'অ্যাকাউন্ট মুছে ফেলুন' : 'Delete Account'}
         </button>
       </section>
     </main>

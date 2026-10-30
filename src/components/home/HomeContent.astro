@@ -10,33 +10,720 @@ import Navbar from '@/components/common/Navbar.astro';
 import Footer from '@/components/common/Footer.astro';
 
 const isDeleted = Astro.url.searchParams.get('deleted') === 'true';
+const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
+
+// Financial metrics extracted from real campaign documents
+const targetGoal = 2000000; // 20,00,000 BDT (20 Lakh BDT)
+const currentRaised = 85000; // Starting amount so progress bar is visible
+const progressPercent = Math.min(Math.round((currentRaised / targetGoal) * 100), 100);
+
+function formatCurrency(amount: number): string {
+  if (isBn) {
+    return amount.toLocaleString('bn-BD') + ' ৳';
+  }
+  return '৳ ' + amount.toLocaleString('en-US');
+}
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={lang} class="scroll-smooth">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{isBn ? 'আরাফকে বাঁচান - Save Araf' : 'Save Araf - Emergency Appeal'}</title>
+    <title>{isBn ? 'আরাফকে বাঁচান — জরুরি চিকিৎসা সহায়তা তহবিল' : 'Save Araf — Emergency Medical Appeal'}</title>
+    <meta
+      name="description"
+      content={isBn
+        ? '১৯ বছর বয়সী আরাফ ব্লাড ক্যান্সারে (AML) আক্রান্ত। জরুরি B+ প্লাটিলেট, রক্ত ও ২০ লাখ টাকার চিকিৎসা তহবিলের আবেদন।'
+        : '19-year-old Araf is battling Acute Myeloid Leukemia (AML). Urgent appeal for B+ platelets, blood, and medical funds.'}
+    />
   </head>
-  <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
-    <!-- Revamped Global Navbar -->
+  <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased selection:bg-rose-500 selection:text-white">
+    <!-- Global Navbar -->
     <Navbar lang={lang} />
 
-    <!-- Main Content Area (Cleaned temporarily for upcoming Phase 5 campaign content) -->
-    <main class="max-w-4xl mx-auto px-4 py-12 flex-1 w-full">
+    <!-- Main Content Container -->
+    <main class="flex-1 w-full">
+      <!-- Notification Banner if account was deleted -->
       {isDeleted && (
-        <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center gap-2">
-          <span>ℹ️</span>
-          <span>
-            {isBn
-              ? 'আপনার অ্যাকাউন্ট ও ব্যক্তিগত তথ্য সফলভাবে অপসারণ করা হয়েছে।'
-              : 'Your account and personal data have been successfully deleted.'}
-          </span>
+        <div class="max-w-6xl mx-auto px-4 pt-6">
+          <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center justify-between shadow-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">ℹ️</span>
+              <span>
+                {isBn
+                  ? 'আপনার অ্যাকাউন্ট ও ব্যক্তিগত তথ্য সফলভাবে অপসারণ করা হয়েছে।'
+                  : 'Your account and personal data have been successfully deleted.'}
+              </span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+          </div>
         </div>
       )}
+
+      <!-- ============================================== -->
+      <!-- SECTION 1: HERO SECTION & EMOTIONAL APPEAL -->
+      <!-- ============================================== -->
+      <section class="relative overflow-hidden bg-gradient-to-b from-rose-50/70 via-white to-gray-50 py-12 sm:py-16 lg:py-20 border-b border-gray-200/80">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            <!-- Left Column: Story & CTAs -->
+            <div class="lg:col-span-7 space-y-6">
+              <!-- Urgent Badge -->
+              <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-100/80 border border-rose-200 text-rose-800 text-xs sm:text-sm font-bold shadow-2xs animate-pulse">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+                <span>{isBn ? 'জরুরি মানবিক আবেদন — ব্লাড ক্যান্সার (AML)' : 'Urgent Appeal — Acute Myeloid Leukemia (AML)'}</span>
+              </div>
+
+              <!-- Main Headline -->
+              <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight leading-[1.2]">
+                {isBn ? (
+                  <span>
+                    ব্লাড ক্যান্সারের থাবায় থমকে গেছে <span class="text-rose-600 underline decoration-rose-300 underline-offset-4">১৯ বছরের আরাফের জীবন</span>, বাঁচাতে প্রয়োজন আপনাদের একটু সহানুভূতি।
+                  </span>
+                ) : (
+                  <span>
+                    19-Year-Old <span class="text-rose-600 underline decoration-rose-300 underline-offset-4">Araf’s Life Halted</span> by Blood Cancer — He Needs Your Compassion to Survive.
+                  </span>
+                )}
+              </h1>
+
+              <!-- Emotional Appeal Summary from Medical Documents & Facebook Posts -->
+              <div class="space-y-3.5 text-gray-700 text-sm sm:text-base leading-relaxed">
+                <p>
+                  {isBn ? (
+                    <span>
+                      মাত্র ২ মাস আগে একটি সাধারণ জ্বর দিয়ে শুরু হয়ে ধীরে ধীরে তীব্র শারীরিক দুর্বলতায় রূপ নেয়, যার পর ধরা পড়ে প্রাণঘাতী ব্লাড ক্যান্সার (AML)। আরাফ পরিবারের বড় ছেলে, কিন্তু পরিবারের এই ভয়াবহ দুর্যোগ সামলানোর মতো কোনো দায়িত্বশীল বা উপার্জনক্ষম ব্যক্তি নেই। অরোরা হাসপাতাল ও ইবনে সিনায় প্রাথমিক টেস্ট এবং প্লাটিলেট সংগ্রহ করতেই ইতোমধ্যে পরিবারের সব জমানো অর্থ (প্রায় ২ লক্ষাধিক টাকা) শেষ হয়ে গেছে। বর্তমানে ঢাকা মেডিকেলে ১০টি কেমোথেরাপি দিতে হবে, যার প্রতিটি সেশনে প্রায় ২০ হাজার টাকা খরচ হচ্ছে। এছাড়া এক ব্যাগ প্লাটিলেট সংগ্রহ করতেই প্রায় ২০ হাজার টাকা লাগছে। এটি কেবল প্রথম ধাপের চিকিৎসা। পরবর্তীতে উন্নত চিকিৎসার জন্য আরাফকে ভারতে নেওয়ার প্রস্তুতি চলছে, যার জন্য প্রয়োজন আরও বিপুল পরিমাণ অর্থ। চিকিৎসার এই বিশাল ব্যয়ভার বহন করা এখন পরিবারের পক্ষে সম্পূর্ণ অসম্ভব। আপনার ছোট্ট একটি সাহায্যে হয়তো বেঁচে যেতে পারে তাজা একটি প্রাণ।
+                    </span>
+                  ) : (
+                    <span>
+                      What began just 2 months ago as a simple fever rapidly deteriorated into severe physical weakness, culminating in a devastating diagnosis of Acute Myeloid Leukemia (AML). Araf is the eldest son, yet the family has no other responsible adult or earning member capable of bearing this overwhelming crisis. The family's entire savings (over ৳2,00,000) have already been completely exhausted on initial diagnostic panels and emergency platelets at Aurora Hospital and Ibn Sina. Currently at Dhaka Medical College Hospital, Araf urgently requires 10 chemotherapy sessions costing approximately ৳20,000 each, alongside platelets costing nearly ৳20,000 per bag in processing and screening fees. This is merely the initial phase; preparations are underway to transfer him to India for specialized treatment, requiring substantial additional funds. Bearing this immense medical burden is now completely impossible for his family alone. A small contribution from you could save this precious young life.
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              <!-- Primary Action Buttons -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
+                <a
+                  href="#donate-funds"
+                  class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-rose-600/25 transition duration-150 cursor-pointer"
+                >
+                  <span>💸</span>
+                  <span>{isBn ? 'চিকিৎসা তহবিল দান করুন' : 'Donate to Medical Fund'}</span>
+                </a>
+
+                <a
+                  href={donateBloodUrl}
+                  class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-white hover:bg-rose-50 border-2 border-rose-600 text-rose-700 font-extrabold text-sm sm:text-base shadow-xs transition duration-150 cursor-pointer"
+                >
+                  <span class="text-xl">🩸</span>
+                  <span>{isBn ? 'রক্ত / প্লাটিলেট দিতে চাই' : 'Donate Blood or Platelets'}</span>
+                </a>
+              </div>
+
+              <!-- Quick Guarantee / Trust Badges -->
+              <div class="pt-3 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-gray-500 font-medium">
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="text-emerald-600 text-sm">✓</span>
+                  {isBn ? '১০০% যাচাইকৃত মেডিকেল রিপোর্ট' : '100% Verified Medical Reports'}
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="text-emerald-600 text-sm">✓</span>
+                  {isBn ? 'সরাসরি পরিবারের বিকাশ/ব্যাংক একাউন্ট' : 'Direct Family bKash & Bank Accounts'}
+                </span>
+                <span class="inline-flex items-center gap-1.5">
+                  <span class="text-emerald-600 text-sm">✓</span>
+                  {isBn ? 'ঢাকা মেডিকেল কলেজ হাসপাতাল' : 'Dhaka Medical College Hospital'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Right Column: Patient Photo Card with Status -->
+            <div class="lg:col-span-5">
+              <div class="relative mx-auto max-w-md lg:max-w-none">
+                <!-- Decorative background glow -->
+                <div class="absolute -inset-2 bg-gradient-to-r from-rose-500/20 via-amber-400/20 to-rose-500/20 rounded-3xl blur-2xl opacity-40 transform -rotate-1"></div>
+
+                <div class="relative bg-white rounded-3xl p-3 sm:p-4 shadow-xl border border-gray-200/90 overflow-hidden">
+                  <!-- Main Hospital Photo -->
+                  <div class="relative aspect-4/5 sm:aspect-3/4 rounded-2xl overflow-hidden bg-gray-100 shadow-inner group">
+                    <img
+                      src="/campaign/araf_photo.jpg"
+                      alt={isBn ? 'হাসপাতালে চিকিৎসাধীন আরাফ' : 'Araf undergoing critical treatment at DMCH'}
+                      class="w-full h-full object-cover object-center group-hover:scale-102 transition duration-500"
+                      loading="eager"
+                    />
+
+                    <!-- Floating Emergency Pill -->
+                    <div class="absolute top-3 left-3 bg-gray-900/85 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                      <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                      <span>{isBn ? 'কেবিন ১১৪/বি, ঢাকা মেডিকেল' : 'Cabin 114/B, DMCH'}</span>
+                    </div>
+
+                    <!-- Floating Blood Group Tag -->
+                    <div class="absolute top-3 right-3 bg-rose-600 text-white px-3 py-1 rounded-xl font-black text-xs sm:text-sm shadow-md flex items-center gap-1">
+                      <span>🩸</span>
+                      <span>B+ (Positive)</span>
+                    </div>
+
+                    <!-- Bottom Gradient Overlay with Status & Diagnosis -->
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-gray-950/90 via-gray-900/50 to-transparent p-4 sm:p-5 pt-12 text-white text-left">
+                      <span class="text-xs uppercase font-extrabold tracking-wider text-rose-300 block">
+                        {isBn ? 'ব্লাড ক্যান্সার (AML) আক্রান্ত' : 'Acute Myeloid Leukemia'}
+                      </span>
+                      <h3 class="text-base sm:text-lg font-black leading-tight mt-0.5">
+                        {isBn ? 'মো. আরাফ (১৯ বছর)' : 'Md. Araf (19 Years)'}
+                      </h3>
+                      <div class="mt-1.5 flex items-center justify-between text-xs text-gray-300">
+                        <span>{isBn ? 'কেবিন ১১৪/বি, হেমাটোলজি বিভাগ (ইউনিট-২), ঢামেক' : 'Cabin 114/B, Dept. of Hematology (Unit-2), DMCH'}</span>
+                        <a
+                          href="#medical-reports"
+                          class="text-rose-300 hover:text-white font-bold underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>{isBn ? 'মেডিকেল প্রমাণপত্র' : 'Medical Proof'}</span>
+                          <span>↓</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SECTION 2: FUND TRACKER (PROGRESS BAR) -->
+      <!-- ============================================== -->
+      <section id="fund-tracker" class="py-12 bg-white border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+          <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute -right-20 -bottom-20 w-72 h-72 bg-rose-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-6">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span class="text-xs uppercase font-extrabold tracking-widest text-rose-400">
+                    {isBn ? 'চিকিৎসা তহবিল অগ্রগতি' : 'Fundraising Progress'}
+                  </span>
+                  <h2 class="text-2xl sm:text-3xl font-black mt-1">
+                    {isBn ? 'জরুরি ২০ লাখ টাকার লক্ষ্যমাত্রা' : 'Target Goal: 20 Lakh BDT'}
+                  </h2>
+                </div>
+                <div class="bg-rose-500/20 border border-rose-500/40 px-4 py-2 rounded-2xl self-start sm:self-auto text-center">
+                  <span class="text-xs text-rose-200 block">{isBn ? 'অগ্রগতি' : 'Progress'}</span>
+                  <span class="text-xl sm:text-2xl font-black text-rose-400">{progressPercent}%</span>
+                </div>
+              </div>
+
+              <!-- Animated-style Progress Bar -->
+              <div class="space-y-2">
+                <div class="w-full bg-gray-700/80 rounded-full h-5 p-1 overflow-hidden shadow-inner">
+                  <div
+                    class="bg-gradient-to-r from-rose-500 via-rose-400 to-amber-400 h-full rounded-full transition-all duration-1000 shadow-sm"
+                    style={`width: ${Math.max(progressPercent, 4)}%`}
+                  ></div>
+                </div>
+                <div class="flex items-center justify-between text-xs sm:text-sm font-bold text-gray-300">
+                  <span>{isBn ? `সংগৃহীত: ${formatCurrency(currentRaised)}` : `Raised: ${formatCurrency(currentRaised)}`}</span>
+                  <span class="text-white font-extrabold">{isBn ? `লক্ষ্য: ${formatCurrency(targetGoal)}` : `Goal: ${formatCurrency(targetGoal)}`}</span>
+                </div>
+              </div>
+
+              <!-- Expenses Breakdown Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4 border-t border-gray-700/80 text-xs sm:text-sm">
+                <div class="bg-white/5 rounded-2xl p-3.5 border border-white/10">
+                  <span class="text-rose-300 font-bold block mb-1">🏥 {isBn ? '১০টি কেমোথেরাপি' : '10 Chemo Sessions'}</span>
+                  <span class="text-gray-300">{isBn ? 'প্রতি সেশনে প্রায় ২০,০০০ ৳ করে মোট প্রায় ২,০০,০০০ ৳' : 'Approx. ৳20,000 per session totaling ৳2,00,000'}</span>
+                </div>
+                <div class="bg-white/5 rounded-2xl p-3.5 border border-white/10">
+                  <span class="text-rose-300 font-bold block mb-1">🩸 {isBn ? 'প্লাটিলেট সংগ্রহ ফি' : 'Platelet Processing'}</span>
+                  <span class="text-gray-300">{isBn ? 'জরুরি প্রতি ব্যাগ প্লাটিলেট সংগ্রহ ও প্রসেসিংয়ে প্রায় ২০,০০০ ৳' : 'Nearly ৳20,000 per bag in hospital collection & screening'}</span>
+                </div>
+                <div class="bg-white/5 rounded-2xl p-3.5 border border-white/10">
+                  <span class="text-rose-300 font-bold block mb-1">✈️ {isBn ? 'ভারতে উন্নত চিকিৎসা' : 'India Medical Transfer'}</span>
+                  <span class="text-gray-300">{isBn ? 'প্রথম ধাপের পর ভারতে বিশেষায়িত বোন ম্যারো ট্রান্সপ্লান্ট প্রস্তুতি' : 'Preparations for specialized therapy and transplant abroad'}</span>
+                </div>
+              </div>
+
+              <div class="pt-2 flex justify-center">
+                <a
+                  href="#donate-funds"
+                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-8 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-sm transition shadow-lg shadow-rose-600/30 cursor-pointer"
+                >
+                  <span>❤️</span>
+                  <span>{isBn ? 'এখনই সাহায্য পাঠান' : 'Send Donation Now'}</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SECTION 3: HOW TO HELP (BKASH / NAGAD / BANK) -->
+      <!-- ============================================== -->
+      <section id="donate-funds" class="py-16 bg-gray-50 border-b border-gray-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
+          <div class="text-center max-w-2xl mx-auto mb-12">
+            <span class="text-xs uppercase font-extrabold tracking-wider text-rose-600">
+              {isBn ? 'আর্থিক অনুদানের মাধ্যম' : 'Direct Financial Support'}
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-black text-gray-900 mt-1">
+              {isBn ? 'যেভাবে সরাসরি আরাফের পরিবারকে সাহায্য পাঠাবেন' : 'Send Financial Help Directly to Araf’s Family'}
+            </h2>
+            <p class="text-sm text-gray-600 mt-2">
+              {isBn
+                ? 'সকল নম্বর ও ব্যাংক একাউন্ট আরাফের পরিবারের (চাচাতো ভাই শেখ মাহমুদ ইসলাম মিজু) সরাসরি তত্ত্বাবধানে পরিচালিত।'
+                : 'All accounts are directly owned and managed by Araf’s cousin, Sheikh Mahmud Islam Mizu.'}
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Mobile Banking Card: bKash / Nagad / Rocket -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm flex flex-col justify-between space-y-6">
+              <div>
+                <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl">📱</span>
+                    <h3 class="text-lg font-black text-gray-900">
+                      {isBn ? 'বিকাশ / নগদ / রকেট (Personal)' : 'bKash / Nagad / Rocket (Personal)'}
+                    </h3>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-bold">
+                    Send Money
+                  </span>
+                </div>
+
+                <div class="mt-6 space-y-4">
+                  <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-between gap-4">
+                    <div>
+                      <span class="text-xs text-gray-500 font-medium block">
+                        {isBn ? 'পার্সোনাল মোবাইল নম্বর (মিজু - চাচাতো ভাই)' : 'Personal Number (Mizu - Cousin)'}
+                      </span>
+                      <span class="text-xl sm:text-2xl font-mono font-black text-gray-900 tracking-wider">
+                        01515616728
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="copy-btn py-2 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      data-copy="01515616728"
+                    >
+                      <span>📋</span>
+                      <span class="btn-text">{isBn ? 'কপি করুন' : 'Copy'}</span>
+                    </button>
+                  </div>
+
+                  <div class="text-xs text-gray-600 space-y-1.5 pt-1">
+                    <p class="flex items-center gap-1.5">
+                      <span class="text-rose-600 font-bold">●</span>
+                      <span><strong>বিকাশ (bKash):</strong> Send Money to 01515616728</span>
+                    </p>
+                    <p class="flex items-center gap-1.5">
+                      <span class="text-amber-600 font-bold">●</span>
+                      <span><strong>নগদ (Nagad):</strong> Send Money to 01515616728</span>
+                    </p>
+                    <p class="flex items-center gap-1.5">
+                      <span class="text-purple-600 font-bold">●</span>
+                      <span><strong>রকেট (Rocket):</strong> Send Money to 01515616728</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-100 text-xs text-rose-800">
+                💡 {isBn
+                  ? 'টাকা পাঠানোর পর রেফারেন্সে "Araf" লিখুন যাতে পরিবারের হিসাব রাখতে সুবিধা হয়।'
+                  : 'Add "Araf" as reference when sending money to help the family track contributions.'}
+              </div>
+            </div>
+
+            <!-- Bank Transfer Card: City Bank -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm flex flex-col justify-between space-y-6">
+              <div>
+                <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl">🏦</span>
+                    <h3 class="text-lg font-black text-gray-900">
+                      {isBn ? 'ব্যাংক একাউন্ট (City Bank)' : 'Bank Transfer (City Bank)'}
+                    </h3>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
+                    Online Transfer
+                  </span>
+                </div>
+
+                <div class="mt-6 space-y-3.5">
+                  <!-- Account Number with Copy -->
+                  <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-between gap-3">
+                    <div>
+                      <span class="text-xs text-gray-500 font-medium block">{isBn ? 'একাউন্ট নম্বর' : 'Account Number'}</span>
+                      <span class="text-lg font-mono font-black text-gray-900 tracking-wider">2395230791001</span>
+                    </div>
+                    <button
+                      type="button"
+                      class="copy-btn py-1.5 px-3 rounded-lg bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs shadow-xs transition flex items-center gap-1 cursor-pointer"
+                      data-copy="2395230791001"
+                    >
+                      <span>📋</span>
+                      <span class="btn-text">{isBn ? 'কপি' : 'Copy'}</span>
+                    </button>
+                  </div>
+
+                  <!-- Details Table -->
+                  <div class="text-xs text-gray-700 divide-y divide-gray-100">
+                    <div class="py-2 flex justify-between">
+                      <span class="text-gray-500">{isBn ? 'ব্যাংকের নাম' : 'Bank Name'}:</span>
+                      <span class="font-bold text-gray-900">The City Bank Limited</span>
+                    </div>
+                    <div class="py-2 flex justify-between">
+                      <span class="text-gray-500">{isBn ? 'একাউন্টের নাম' : 'Account Name'}:</span>
+                      <span class="font-bold text-gray-900">SHEIKH MAHMUD ISLAM MIZU</span>
+                    </div>
+                    <div class="py-2 flex justify-between">
+                      <span class="text-gray-500">{isBn ? 'শাখা' : 'Branch'}:</span>
+                      <span class="font-bold text-gray-900">VIP ROAD BRANCH (DHAKA)</span>
+                    </div>
+                    <div class="py-2 flex justify-between">
+                      <span class="text-gray-500">{isBn ? 'রাউটিং নম্বর' : 'Routing Number'}:</span>
+                      <span class="font-mono font-bold text-gray-900">225276851</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900">
+                🌐 {isBn
+                  ? 'যেকোনো ব্যাংক অ্যাপ (BEFTN / NPSB) অথবা দেশের বাইরে থেকে রেমিট্যান্সের মাধ্যমে সহজে পাঠানো যাবে।'
+                  : 'Accessible via any mobile banking app, NPSB/BEFTN transfer, or international wire remittance.'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SECTION 4: BLOOD & PLATELET REQUIREMENTS -->
+      <!-- ============================================== -->
+      <section id="blood-needs" class="py-16 bg-white border-b border-gray-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
+          <div class="bg-gradient-to-br from-rose-50 via-white to-rose-50/50 rounded-3xl p-6 sm:p-10 border border-rose-200 shadow-sm">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div class="lg:col-span-7 space-y-5">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-600 text-white text-xs font-black">
+                  <span>🩸</span>
+                  <span>{isBn ? 'জরুরি রক্তের চাহিদা' : 'Urgent Blood Requisition'}</span>
+                </div>
+
+                <h2 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                  {isBn ? (
+                    <span>
+                      প্রয়োজন <span class="text-rose-600">B+ (B Positive)</span> প্লাটিলেট ও সম্পূর্ণ রক্ত
+                    </span>
+                  ) : (
+                    <span>
+                      Urgent Need: <span class="text-rose-600">B+ (B Positive)</span> SDP Platelets & Blood
+                    </span>
+                  )}
+                </h2>
+
+                <div class="text-sm text-gray-700 space-y-3 leading-relaxed">
+                  <p>
+                    {isBn ? (
+                      <span>
+                        আরাফের অস্থিমজ্জা (Bone Marrow) সঠিকভাবে রক্তকণিকা উৎপাদন করতে পারছে না। ফলে তার প্লাটিলেট আশঙ্কাজনকভাবে কমে যায়। বেঁচে থাকার জন্য নির্দিষ্ট দিন পরপর তাকে <strong>এফেরেসিস প্লাটিলেট (SDP)</strong> দিতে হচ্ছে।
+                      </span>
+                    ) : (
+                      <span>
+                        Araf’s bone marrow is currently unable to produce blood cells normally, causing life-threatening platelet drops. He requires regular <strong>Single Donor Platelet (SDP)</strong> transfusions to survive.
+                      </span>
+                    )}
+                  </p>
+                  <div class="p-4 rounded-2xl bg-white border border-rose-200 shadow-2xs space-y-2">
+                    <h4 class="font-extrabold text-gray-900 text-sm flex items-center gap-1.5">
+                      <span>🤝</span>
+                      <span>{isBn ? 'অন্যান্য রক্তের গ্রুপের ডোনাররাও কেন নিবন্ধন করবেন?' : 'Why other blood groups should also register:'}</span>
+                    </h4>
+                    <p class="text-xs sm:text-sm text-gray-600">
+                      {isBn ? (
+                        <span>
+                          ১. <strong>রক্তের গ্রুপ জটিলতা ও ক্রস-ম্যাচিং:</strong> রোগের তীব্রতা ও এন্টিবডি সমস্যার কারণে হাসপাতালে ভর্তির সময় রক্তের গ্রুপ নির্ধারণে শুরুতে চরম বিভ্রান্তি দেখা দিয়েছিল ("Previously B+ve, now couldn't define")। তাছাড়া লিউকেমিয়া রোগীদের ক্ষেত্রে একই গ্রুপের রক্তও অনেক সময় ক্রস-ম্যাচিংয়ে মেলে না।<br />
+                          ২. <strong>হাসপাতাল ক্রস-এক্সচেঞ্জ:</strong> আপনি অন্য যেকোনো গ্রুপের রক্ত দান করলেও হাসপাতাল ব্লাড ব্যাংক থেকে আরাফের জন্য প্রয়োজনীয় B+ রক্ত ও প্লাটিলেট সহজেই বিনিময় (Cross-Exchange) করা সম্ভব। তাই সব গ্রুপের রক্তদাতার বিশাল নেটওয়ার্ক থাকা জীবন-মরণের বিষয়।
+                        </span>
+                      ) : (
+                        <span>
+                          1. <strong>Blood Group Complexity & Cross-Matching:</strong> Due to leukemia-induced antibody variations, initial blood typing at the hospital encountered severe ambiguity ("Previously B+ve, now couldn't define"). Even matching B+ blood often fails strict cross-matching.<br />
+                          2. <strong>Hospital Cross-Exchange:</strong> Donating any blood group enables the DMCH blood bank to exchange units for the vital B+ platelets and blood Araf needs. A comprehensive donor registry across all blood groups is literally life-saving.
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="pt-2">
+                  <a
+                    href={donateBloodUrl}
+                    class="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-sm shadow-md shadow-rose-600/20 transition cursor-pointer"
+                  >
+                    <span>🩸</span>
+                    <span>{isBn ? 'রক্তদাতা হিসেবে যুক্ত হোন (Register as Donor)' : 'Register as Blood Donor'}</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Right: Visual Cooldown & Compatibility Card -->
+              <div class="lg:col-span-5 space-y-4">
+                <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm space-y-4">
+                  <h3 class="font-black text-gray-900 text-base pb-3 border-b border-gray-100 flex items-center justify-between">
+                    <span>{isBn ? 'রক্তদানের নিয়মাবলী' : 'Safe Donation Guidelines'}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">100% Safe</span>
+                  </h3>
+
+                  <div class="space-y-3 text-xs">
+                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <span class="font-bold text-gray-900 block mb-0.5">🟡 {isBn ? 'প্লাটিলেট (SDP) নিরাপদ বিরতি:' : 'Platelet (SDP) Cooldown:'}</span>
+                      <span class="text-gray-600">{isBn ? 'মাত্র ১৫ দিন পরপর নিরাপদে দেওয়া যায়। এতে শরীরে কোনো দুর্বলতা হয় না।' : 'Safe to donate every 15 days without physical weakness.'}</span>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <span class="font-bold text-gray-900 block mb-0.5">🔴 {isBn ? 'সম্পূর্ণ রক্ত (Whole Blood) বিরতি:' : 'Whole Blood Cooldown:'}</span>
+                      <span class="text-gray-600">{isBn ? '৯০ দিন (৩ মাস) পরপর একবার রক্তদান করা নিরাপদ।' : 'Safe to donate once every 90 days (3 months).'}</span>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <span class="font-bold text-gray-900 block mb-0.5">📍 {isBn ? 'রক্তদানের বর্তমান স্থান:' : 'Current Donation Location:'}</span>
+                      <span class="text-gray-600">{isBn ? 'কেবিন ১১৪/বি, হেমাটোলজি বিভাগ (ইউনিট-২), ঢাকা মেডিকেল কলেজ হাসপাতাল (ঢামেক)' : 'Cabin 114/B, Dept. of Hematology (Unit-2), Dhaka Medical College Hospital (DMCH)'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SECTION 5: VERIFIED MEDICAL REPORTS & PROOFS -->
+      <!-- ============================================== -->
+      <section id="medical-reports" class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+          <div class="text-center max-w-2xl mx-auto mb-12">
+            <span class="text-xs uppercase font-extrabold tracking-wider text-rose-600">
+              {isBn ? 'যাচাইকৃত চিকিৎসাপত্র' : 'Authentic Medical Documentation'}
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-black text-gray-900 mt-1">
+              {isBn ? 'আরাফের মেডিকেল রিপোর্ট ও চিকিৎসা প্রমাণপত্র' : 'Verified Medical Reports & Diagnostics'}
+            </h2>
+            <p class="text-sm text-gray-600 mt-2">
+              {isBn
+                ? 'ইবনে সিনা ডায়াগনস্টিক ও ঢাকা মেডিকেল কলেজ হাসপাতালের বিশেষজ্ঞ হেমাটোলজিস্ট কর্তৃক স্বাক্ষরিত রিপোর্ট।'
+                : 'Signed by senior hematology consultants at Ibn Sina Diagnostic Center & DMCH.'}
+            </p>
+          </div>
+
+          <!-- Reports Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Report 1: AML Flow Cytometry Diagnosis -->
+            <div class="bg-white rounded-3xl p-4 border border-gray-200 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+              <div>
+                <div class="aspect-4/3 rounded-2xl overflow-hidden bg-gray-100 border border-gray-100 cursor-pointer report-preview" data-src="/campaign/report_aml_flow_cytometry.png">
+                  <img
+                    src="/campaign/report_aml_flow_cytometry.png"
+                    alt={isBn ? 'ফ্লো সাইটোমেট্রি ব্লাড ক্যান্সার ডায়াগনোসিস' : 'Flow Cytometry AML Diagnosis Report'}
+                    class="w-full h-full object-cover object-top hover:scale-105 transition duration-300"
+                    loading="lazy"
+                  />
+                </div>
+                <h4 class="font-extrabold text-gray-900 text-sm mt-3">
+                  {isBn ? '১. ফ্লো সাইটোমেট্রি রিপোর্ট (AML)' : '1. Flow Cytometry Panel (AML)'}
+                </h4>
+                <p class="text-xs text-gray-500 mt-1">
+                  {isBn ? 'ইবনে সিনা — ৭৫% ব্লাস্ট সেল সনাক্তকরণ ও একিউট মায়েলোড লিউকেমিয়া নিশ্চিতকরণ।' : 'Ibn Sina — 75% blast cells confirming Acute Myeloid Leukemia.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="mt-4 w-full py-2 px-3 rounded-xl border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer report-preview flex items-center justify-center gap-1.5"
+                data-src="/campaign/report_aml_flow_cytometry.png"
+              >
+                <span>🔍</span>
+                <span>{isBn ? 'বড় করে দেখুন' : 'View Full Report'}</span>
+              </button>
+            </div>
+
+            <!-- Report 2: Blood Group B+ Cross Matching -->
+            <div class="bg-white rounded-3xl p-4 border border-gray-200 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+              <div>
+                <div class="aspect-4/3 rounded-2xl overflow-hidden bg-gray-100 border border-gray-100 cursor-pointer report-preview" data-src="/campaign/report_blood_group.png">
+                  <img
+                    src="/campaign/report_blood_group.png"
+                    alt={isBn ? 'রক্তের গ্রুপ B+ ক্রস ম্যাচিং রিপোর্ট' : 'Blood Group B+ Cross Matching Report'}
+                    class="w-full h-full object-cover object-top hover:scale-105 transition duration-300"
+                    loading="lazy"
+                  />
+                </div>
+                <h4 class="font-extrabold text-gray-900 text-sm mt-3">
+                  {isBn ? '২. ব্লাড গ্রুপ ও ক্রস ম্যাচিং (B+)' : '2. Blood Group & Cross-Matching (B+)'}
+                </h4>
+                <p class="text-xs text-gray-500 mt-1">
+                  {isBn ? 'ইবনে সিনা — রোগীর রক্তের গ্রুপ B Rh(D) Positive নিশ্চিতকরণ।' : 'Ibn Sina — Confirmed Patient Blood Group: B Rh(D) Positive.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="mt-4 w-full py-2 px-3 rounded-xl border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer report-preview flex items-center justify-center gap-1.5"
+                data-src="/campaign/report_blood_group.png"
+              >
+                <span>🔍</span>
+                <span>{isBn ? 'বড় করে দেখুন' : 'View Full Report'}</span>
+              </button>
+            </div>
+
+            <!-- Report 3: Hematology Peripheral Blood Film -->
+            <div class="bg-white rounded-3xl p-4 border border-gray-200 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+              <div>
+                <div class="aspect-4/3 rounded-2xl overflow-hidden bg-gray-100 border border-gray-100 cursor-pointer report-preview" data-src="/campaign/report_hematology.png">
+                  <img
+                    src="/campaign/report_hematology.png"
+                    alt={isBn ? 'পেরিফেরাল ব্লাড ফিল্ম স্টাডি রিপোর্ট' : 'Peripheral Blood Film Hematology Report'}
+                    class="w-full h-full object-cover object-top hover:scale-105 transition duration-300"
+                    loading="lazy"
+                  />
+                </div>
+                <h4 class="font-extrabold text-gray-900 text-sm mt-3">
+                  {isBn ? '৩. হেমাটোলজি রিপোর্ট (PBF)' : '3. Hematology Study (PBF)'}
+                </h4>
+                <p class="text-xs text-gray-500 mt-1">
+                  {isBn ? 'হেলথ অ্যান্ড হোপ হাসপাতাল — প্লাটিলেট মারাত্মকভাবে কমে যাওয়ার প্রমাণ ও পর্যবেক্ষণ।' : 'Health and Hope Hospital — Platelets markedly reduced.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="mt-4 w-full py-2 px-3 rounded-xl border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer report-preview flex items-center justify-center gap-1.5"
+                data-src="/campaign/report_hematology.png"
+              >
+                <span>🔍</span>
+                <span>{isBn ? 'বড় করে দেখুন' : 'View Full Report'}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Direct Coordinator Contact -->
+          <div class="mt-12 bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 text-center max-w-xl mx-auto space-y-3">
+            <h4 class="font-black text-gray-900 text-base">
+              {isBn ? 'যেকোনো অনুসন্ধানে সরাসরি যোগাযোগ করুন' : 'Direct Coordinator Contact for Queries'}
+            </h4>
+            <p class="text-xs sm:text-sm text-gray-600">
+              {isBn
+                ? 'আরাফের চিকিৎসাসংক্রান্ত তথ্য ও অনুদানের বিষয়ে বিস্তারিত জানতে তার চাচাতো ভাইয়ের সাথে সরাসরি যোগাযোগ করুন:'
+                : 'For any verification or queries, please feel free to reach out to Araf’s cousin directly:'}
+            </p>
+            <div class="inline-flex items-center gap-3 pt-1">
+              <a
+                href="tel:01515616728"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 text-white font-mono font-bold text-sm hover:bg-gray-800 transition"
+              >
+                <span>📞</span>
+                <span>01515616728</span>
+              </a>
+              <span class="text-xs text-gray-500 font-semibold">{isBn ? '(শেখ মাহমুদ ইসলাম মিজু - চাচাতো ভাই)' : '(Sheikh Mahmud Islam Mizu - Cousin)'}</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <!-- Lightbox Modal for Report Previews -->
+    <div
+      id="lightbox-modal"
+      class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="relative bg-white rounded-3xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl max-h-[92vh] flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">{isBn ? 'মেডিকেল প্রমাণপত্র' : 'Medical Report Preview'}</span>
+          <button
+            type="button"
+            id="close-lightbox-btn"
+            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="mt-4 flex-1 overflow-auto flex items-center justify-center">
+          <img id="lightbox-img" src="" alt="Medical Report Full View" class="max-h-[75vh] w-auto rounded-xl object-contain shadow-xs" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Client-side Interactive Scripts (Copy to clipboard & Lightbox) -->
+    <script is:inline>
+      (() => {
+        // 1. One-click Copy Handler
+        document.querySelectorAll('.copy-btn').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const textToCopy = btn.getAttribute('data-copy');
+            if (!textToCopy) return;
+
+            try {
+              await navigator.clipboard.writeText(textToCopy);
+              const textSpan = btn.querySelector('.btn-text');
+              const originalText = textSpan ? textSpan.textContent : '';
+              if (textSpan) textSpan.textContent = 'কপি হয়েছে! ✓';
+              btn.classList.add('bg-emerald-600', 'text-white');
+
+              setTimeout(() => {
+                if (textSpan) textSpan.textContent = originalText;
+                btn.classList.remove('bg-emerald-600');
+              }, 2000);
+            } catch (err) {
+              console.error('Failed to copy:', err);
+            }
+          });
+        });
+
+        // 2. Report Lightbox Handler
+        const modal = document.getElementById('lightbox-modal');
+        const modalImg = document.getElementById('lightbox-img');
+        const closeBtn = document.getElementById('close-lightbox-btn');
+
+        if (modal && modalImg && closeBtn) {
+          document.querySelectorAll('.report-preview').forEach((trigger) => {
+            trigger.addEventListener('click', (e) => {
+              const src = trigger.getAttribute('data-src');
+              if (src) {
+                modalImg.src = src;
+                modal.classList.remove('hidden');
+              }
+            });
+          });
+
+          const closeModal = () => {
+            modal.classList.add('hidden');
+            modalImg.src = '';
+          };
+
+          closeBtn.addEventListener('click', closeModal);
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+          });
+          window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+              closeModal();
+            }
+          });
+        }
+      })();
+    </script>
 
     <!-- Global Footer -->
     <Footer lang={lang} />
