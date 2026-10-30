@@ -39,7 +39,7 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
   <div class="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between">
     <!-- Left: Brand Logo & Title -->
     <a href={homeUrl} class="flex items-center gap-2 sm:gap-2.5 font-bold text-base sm:text-lg text-rose-600 hover:text-rose-700 transition shrink-0">
-      <img src="/logo.png" alt="Save Araf Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shadow-xs" />
+      <img src="/logo.png" alt="Save Araf Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shadow-xs" width="32" height="32" loading="eager" decoding="async" />
       <span class="tracking-tight">Save Araf</span>
     </a>
 
@@ -63,10 +63,11 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
             id="user-menu-btn"
             aria-expanded="false"
             aria-haspopup="true"
+            aria-label={isBn ? 'ইউজার মেনু' : 'User account menu'}
             class="flex items-center gap-1.5 sm:gap-2 py-1 sm:py-1.5 px-2 sm:px-2.5 rounded-full border border-gray-200 hover:border-gray-300 bg-gray-50/80 hover:bg-gray-100 transition cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-rose-500"
           >
             {user.image ? (
-              <img src={user.image} alt={user.name || 'User'} class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover border border-gray-300" />
+              <img src={user.image} alt={user.name || 'User'} class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover border border-gray-300" width="28" height="28" loading="lazy" decoding="async" />
             ) : (
               <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xs">
                 {user.name ? user.name[0] : 'U'}
@@ -75,7 +76,7 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
             <span class="text-xs font-semibold text-gray-800 hidden sm:inline-block max-w-[120px] truncate">
               {user.name || user.email}
             </span>
-            <svg class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200" id="user-menu-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200" id="user-menu-arrow" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -150,13 +151,13 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
           <>
             <span class="text-rose-600">BN</span>
             <span class="text-gray-300">|</span>
-            <a href={enUrl} class="text-gray-500 hover:text-gray-900 transition">
+            <a href={enUrl} aria-label="Switch to English" class="text-gray-600 hover:text-gray-900 transition">
               EN
             </a>
           </>
         ) : (
           <>
-            <a href={bnUrl} class="text-gray-500 hover:text-gray-900 transition">
+            <a href={bnUrl} aria-label="বাংলায় দেখুন" class="text-gray-600 hover:text-gray-900 transition">
               BN
             </a>
             <span class="text-gray-300">|</span>

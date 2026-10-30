@@ -38,6 +38,8 @@ function formatCurrency(amount: number): string {
         ? '১৯ বছর বয়সী আরাফ ব্লাড ক্যান্সারে (AML) আক্রান্ত। জরুরি B+ প্লাটিলেট, রক্ত ও ২০ লাখ টাকার চিকিৎসা তহবিলের আবেদন।'
         : '19-year-old Araf is battling Acute Myeloid Leukemia (AML). Urgent appeal for B+ platelets, blood, and medical funds.'}
     />
+    <!-- LCP Performance: Preload Hero Image -->
+    <link rel="preload" as="image" href="/campaign/araf_photo.jpg" fetchpriority="high" />
   </head>
   <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased selection:bg-rose-500 selection:text-white">
     <!-- Global Navbar -->
@@ -57,7 +59,14 @@ function formatCurrency(amount: number): string {
                   : 'Your account and personal data have been successfully deleted.'}
               </span>
             </div>
-            <button type="button" onclick="this.parentElement.remove()" class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+            <button
+              type="button"
+              onclick="this.parentElement.remove()"
+              aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+              class="text-amber-800 hover:text-amber-950 text-sm font-bold px-2 py-1 cursor-pointer"
+            >
+              <span aria-hidden="true">✕</span>
+            </button>
           </div>
         </div>
       )}
@@ -124,7 +133,7 @@ function formatCurrency(amount: number): string {
               </div>
 
               <!-- Quick Guarantee / Trust Badges -->
-              <div class="pt-3 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-gray-500 font-medium">
+              <div class="pt-3 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-gray-600 font-medium">
                 <span class="inline-flex items-center gap-1.5">
                   <span class="text-emerald-600 text-sm">✓</span>
                   {isBn ? '১০০% যাচাইকৃত মেডিকেল রিপোর্ট' : '100% Verified Medical Reports'}
@@ -154,6 +163,10 @@ function formatCurrency(amount: number): string {
                       alt={isBn ? 'হাসপাতালে চিকিৎসাধীন আরাফ' : 'Araf undergoing critical treatment at DMCH'}
                       class="w-full h-full object-cover object-center group-hover:scale-102 transition duration-500"
                       loading="eager"
+                      fetchpriority="high"
+                      decoding="sync"
+                      width="900"
+                      height="1600"
                     />
 
                     <!-- Floating Emergency Pill -->
@@ -303,7 +316,7 @@ function formatCurrency(amount: number): string {
                 <div class="mt-6 space-y-4">
                   <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-between gap-4">
                     <div>
-                      <span class="text-xs text-gray-500 font-medium block">
+                      <span class="text-xs text-gray-600 font-medium block">
                         {isBn ? 'পার্সোনাল মোবাইল নম্বর (মিজু - চাচাতো ভাই)' : 'Personal Number (Mizu - Cousin)'}
                       </span>
                       <span class="text-xl sm:text-2xl font-mono font-black text-gray-900 tracking-wider">
@@ -315,8 +328,9 @@ function formatCurrency(amount: number): string {
                       type="button"
                       class="copy-btn py-2 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       data-copy="01515616728"
+                      aria-label={isBn ? 'পার্সোনাল মোবাইল নম্বর কপি করুন' : 'Copy personal mobile number'}
                     >
-                      <span>📋</span>
+                      <span aria-hidden="true">📋</span>
                       <span class="btn-text">{isBn ? 'কপি করুন' : 'Copy'}</span>
                     </button>
                   </div>
@@ -364,15 +378,16 @@ function formatCurrency(amount: number): string {
                   <!-- Account Number with Copy -->
                   <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-between gap-3">
                     <div>
-                      <span class="text-xs text-gray-500 font-medium block">{isBn ? 'একাউন্ট নম্বর' : 'Account Number'}</span>
+                      <span class="text-xs text-gray-600 font-medium block">{isBn ? 'একাউন্ট নম্বর' : 'Account Number'}</span>
                       <span class="text-lg font-mono font-black text-gray-900 tracking-wider">2395230791001</span>
                     </div>
                     <button
                       type="button"
                       class="copy-btn py-1.5 px-3 rounded-lg bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs shadow-xs transition flex items-center gap-1 cursor-pointer"
                       data-copy="2395230791001"
+                      aria-label={isBn ? 'ব্যাংক একাউন্ট নম্বর কপি করুন' : 'Copy bank account number'}
                     >
-                      <span>📋</span>
+                      <span aria-hidden="true">📋</span>
                       <span class="btn-text">{isBn ? 'কপি' : 'Copy'}</span>
                     </button>
                   </div>
@@ -380,19 +395,19 @@ function formatCurrency(amount: number): string {
                   <!-- Details Table -->
                   <div class="text-xs text-gray-700 divide-y divide-gray-100">
                     <div class="py-2 flex justify-between">
-                      <span class="text-gray-500">{isBn ? 'ব্যাংকের নাম' : 'Bank Name'}:</span>
+                      <span class="text-gray-600">{isBn ? 'ব্যাংকের নাম' : 'Bank Name'}:</span>
                       <span class="font-bold text-gray-900">The City Bank Limited</span>
                     </div>
                     <div class="py-2 flex justify-between">
-                      <span class="text-gray-500">{isBn ? 'একাউন্টের নাম' : 'Account Name'}:</span>
+                      <span class="text-gray-600">{isBn ? 'একাউন্টের নাম' : 'Account Name'}:</span>
                       <span class="font-bold text-gray-900">SHEIKH MAHMUD ISLAM MIZU</span>
                     </div>
                     <div class="py-2 flex justify-between">
-                      <span class="text-gray-500">{isBn ? 'শাখা' : 'Branch'}:</span>
+                      <span class="text-gray-600">{isBn ? 'শাখা' : 'Branch'}:</span>
                       <span class="font-bold text-gray-900">VIP ROAD BRANCH (DHAKA)</span>
                     </div>
                     <div class="py-2 flex justify-between">
-                      <span class="text-gray-500">{isBn ? 'রাউটিং নম্বর' : 'Routing Number'}:</span>
+                      <span class="text-gray-600">{isBn ? 'রাউটিং নম্বর' : 'Routing Number'}:</span>
                       <span class="font-mono font-bold text-gray-900">225276851</span>
                     </div>
                   </div>
@@ -537,15 +552,18 @@ function formatCurrency(amount: number): string {
                 <div class="aspect-4/3 rounded-2xl overflow-hidden bg-gray-100 border border-gray-100 cursor-pointer report-preview" data-src="/campaign/report_aml_flow_cytometry.png">
                   <img
                     src="/campaign/report_aml_flow_cytometry.png"
-                    alt={isBn ? 'ফ্লো সাইটোমেট্রি ব্লাড ক্যান্সার ডায়াগনোসিস' : 'Flow Cytometry AML Diagnosis Report'}
+                    alt={isBn ? 'ফ্লো সাইটোমেট্রি ব্লাড ক্যান্সার ডায়াগনোসিস রিপোর্ট' : 'Flow Cytometry AML Diagnosis Report'}
                     class="w-full h-full object-cover object-top hover:scale-105 transition duration-300"
                     loading="lazy"
+                    decoding="async"
+                    width="1832"
+                    height="2446"
                   />
                 </div>
                 <h4 class="font-extrabold text-gray-900 text-sm mt-3">
                   {isBn ? '১. ফ্লো সাইটোমেট্রি রিপোর্ট (AML)' : '1. Flow Cytometry Panel (AML)'}
                 </h4>
-                <p class="text-xs text-gray-500 mt-1">
+                <p class="text-xs text-gray-600 mt-1">
                   {isBn ? 'ইবনে সিনা — ৭৫% ব্লাস্ট সেল সনাক্তকরণ ও একিউট মায়েলোড লিউকেমিয়া নিশ্চিতকরণ।' : 'Ibn Sina — 75% blast cells confirming Acute Myeloid Leukemia.'}
                 </p>
               </div>
@@ -553,8 +571,9 @@ function formatCurrency(amount: number): string {
                 type="button"
                 class="mt-4 w-full py-2 px-3 rounded-xl border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer report-preview flex items-center justify-center gap-1.5"
                 data-src="/campaign/report_aml_flow_cytometry.png"
+                aria-label={isBn ? 'ফ্লো সাইটোমেট্রি রিপোর্ট বড় করে দেখুন' : 'View Flow Cytometry Full Report'}
               >
-                <span>🔍</span>
+                <span aria-hidden="true">🔍</span>
                 <span>{isBn ? 'বড় করে দেখুন' : 'View Full Report'}</span>
               </button>
             </div>
@@ -568,12 +587,15 @@ function formatCurrency(amount: number): string {
                     alt={isBn ? 'রক্তের গ্রুপ B+ ক্রস ম্যাচিং রিপোর্ট' : 'Blood Group B+ Cross Matching Report'}
                     class="w-full h-full object-cover object-top hover:scale-105 transition duration-300"
                     loading="lazy"
+                    decoding="async"
+                    width="1700"
+                    height="2146"
                   />
                 </div>
                 <h4 class="font-extrabold text-gray-900 text-sm mt-3">
                   {isBn ? '২. ব্লাড গ্রুপ ও ক্রস ম্যাচিং (B+)' : '2. Blood Group & Cross-Matching (B+)'}
                 </h4>
-                <p class="text-xs text-gray-500 mt-1">
+                <p class="text-xs text-gray-600 mt-1">
                   {isBn ? 'ইবনে সিনা — রোগীর রক্তের গ্রুপ B Rh(D) Positive নিশ্চিতকরণ।' : 'Ibn Sina — Confirmed Patient Blood Group: B Rh(D) Positive.'}
                 </p>
               </div>
@@ -581,8 +603,9 @@ function formatCurrency(amount: number): string {
                 type="button"
                 class="mt-4 w-full py-2 px-3 rounded-xl border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer report-preview flex items-center justify-center gap-1.5"
                 data-src="/campaign/report_blood_group.png"
+                aria-label={isBn ? 'ব্লাড গ্রুপ রিপোর্ট বড় করে দেখুন' : 'View Blood Group Full Report'}
               >
-                <span>🔍</span>
+                <span aria-hidden="true">🔍</span>
                 <span>{isBn ? 'বড় করে দেখুন' : 'View Full Report'}</span>
               </button>
             </div>
@@ -596,12 +619,15 @@ function formatCurrency(amount: number): string {
                     alt={isBn ? 'পেরিফেরাল ব্লাড ফিল্ম স্টাডি রিপোর্ট' : 'Peripheral Blood Film Hematology Report'}
                     class="w-full h-full object-cover object-top hover:scale-105 transition duration-300"
                     loading="lazy"
+                    decoding="async"
+                    width="1917"
+                    height="2738"
                   />
                 </div>
                 <h4 class="font-extrabold text-gray-900 text-sm mt-3">
                   {isBn ? '৩. হেমাটোলজি রিপোর্ট (PBF)' : '3. Hematology Study (PBF)'}
                 </h4>
-                <p class="text-xs text-gray-500 mt-1">
+                <p class="text-xs text-gray-600 mt-1">
                   {isBn ? 'হেলথ অ্যান্ড হোপ হাসপাতাল — প্লাটিলেট মারাত্মকভাবে কমে যাওয়ার প্রমাণ ও পর্যবেক্ষণ।' : 'Health and Hope Hospital — Platelets markedly reduced.'}
                 </p>
               </div>
@@ -609,8 +635,9 @@ function formatCurrency(amount: number): string {
                 type="button"
                 class="mt-4 w-full py-2 px-3 rounded-xl border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer report-preview flex items-center justify-center gap-1.5"
                 data-src="/campaign/report_hematology.png"
+                aria-label={isBn ? 'হেমাটোলজি রিপোর্ট বড় করে দেখুন' : 'View Hematology Full Report'}
               >
-                <span>🔍</span>
+                <span aria-hidden="true">🔍</span>
                 <span>{isBn ? 'বড় করে দেখুন' : 'View Full Report'}</span>
               </button>
             </div>
@@ -631,10 +658,10 @@ function formatCurrency(amount: number): string {
                 href="tel:01515616728"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 text-white font-mono font-bold text-sm hover:bg-gray-800 transition"
               >
-                <span>📞</span>
+                <span aria-hidden="true">📞</span>
                 <span>01515616728</span>
               </a>
-              <span class="text-xs text-gray-500 font-semibold">{isBn ? '(শেখ মাহমুদ ইসলাম মিজু - চাচাতো ভাই)' : '(Sheikh Mahmud Islam Mizu - Cousin)'}</span>
+              <span class="text-xs text-gray-600 font-semibold">{isBn ? '(শেখ মাহমুদ ইসলাম মিজু - চাচাতো ভাই)' : '(Sheikh Mahmud Islam Mizu - Cousin)'}</span>
             </div>
           </div>
         </div>
@@ -650,17 +677,25 @@ function formatCurrency(amount: number): string {
     >
       <div class="relative bg-white rounded-3xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl max-h-[92vh] flex flex-col">
         <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-          <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">{isBn ? 'মেডিকেল প্রমাণপত্র' : 'Medical Report Preview'}</span>
+          <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">{isBn ? 'মেডিকেল প্রমাণপত্র' : 'Medical Report Preview'}</span>
           <button
             type="button"
             id="close-lightbox-btn"
-            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+            aria-label={isBn ? 'রিপোর্ট প্রিভিউ বন্ধ করুন' : 'Close report preview'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
         <div class="mt-4 flex-1 overflow-auto flex items-center justify-center">
-          <img id="lightbox-img" src="" alt="Medical Report Full View" class="max-h-[75vh] w-auto rounded-xl object-contain shadow-xs" />
+          <img
+            id="lightbox-img"
+            src=""
+            alt={isBn ? 'মেডিকেল রিপোর্টের পূর্ণাঙ্গ দৃশ্য' : 'Medical Report Full View'}
+            class="max-h-[75vh] w-auto rounded-xl object-contain shadow-xs"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
       </div>
     </div>

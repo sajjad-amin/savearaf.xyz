@@ -37,8 +37,8 @@ if (user.is_onboarded) {
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <!-- Top Language Switcher & Logo -->
       <div class="flex items-center justify-between mb-4 px-2">
-        <a href={homeUrl} class="flex items-center gap-2">
-          <img src="/logo.png" alt="Save Araf Logo" class="w-12 h-12 rounded-xl shadow-xs object-contain" />
+        <a href={homeUrl} class="flex items-center gap-2" aria-label="Save Araf Home">
+          <img src="/logo.png" alt="Save Araf Logo" class="w-12 h-12 rounded-xl shadow-xs object-contain" width="48" height="48" loading="eager" decoding="async" />
         </a>
         <a
           href={switchLangUrl}
@@ -59,7 +59,7 @@ if (user.is_onboarded) {
 
       {user.image && (
         <div class="mt-4 flex items-center justify-center gap-3 bg-white py-2 px-4 rounded-full shadow-xs border border-gray-200 w-fit mx-auto">
-          <img src={user.image} alt={user.name || 'User'} class="w-7 h-7 rounded-full object-cover" />
+          <img src={user.image} alt={user.name || 'User'} class="w-7 h-7 rounded-full object-cover" width="28" height="28" loading="lazy" decoding="async" />
           <span class="text-xs font-medium text-gray-700">{user.name || user.email}</span>
         </div>
       )}
@@ -78,7 +78,14 @@ if (user.is_onboarded) {
                   : 'This phone number is already linked to an active user.'}
               </span>
             </div>
-            <button type="button" onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+            <button
+              type="button"
+              onclick="this.parentElement.remove()"
+              aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+              class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer"
+            >
+              <span aria-hidden="true">✕</span>
+            </button>
           </div>
         )}
 
@@ -115,11 +122,11 @@ if (user.is_onboarded) {
                 required
                 autocomplete="tel"
                 placeholder={isBn ? 'যেমন: 017XXXXXXXX অথবা +88017XXXXXXXX' : 'e.g. +88017XXXXXXXX or 017XXXXXXXX'}
-                class="block w-full rounded-xl border border-gray-300 py-3 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-base transition sm:text-sm"
+                class="block w-full rounded-xl border border-gray-300 py-3 px-4 text-gray-900 placeholder-gray-500 focus:border-rose-500 focus:ring-rose-500 text-base transition sm:text-sm"
               />
             </div>
-            <p class="mt-2 text-xs text-gray-500 flex items-center gap-1">
-              <span>🔒</span>
+            <p class="mt-2 text-xs text-gray-600 flex items-center gap-1">
+              <span aria-hidden="true">🔒</span>
               <span>
                 {isBn
                   ? 'আপনার নম্বরটি শুধুমাত্র জরুরি রক্তদান সমন্বয়কারী দলের কাছে থাকবে।'
@@ -140,7 +147,7 @@ if (user.is_onboarded) {
 
         <!-- Account Switcher / Sign Out -->
         <div class="mt-6 pt-5 border-t border-gray-200 text-center">
-          <p class="text-xs text-gray-500">
+          <p class="text-xs text-gray-600">
             {isBn ? 'ভুল অ্যাকাউন্টে যুক্ত হয়েছেন?' : 'Wrong account?'}
             <button
               type="button"

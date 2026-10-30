@@ -79,7 +79,7 @@ const errorParam = Astro.url.searchParams.get('error');
           <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900">
             {isBn ? 'প্রোফাইল সেটিংস' : 'Profile Settings'}
           </h1>
-          <p class="text-sm text-gray-500 mt-1">
+          <p class="text-sm text-gray-600 mt-1">
             {isBn
               ? 'আপনার নাম এবং যোগাযোগের ফোন নম্বর পরিচালনা করুন'
               : 'Manage your contact name and active phone number'}
@@ -88,10 +88,10 @@ const errorParam = Astro.url.searchParams.get('error');
 
         {currentImage && (
           <div class="flex items-center gap-3 bg-white p-2 pr-4 rounded-full border border-gray-200 shadow-xs w-fit">
-            <img src={currentImage} alt={currentName} class="w-10 h-10 rounded-full object-cover" />
+            <img src={currentImage} alt={currentName} class="w-10 h-10 rounded-full object-cover" width="40" height="40" loading="lazy" decoding="async" />
             <div class="text-left">
               <span class="block text-xs font-bold text-gray-900">{currentName}</span>
-              <span class="block text-[11px] text-gray-500 capitalize">{currentRole}</span>
+              <span class="block text-[11px] text-gray-600 capitalize">{currentRole}</span>
             </div>
           </div>
         )}
@@ -108,7 +108,14 @@ const errorParam = Astro.url.searchParams.get('error');
                 : 'This phone number is already linked to an active user.'}
             </span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -178,9 +185,9 @@ const errorParam = Astro.url.searchParams.get('error');
               value={currentPhone}
               required
               placeholder={isBn ? '017XXXXXXXX বা +88017XXXXXXXX' : '+88017XXXXXXXX or 017XXXXXXXX'}
-              class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
+              class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-500 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
             />
-            <p class="mt-1.5 text-xs text-gray-500">
+            <p class="mt-1.5 text-xs text-gray-600">
               {isBn
                 ? 'জরুরি রক্তদান বা প্লাটিলেট সমন্বয়ের সুবিধার্থে হোয়াটসঅ্যাপ সংযুক্ত নম্বর উৎসাহিত করা হয়।'
                 : 'A WhatsApp-connected number is recommended for rapid emergency coordination.'}

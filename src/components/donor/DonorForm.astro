@@ -51,7 +51,7 @@ const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
       value={defaultName}
       required
       placeholder={isBn ? 'রক্তদাতার নাম লিখুন' : "Enter donor's full name"}
-      class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
+      class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-500 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
     />
   </div>
 
@@ -67,9 +67,9 @@ const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
       value={defaultPhone}
       required
       placeholder="017XXXXXXXX বা +88017XXXXXXXX"
-      class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
+      class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-500 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
     />
-    <p class="mt-1 text-xs text-gray-500">
+    <p class="mt-1 text-xs text-gray-600">
       {isBn
         ? 'জরুরি রক্তদান বা প্লাটিলেট সমন্বয়ের সুবিধার্থে হোয়াটসঅ্যাপ সক্রিয় নম্বর উৎসাহিত করা হয়।'
         : 'A WhatsApp-active number is strongly encouraged for urgent donor coordination.'}
@@ -111,7 +111,7 @@ const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
         name="location"
         value={defaultLocation}
         placeholder={isBn ? 'যেমন: ধানমন্ডি, ঢাকা' : 'e.g. Dhanmondi, Dhaka'}
-        class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-400 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
+        class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 placeholder-gray-500 focus:border-rose-500 focus:ring-rose-500 text-sm transition"
       />
     </div>
   </div>
@@ -153,7 +153,7 @@ const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
       value={defaultLastDonationDate}
       class="block w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:border-rose-500 focus:ring-rose-500 text-sm transition bg-white"
     />
-    <p class="mt-1 text-xs text-gray-500">
+    <p class="mt-1 text-xs text-gray-600">
       {isBn
         ? 'সর্বশেষ রক্তদানের তারিখ দিলে স্বয়ংক্রিয়ভাবে কুলডাউন ও পরবর্তী রক্তদানের তারিখ হিসাব করা হবে।'
         : 'Providing the last donation date automatically computes cooldown status and next eligibility date.'}

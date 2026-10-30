@@ -152,7 +152,14 @@ function formatDate(d: Date | string | null | undefined): string {
             <span class="text-lg">✓</span>
             <span>{isBn ? 'ডোনেশন সফলভাবে রেকর্ড করা হয়েছে এবং কুলডাউন আপডেট করা হয়েছে!' : 'Donation logged successfully and cooldown dates updated!'}</span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -162,7 +169,14 @@ function formatDate(d: Date | string | null | undefined): string {
             <span class="text-lg">✓</span>
             <span>{isBn ? 'ডোনেশন রেকর্ড সফলভাবে পরিবর্তন ও কুলডাউন হালনাগাদ করা হয়েছে!' : 'Donation record updated and cooldown synchronized successfully!'}</span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -172,7 +186,14 @@ function formatDate(d: Date | string | null | undefined): string {
             <span class="text-lg">✓</span>
             <span>{isBn ? 'ডোনেশন সফলভাবে মুছে ফেলা হয়েছে এবং পূর্ববর্তী রেকর্ডে কুলডাউন ফিরিয়ে নেওয়া হয়েছে!' : 'Donation deleted and donor cooldown rolled back successfully!'}</span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -182,7 +203,14 @@ function formatDate(d: Date | string | null | undefined): string {
             <span class="text-lg">✓</span>
             <span>{isBn ? 'নতুন গেস্ট ডোনার সফলভাবে যুক্ত করা হয়েছে!' : 'Guest donor created successfully!'}</span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -192,7 +220,14 @@ function formatDate(d: Date | string | null | undefined): string {
             <span class="text-lg">⚠️</span>
             <span>{isBn ? 'এই ফোন নম্বরের একজন রক্তদাতা ইতোমধ্যে তালিকায় বিদ্যমান।' : 'A donor with this phone number already exists in the system.'}</span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 font-bold px-2 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-rose-700 hover:text-rose-900 font-bold px-2 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -200,9 +235,9 @@ function formatDate(d: Date | string | null | undefined): string {
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 my-6">
         <!-- Stat 1: Total Donors -->
         <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-xs">
-          <span class="text-xs font-bold text-gray-500 block">{isBn ? 'সর্বমোট ডোনার' : 'Total Donors'}</span>
+          <span class="text-xs font-bold text-gray-600 block">{isBn ? 'সর্বমোট ডোনার' : 'Total Donors'}</span>
           <span class="text-2xl sm:text-3xl font-black text-gray-900 mt-1 block" id="stat-total">{stats.total}</span>
-          <span class="text-[11px] text-gray-400 font-medium">{isBn ? 'সিস্টেমে নিবন্ধিত' : 'In Directory'}</span>
+          <span class="text-[11px] text-gray-600 font-medium">{isBn ? 'সিস্টেমে নিবন্ধিত' : 'In Directory'}</span>
         </div>
 
         <!-- Stat 2: Ready / Available -->
@@ -285,7 +320,7 @@ function formatDate(d: Date | string | null | undefined): string {
 
         <!-- Bottom Row: Filter Pills (Availability Status) -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold pt-1">
-          <span class="text-gray-400 shrink-0 text-xs">{isBn ? 'ফিল্টার:' : 'Filter:'}</span>
+          <span class="text-gray-600 shrink-0 text-xs">{isBn ? 'ফিল্টার:' : 'Filter:'}</span>
           <button
             type="button"
             class="status-filter-btn px-3 py-1.5 rounded-lg border border-rose-600 bg-rose-600 text-white transition cursor-pointer whitespace-nowrap active"
@@ -454,7 +489,7 @@ function formatDate(d: Date | string | null | undefined): string {
                             </p>
                           )}
                           {!donor.lastDonationDate && !donor.plateletDonationDate && (
-                            <p class="text-gray-400 italic">{isBn ? 'পূর্বের কোনো রেকর্ড নেই' : 'No prior logs'}</p>
+                            <p class="text-gray-600 italic">{isBn ? 'পূর্বের কোনো রেকর্ড নেই' : 'No prior logs'}</p>
                           )}
                         </div>
                       </div>
@@ -468,7 +503,7 @@ function formatDate(d: Date | string | null | undefined): string {
                           <span>{donor.location}</span>
                         </div>
                       ) : (
-                        <span class="text-gray-400 italic">{isBn ? 'উল্লেখ নেই' : 'Not specified'}</span>
+                        <span class="text-gray-600 italic">{isBn ? 'উল্লেখ নেই' : 'Not specified'}</span>
                       )}
                     </td>
 
@@ -507,10 +542,10 @@ function formatDate(d: Date | string | null | undefined): string {
         </div>
 
         <!-- Empty state when no donors match search -->
-        <div id="no-results-msg" class="hidden p-12 text-center text-gray-500">
-          <span class="text-3xl block mb-2">🔍</span>
-          <p class="font-bold text-sm text-gray-700">{isBn ? 'কোনো রক্তদাতা খুঁজে পাওয়া যায়নি' : 'No donors matched your search criteria'}</p>
-          <p class="text-xs text-gray-400 mt-1">{isBn ? 'অনুগ্রহ করে ভিন্ন নাম বা নম্বর দিয়ে খুঁজুন।' : 'Try clearing your filters or searching a different term.'}</p>
+        <div id="no-results-msg" class="hidden p-12 text-center text-gray-600">
+          <span class="text-3xl block mb-2" aria-hidden="true">🔍</span>
+          <p class="font-bold text-sm text-gray-800">{isBn ? 'কোনো রক্তদাতা খুঁজে পাওয়া যায়নি' : 'No donors matched your search criteria'}</p>
+          <p class="text-xs text-gray-600 mt-1">{isBn ? 'অনুগ্রহ করে ভিন্ন নাম বা নম্বর দিয়ে খুঁজুন।' : 'Try clearing your filters or searching a different term.'}</p>
         </div>
       </div>
     </main>
@@ -535,9 +570,10 @@ function formatDate(d: Date | string | null | undefined): string {
           <button
             type="button"
             id="close-log-modal-btn"
-            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+            aria-label={isBn ? 'ডোনেশন রেকর্ড উইন্ডো বন্ধ করুন' : 'Close log donation modal'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -655,14 +691,15 @@ function formatDate(d: Date | string | null | undefined): string {
             <h3 class="font-black text-gray-900 text-base" id="history-modal-title">
               {isBn ? 'ডোনেশন হিস্ট্রি' : 'Donation History'}
             </h3>
-            <p class="text-xs text-gray-500" id="history-modal-subtitle">Donor Logs</p>
+            <p class="text-xs text-gray-600" id="history-modal-subtitle">Donor Logs</p>
           </div>
           <button
             type="button"
             id="close-history-modal-btn"
-            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+            aria-label={isBn ? 'হিস্ট্রি উইন্ডো বন্ধ করুন' : 'Close donation history modal'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -699,7 +736,7 @@ function formatDate(d: Date | string | null | undefined): string {
               <h3 class="font-black text-gray-900 text-base">
                 {isBn ? 'ডোনেশন তথ্য সংশোধন' : 'Edit Donation Record'}
               </h3>
-              <p class="text-xs text-gray-500">
+              <p class="text-xs text-gray-600">
                 {isBn ? 'তারিখ বা ধরন পরিবর্তন করলে কুলডাউন স্বয়ংক্রিয়ভাবে পুনঃগণনা করা হবে।' : 'Modifying date or type will automatically recalculate donor cooldown.'}
               </p>
             </div>
@@ -707,9 +744,10 @@ function formatDate(d: Date | string | null | undefined): string {
           <button
             type="button"
             id="close-edit-modal-btn"
-            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+            aria-label={isBn ? 'সম্পাদনা উইন্ডো বন্ধ করুন' : 'Close edit donation modal'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -821,9 +859,10 @@ function formatDate(d: Date | string | null | undefined): string {
           <button
             type="button"
             id="close-guest-modal-btn"
-            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+            aria-label={isBn ? 'গেস্ট ডোনার ফরম বন্ধ করুন' : 'Close add guest donor modal'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -1176,8 +1215,8 @@ function formatDate(d: Date | string | null | undefined): string {
 
           if (historyList.length === 0) {
             historyContent.innerHTML = `
-              <div class="py-8 text-center text-gray-400">
-                <span class="text-3xl block mb-2">📜</span>
+              <div class="py-8 text-center text-gray-600">
+                <span class="text-3xl block mb-2" aria-hidden="true">📜</span>
                 <p class="text-xs font-semibold">${isClientBn ? 'পূর্বে কোনো ডোনেশন রেকর্ড করা হয়নি।' : 'No donation records recorded yet.'}</p>
               </div>
             `;
@@ -1224,7 +1263,7 @@ function formatDate(d: Date | string | null | undefined): string {
             actionsDiv.className = 'flex items-center gap-1.5';
 
             const dateSpan = document.createElement('span');
-            dateSpan.className = 'font-mono text-gray-500 mr-1 text-[11px]';
+            dateSpan.className = 'font-mono text-gray-600 mr-1 text-[11px]';
             dateSpan.textContent = dateStr;
             actionsDiv.appendChild(dateSpan);
 
@@ -1234,6 +1273,7 @@ function formatDate(d: Date | string | null | undefined): string {
               editBtn.className =
                 'edit-item-btn p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer';
               editBtn.title = isClientBn ? 'রেকর্ড সংশোধন করুন' : 'Edit record';
+              editBtn.setAttribute('aria-label', editBtn.title);
               editBtn.textContent = '✏️';
               editBtn.addEventListener('click', () => openEditModal(item));
               actionsDiv.appendChild(editBtn);
@@ -1243,6 +1283,7 @@ function formatDate(d: Date | string | null | undefined): string {
               deleteBtn.className =
                 'delete-item-btn p-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition cursor-pointer';
               deleteBtn.title = isClientBn ? 'রেকর্ড মুছে ফেলুন' : 'Delete record';
+              deleteBtn.setAttribute('aria-label', deleteBtn.title);
               deleteBtn.textContent = '🗑️';
               deleteBtn.addEventListener('click', () => deleteDonation(item.id));
               actionsDiv.appendChild(deleteBtn);

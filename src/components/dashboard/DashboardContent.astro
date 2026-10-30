@@ -168,7 +168,14 @@ const today = new Date().toISOString().split('T')[0];
                 : 'This phone number is already linked to an active user. If this is a mistake, please contact the admin.'}
             </span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -182,7 +189,14 @@ const today = new Date().toISOString().split('T')[0];
                 : 'This phone number is already registered to another donor.'}
             </span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -197,7 +211,14 @@ const today = new Date().toISOString().split('T')[0];
                 : 'Donor details have been successfully saved.'}
             </span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-emerald-700 hover:text-emerald-900 text-sm font-bold px-2 py-1 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -211,7 +232,14 @@ const today = new Date().toISOString().split('T')[0];
                 : 'Donor details have been successfully updated.'}
             </span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-emerald-700 hover:text-emerald-900 text-sm font-bold px-2 py-1 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -225,7 +253,14 @@ const today = new Date().toISOString().split('T')[0];
                 : 'Referred donor has been removed from your list.'}
             </span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -239,7 +274,14 @@ const today = new Date().toISOString().split('T')[0];
                 : 'Your donor profile has been unpublished. Your user account remains active.'}
             </span>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 
@@ -385,9 +427,9 @@ const today = new Date().toISOString().split('T')[0];
                   </div>
                   <div>
                     <h2 class="text-xl font-bold text-gray-900">{selfDonor.name}</h2>
-                    <p class="text-sm text-gray-500">{selfDonor.phone}</p>
+                    <p class="text-sm text-gray-600">{selfDonor.phone}</p>
                     {selfDonor.location && (
-                      <p class="text-xs text-gray-400 mt-0.5">📍 {selfDonor.location}</p>
+                      <p class="text-xs text-gray-600 mt-0.5">📍 {selfDonor.location}</p>
                     )}
                   </div>
                 </div>
@@ -524,12 +566,12 @@ const today = new Date().toISOString().split('T')[0];
               </div>
 
               {selfDonations.length === 0 ? (
-                <div class="py-8 text-center text-gray-400">
-                  <span class="text-3xl block mb-2">🩸</span>
+                <div class="py-8 text-center text-gray-600">
+                  <span class="text-3xl block mb-2" aria-hidden="true">🩸</span>
                   <p class="text-xs font-medium">
                     {isBn ? 'এখনো কোনো রক্তদানের হিস্ট্রি রেকর্ড নেই।' : 'No past donation history recorded yet.'}
                   </p>
-                  <p class="text-[11px] text-gray-400 mt-1">
+                  <p class="text-[11px] text-gray-600 mt-1">
                     {isBn ? 'রক্তদান সম্পন্ন হলে অ্যাডমিন তা যাচাই করে সিস্টেমে লিপিবদ্ধ করবেন।' : 'Once you donate, our admin team will verify and log your donation.'}
                   </p>
                 </div>
@@ -544,7 +586,7 @@ const today = new Date().toISOString().split('T')[0];
                             <span class={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
                               isPlatelet ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
                             }`}>
-                              <span>{isPlatelet ? '🟡' : '🩸'}</span>
+                              <span aria-hidden="true">{isPlatelet ? '🟡' : '🩸'}</span>
                               <span>{isPlatelet ? (isBn ? 'প্লাটিলেট (SDP)' : 'Platelet (SDP)') : (isBn ? 'সম্পূর্ণ রক্ত (Whole Blood)' : 'Whole Blood')}</span>
                             </span>
                             <span class="text-xs font-mono font-medium text-gray-700">
@@ -565,7 +607,7 @@ const today = new Date().toISOString().split('T')[0];
 
                         {item.nextEligibleDate && (
                           <div class="text-left sm:text-right shrink-0">
-                            <span class="text-[11px] text-gray-400 block">{isBn ? 'পরবর্তী রক্তদান যোগ্যতা:' : 'Next Eligible Date:'}</span>
+                            <span class="text-[11px] text-gray-600 block">{isBn ? 'পরবর্তী রক্তদান যোগ্যতা:' : 'Next Eligible Date:'}</span>
                             <span class="text-xs font-bold text-emerald-700">{formatDate(item.nextEligibleDate)}</span>
                           </div>
                         )}
@@ -705,7 +747,7 @@ const today = new Date().toISOString().split('T')[0];
                       <!-- Name & Location -->
                       <td class="py-4 px-4 font-semibold text-gray-900">
                         <div>{d.name}</div>
-                        {d.location && <div class="text-xs text-gray-400 font-normal">📍 {d.location}</div>}
+                        {d.location && <div class="text-xs text-gray-600 font-normal">📍 {d.location}</div>}
                       </td>
 
                       <!-- Blood Group -->
@@ -836,13 +878,14 @@ const today = new Date().toISOString().split('T')[0];
           <button
             type="button"
             id="close-referral-modal-btn"
-            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+            aria-label={isBn ? 'রেফারেল ফরম বন্ধ করুন' : 'Close referral modal'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
-        <p class="text-xs text-gray-500 mb-6">
+        <p class="text-xs text-gray-600 mb-6">
           {isBn
             ? 'আপনার পরিচিত রক্তদাতার তথ্য প্রদান করুন। জরুরি প্রয়োজনে তাদের সাথে রক্তের গ্রুপের সমন্বয়ে যোগাযোগ করা হবে।'
             : 'Enter the offline donor’s details. They will be added to your referral list with dynamic cooldown tracking.'}
@@ -879,9 +922,10 @@ const today = new Date().toISOString().split('T')[0];
           <button
             type="button"
             id="close-edit-modal-btn"
-            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+            aria-label={isBn ? 'সম্পাদনা ফরম বন্ধ করুন' : 'Close edit modal'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -1112,7 +1156,7 @@ const today = new Date().toISOString().split('T')[0];
               <h3 id="referred-history-title" class="text-base sm:text-lg font-bold text-gray-900">
                 {isBn ? 'রক্তদানের ইতিহাস' : 'Donation History'}
               </h3>
-              <p id="referred-history-subtitle" class="text-xs text-gray-500">
+              <p id="referred-history-subtitle" class="text-xs text-gray-600">
                 {isBn ? 'সংরক্ষিত রক্তদানের তালিকা (শুধুমাত্র পাঠযোগ্য)' : 'Past recorded donations (Read-only)'}
               </p>
             </div>
@@ -1120,9 +1164,10 @@ const today = new Date().toISOString().split('T')[0];
           <button
             type="button"
             id="close-referred-history-modal-btn"
-            class="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+            aria-label={isBn ? 'ইতিহাস উইন্ডো বন্ধ করুন' : 'Close donation history modal'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -1301,8 +1346,8 @@ const today = new Date().toISOString().split('T')[0];
             if (refHistoryContent) {
               if (list.length === 0) {
                 refHistoryContent.innerHTML = `
-                  <div class="py-8 text-center text-gray-400">
-                    <span class="text-3xl block mb-2">🩸</span>
+                  <div class="py-8 text-center text-gray-600">
+                    <span class="text-3xl block mb-2" aria-hidden="true">🩸</span>
                     <p class="text-xs font-semibold">পূর্বে কোনো রক্তদানের ইতিহাস রেকর্ড নেই।</p>
                   </div>
                 `;
