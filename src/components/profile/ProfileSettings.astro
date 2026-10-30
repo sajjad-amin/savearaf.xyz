@@ -57,6 +57,7 @@ const dashboardUrl = isBn ? '/dashboard' : '/en/dashboard';
 const switchLangUrl = isBn ? '/en/profile' : '/profile';
 const switchLangLabel = isBn ? 'English' : 'বাংলা';
 const isUpdated = Astro.url.searchParams.get('updated') === 'true';
+const errorParam = Astro.url.searchParams.get('error');
 ---
 
 <!doctype html>
@@ -95,6 +96,21 @@ const isUpdated = Astro.url.searchParams.get('updated') === 'true';
           </div>
         )}
       </div>
+
+      <!-- Error Notification Banner -->
+      {errorParam === 'phone_exists_active' && (
+        <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">⚠️</span>
+            <span class="font-medium">
+              {isBn
+                ? 'এই ফোন নম্বরটি ইতিমধ্যে একজন সক্রিয় ব্যবহারকারীর প্রোফাইলে যুক্ত আছে।'
+                : 'This phone number is already linked to an active user.'}
+            </span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+        </div>
+      )}
 
       <!-- Success Notification Banner -->
       {isUpdated && (

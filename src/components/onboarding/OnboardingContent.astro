@@ -8,6 +8,7 @@ const isBn = lang === 'bn';
 
 const session = Astro.locals.session;
 const user = Astro.locals.user;
+const errorParam = Astro.url.searchParams.get('error');
 
 const homeUrl = isBn ? '/' : '/en';
 const switchLangUrl = isBn ? '/en/onboarding' : '/onboarding';
@@ -66,6 +67,21 @@ if (user.is_onboarded) {
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
       <div class="bg-white py-8 px-6 shadow-sm rounded-3xl border border-gray-200 sm:px-10">
+        <!-- Error Notification Banner -->
+        {errorParam === 'phone_exists_active' && (
+          <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">⚠️</span>
+              <span class="font-medium">
+                {isBn
+                  ? 'এই ফোন নম্বরটি ইতিমধ্যে একজন সক্রিয় ব্যবহারকারীর প্রোফাইলে যুক্ত আছে।'
+                  : 'This phone number is already linked to an active user.'}
+              </span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+          </div>
+        )}
+
         <!-- Guidance Notice -->
         <div class="rounded-2xl bg-rose-50 p-4 border border-rose-100 mb-6 text-sm">
           <p class="font-semibold text-rose-900 mb-1 flex items-center gap-1.5">
