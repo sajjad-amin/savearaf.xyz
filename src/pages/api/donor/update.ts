@@ -80,6 +80,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     }
 
     // Deduplication check during update: check if another donor record already has this phone number
+    const targetTab = type === 'self' ? 'profile' : 'referrals';
     const phoneVariants = getPhoneVariants(phone);
     const [duplicateDonor] = await db
       .select({ id: donors.id })
@@ -88,9 +89,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       .limit(1);
 
     if (duplicateDonor) {
-      // Remove redundant duplicate record to keep the phone number unique
-      await db.delete(donations).where(eq(donations.donorId, duplicateDonor.id));
-      await db.delete(donors).where(eq(donors.id, duplicateDonor.id));
+      // Conflict: phone belongs to another donor. Do not overwrite or delete.
+      const redirectUrl = isEn
+        ? `/en/dashboard?error=phone_exists&tab=${targetTab}`
+        : `/dashboard?error=phone_exists&tab=${targetTab}`;
+      return redirect(redirectUrl, 303);
     }
 
     // Parse date and calculate cooldown
@@ -132,7 +135,6 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       }
     }
 
-    const targetTab = type === 'self' ? 'profile' : 'referrals';
     const redirectUrl = isEn
       ? `/en/dashboard?success=updated&tab=${targetTab}`
       : `/dashboard?success=updated&tab=${targetTab}`;

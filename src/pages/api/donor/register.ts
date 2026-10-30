@@ -3,7 +3,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getSession } from '@/lib/auth';
 import { db } from '@/db';
-import { donors, donations } from '@/db/schema';
+import { donors, donations, users, accounts, sessions } from '@/db/schema';
 import { eq, or, inArray } from 'drizzle-orm';
 import { calculateCooldown, type DonationPreference } from '@/lib/cooldown';
 import {
@@ -88,6 +88,15 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     let donorId: number;
 
     if (existingDonor) {
+      // Capture candidate old user IDs that may lose ownership or association
+      const candidateOldUserIds = Array.from(
+        new Set(
+          [existingDonor.userId, existingDonor.addedByUserId].filter(
+            (id): id is string => Boolean(id && id !== userId)
+          )
+        )
+      );
+
       // UPSERT: Update existing record and transfer/claim ownership
       donorId = existingDonor.id;
 
@@ -122,6 +131,32 @@ export const POST: APIRoute = async ({ request, redirect }) => {
             lastDonationDate: lastDate,
           })
           .where(eq(donors.id, existingDonor.id));
+      }
+
+      // Zombie cleanup: check if any prior associated user is now orphaned and soft-deleted
+      for (const oldUserId of candidateOldUserIds) {
+        const [remainingDonor] = await db
+          .select({ id: donors.id })
+          .from(donors)
+          .where(or(eq(donors.userId, oldUserId), eq(donors.addedByUserId, oldUserId)))
+          .limit(1);
+
+        if (!remainingDonor) {
+          const [oldUser] = await db
+            .select({ id: users.id, name: users.name, email: users.email })
+            .from(users)
+            .where(eq(users.id, oldUserId))
+            .limit(1);
+
+          if (
+            oldUser &&
+            (oldUser.name === 'Anonymous Donor' || (oldUser.email && oldUser.email.startsWith('deleted_')))
+          ) {
+            await db.delete(accounts).where(eq(accounts.userId, oldUserId));
+            await db.delete(sessions).where(eq(sessions.userId, oldUserId));
+            await db.delete(users).where(eq(users.id, oldUserId));
+          }
+        }
       }
     } else {
       // INSERT: Create new donor record

@@ -75,6 +75,7 @@ const availableReferred = referredDonors.filter((d) => d.computedStatus === 'ava
 const coolingDownReferred = totalReferred - availableReferred;
 
 const successParam = Astro.url.searchParams.get('success');
+const errorParam = Astro.url.searchParams.get('error');
 const initialTab = Astro.url.searchParams.get('tab') || (selfDonor ? 'profile' : 'referrals');
 
 // Format date helper
@@ -107,6 +108,21 @@ const today = new Date().toISOString().split('T')[0];
 
     <!-- Main Content Container -->
     <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
+      <!-- Error Notification Banners -->
+      {errorParam === 'phone_exists' && (
+        <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">⚠️</span>
+            <span class="font-medium">
+              {isBn
+                ? 'এই ফোন নম্বরটি অন্য একজন রক্তদাতার প্রোফাইলে ব্যবহৃত হচ্ছে।'
+                : 'This phone number is already registered to another donor.'}
+            </span>
+          </div>
+          <button type="button" onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer">✕</button>
+        </div>
+      )}
+
       <!-- Success Notification Banners -->
       {successParam === 'registered' && (
         <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-xs">
