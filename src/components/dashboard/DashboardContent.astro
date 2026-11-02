@@ -617,29 +617,6 @@ const today = new Date().toISOString().split('T')[0];
                 </div>
               )}
             </div>
-
-            <!-- Edit Donor Profile Section (Hidden by default) -->
-            <div id="edit-profile-section" class="bg-white rounded-3xl border border-gray-200 shadow-xs p-6 sm:p-8 hidden">
-              <h3 class="text-lg font-bold text-gray-900 mb-4 pb-3 border-b border-gray-100">
-                {isBn ? 'ডোনার তথ্য আপডেট করুন' : 'Update Donor Profile'}
-              </h3>
-              <DonorForm
-                lang={lang}
-                registrationType="self"
-                defaultName={selfDonor.name}
-                defaultPhone={selfDonor.phone}
-                defaultBloodGroup={selfDonor.bloodGroup}
-                defaultLocation={selfDonor.location || ''}
-                defaultPreference={selfDonor.donationPreference}
-                defaultLastDonationDate={
-                  selfDonor.lastDonationDate
-                    ? new Date(selfDonor.lastDonationDate).toISOString().split('T')[0]
-                    : ''
-                }
-                formId="self-edit-form"
-                isUpdate={true}
-              />
-            </div>
           </div>
         ) : (
           <!-- Not Yet Registered as Donor CTA Card -->
@@ -856,6 +833,61 @@ const today = new Date().toISOString().split('T')[0];
         </div>
       </section>
     </main>
+
+    <!-- ============================================== -->
+    <!-- Modal 0: Update Self Donor Profile Modal -->
+    <!-- ============================================== -->
+    {selfDonor && (
+      <div
+        id="edit-self-profile-modal"
+        class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-edit-self-headline"
+      >
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 transform transition-all max-h-[90vh] overflow-y-auto">
+          <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
+            <div class="flex items-center gap-2.5 text-rose-600">
+              <span class="text-xl">✏️</span>
+              <h3 id="modal-edit-self-headline" class="text-lg font-bold text-gray-900">
+                {isBn ? 'ডোনার তথ্য পরিবর্তন করুন' : 'Update Donor Profile'}
+              </h3>
+            </div>
+            <button
+              type="button"
+              id="close-edit-self-modal-btn"
+              aria-label={isBn ? 'সম্পাদনা ফরম বন্ধ করুন' : 'Close edit modal'}
+              class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+            >
+              <span aria-hidden="true">✕</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-gray-600 mb-6">
+            {isBn
+              ? 'আপনার রক্তদানের তথ্য, অবস্থান বা পছন্দ পরিবর্তন করুন। জরুরি প্রয়োজনে সমন্বয় করতে এটি সর্বদা হালনাগাদ রাখুন।'
+              : 'Update your donation preferences, location, or contact details to stay reachable for urgent transfusions.'}
+          </p>
+
+          <DonorForm
+            lang={lang}
+            registrationType="self"
+            defaultName={selfDonor.name}
+            defaultPhone={selfDonor.phone}
+            defaultBloodGroup={selfDonor.bloodGroup}
+            defaultLocation={selfDonor.location || ''}
+            defaultPreference={selfDonor.donationPreference}
+            defaultLastDonationDate={
+              selfDonor.lastDonationDate
+                ? new Date(selfDonor.lastDonationDate).toISOString().split('T')[0]
+                : ''
+            }
+            formId="self-edit-form"
+            isUpdate={true}
+          />
+        </div>
+      </div>
+    )}
 
     <!-- ============================================== -->
     <!-- Modal 1: Refer Offline Donor (Add New) -->
@@ -1228,11 +1260,84 @@ const today = new Date().toISOString().split('T')[0];
         tabBtnProfile?.addEventListener('click', () => switchTab('profile'));
         tabBtnReferrals?.addEventListener('click', () => switchTab('referrals'));
 
-        // Toggle Edit Self Profile
-        const toggleEditBtn = document.getElementById('toggle-edit-profile-btn');
-        const editProfileSection = document.getElementById('edit-profile-section');
-        toggleEditBtn?.addEventListener('click', () => {
-          editProfileSection?.classList.toggle('hidden');
+        // 0. Edit Self Profile Modal
+        const editSelfModal = document.getElementById('edit-self-profile-modal');
+        const openEditSelfBtn = document.getElementById('toggle-edit-profile-btn');
+        const closeEditSelfBtn = document.getElementById('close-edit-self-modal-btn');
+
+        openEditSelfBtn?.addEventListener('click', () => {
+          editSelfModal?.classList.remove('hidden');
+        });
+        closeEditSelfBtn?.addEventListener('click', () => {
+          editSelfModal?.classList.add('hidden');
+        });
+
+        // Client-side AJAX submission handler for self edit form (#self-edit-form)
+        const selfEditForm = document.getElementById('self-edit-form');
+        selfEditForm?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const submitBtn = selfEditForm.querySelector('button[type="submit"]');
+          const originalBtnText = submitBtn ? submitBtn.textContent : '';
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent =
+              document.documentElement.lang === 'bn' ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving...';
+          }
+
+          try {
+            const formData = new FormData(selfEditForm);
+            const response = await fetch(selfEditForm.action || '/api/donor/register', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                Accept: 'application/json',
+              },
+            });
+
+            if (!response.ok) {
+              let errorMsg =
+                document.documentElement.lang === 'bn'
+                  ? 'তথ্য সংরক্ষণে ত্রুটি হয়েছে।'
+                  : 'An error occurred while updating donor information.';
+              try {
+                const data = await response.json();
+                if (data && data.error) {
+                  if (data.error === 'phone_exists' || data.error === 'phone_exists_active') {
+                    errorMsg =
+                      document.documentElement.lang === 'bn'
+                        ? 'এই ফোন নম্বরটি ইতিমধ্যে অন্য একজন সক্রিয় ব্যবহারকারীর প্রোফাইলে যুক্ত আছে।'
+                        : 'This phone number is already linked to another active user.';
+                  } else {
+                    errorMsg = data.error;
+                  }
+                }
+              } catch (_) {}
+
+              alert(errorMsg);
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+              }
+              return;
+            }
+
+            // On success, close modal and reload
+            editSelfModal?.classList.add('hidden');
+            window.location.reload();
+          } catch (err) {
+            console.error('Error submitting self edit form:', err);
+            const isBn = document.documentElement.lang === 'bn';
+            alert(
+              isBn
+                ? 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
+                : 'An unexpected error occurred. Please try again.'
+            );
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalBtnText;
+            }
+          }
         });
 
         // 1. Referral Modal (Add New)
@@ -1454,7 +1559,7 @@ const today = new Date().toISOString().split('T')[0];
         closeRefHistoryActionBtn?.addEventListener('click', closeRefHistoryModal);
 
         // Universal modal backdrop and Escape dismiss
-        const allModals = [referModal, unpublishModal, editModal, deleteModal, refHistoryModal];
+        const allModals = [editSelfModal, referModal, unpublishModal, editModal, deleteModal, refHistoryModal];
 
         allModals.forEach((m) => {
           m?.addEventListener('click', (e) => {

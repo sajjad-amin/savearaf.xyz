@@ -94,6 +94,17 @@ const stats: CRMStats = {
   guests: enrichedDonors.filter((d) => d.isGuest).length,
 };
 
+// 4. Server-Side Pagination
+const pageParam = Number(Astro.url.searchParams.get('page')) || 1;
+const limitParam = Number(Astro.url.searchParams.get('limit')) || 20;
+const limit = Math.min(100, Math.max(5, limitParam));
+const totalCount = enrichedDonors.length;
+const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+const currentPage = Math.min(Math.max(1, pageParam), totalPages);
+
+const offset = (currentPage - 1) * limit;
+const paginatedDonors = enrichedDonors.slice(offset, offset + limit);
+
 // URL query feedback
 const successParam = Astro.url.searchParams.get('success');
 const errorParam = Astro.url.searchParams.get('error');
@@ -156,7 +167,14 @@ const errorParam = Astro.url.searchParams.get('error');
       <AdminFilterBar stats={stats} lang={lang} />
 
       <!-- Donors Data Table Section -->
-      <AdminDonorTable enrichedDonors={enrichedDonors} lang={lang} />
+      <AdminDonorTable
+        enrichedDonors={paginatedDonors}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        limit={limit}
+        lang={lang}
+      />
     </main>
 
     <!-- Modals -->

@@ -91,8 +91,29 @@ export const GET: APIRoute = async ({ request }) => {
       guestDonors: enrichedDonors.filter((d) => d.isGuest).length,
     };
 
+    // 6. Server-Side Pagination
+    const pageParam = Number(url.searchParams.get('page')) || 1;
+    const limitParam = Number(url.searchParams.get('limit')) || 20;
+    const limit = Math.min(100, Math.max(5, limitParam));
+    const totalCount = enrichedDonors.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+    const page = Math.min(Math.max(1, pageParam), totalPages);
+
+    const offset = (page - 1) * limit;
+    const paginatedDonors = enrichedDonors.slice(offset, offset + limit);
+
     return new Response(
-      JSON.stringify({ success: true, stats, donors: enrichedDonors }),
+      JSON.stringify({
+        success: true,
+        stats,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages,
+        },
+        donors: paginatedDonors,
+      }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
