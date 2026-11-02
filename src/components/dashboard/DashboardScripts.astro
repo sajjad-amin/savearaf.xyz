@@ -1,0 +1,363 @@
+---
+interface Props {
+  donationsByDonorId: Map<number, any[]>;
+}
+
+const { donationsByDonorId } = Astro.props;
+---
+
+<!-- Pre-rendered Donations Data Map for Referred Donors -->
+<script id="dashboard-donations-data" type="application/json" set:html={JSON.stringify(Object.fromEntries(donationsByDonorId))} />
+
+<!-- Client-side Interactive Logic (Tabs, Modals, Populating Edit Values) -->
+<script is:inline>
+  (() => {
+    // Tab Switching
+    const tabBtnProfile = document.getElementById('tab-btn-profile');
+    const tabBtnReferrals = document.getElementById('tab-btn-referrals');
+    const panelProfile = document.getElementById('panel-profile');
+    const panelReferrals = document.getElementById('panel-referrals');
+
+    function switchTab(target) {
+      if (target === 'profile') {
+        tabBtnProfile?.classList.add('border-rose-600', 'text-rose-600');
+        tabBtnProfile?.classList.remove('border-transparent', 'text-gray-500');
+        tabBtnProfile?.setAttribute('aria-selected', 'true');
+
+        tabBtnReferrals?.classList.remove('border-rose-600', 'text-rose-600');
+        tabBtnReferrals?.classList.add('border-transparent', 'text-gray-500');
+        tabBtnReferrals?.setAttribute('aria-selected', 'false');
+
+        panelProfile?.classList.remove('hidden');
+        panelReferrals?.classList.add('hidden');
+      } else {
+        tabBtnReferrals?.classList.add('border-rose-600', 'text-rose-600');
+        tabBtnReferrals?.classList.remove('border-transparent', 'text-gray-500');
+        tabBtnReferrals?.setAttribute('aria-selected', 'true');
+
+        tabBtnProfile?.classList.remove('border-rose-600', 'text-rose-600');
+        tabBtnProfile?.classList.add('border-transparent', 'text-gray-500');
+        tabBtnProfile?.setAttribute('aria-selected', 'false');
+
+        panelReferrals?.classList.remove('hidden');
+        panelProfile?.classList.add('hidden');
+      }
+    }
+
+    tabBtnProfile?.addEventListener('click', () => switchTab('profile'));
+    tabBtnReferrals?.addEventListener('click', () => switchTab('referrals'));
+
+    // 0. Edit Self Profile Modal
+    const editSelfModal = document.getElementById('edit-self-profile-modal');
+    const openEditSelfBtn = document.getElementById('toggle-edit-profile-btn');
+    const closeEditSelfBtn = document.getElementById('close-edit-self-modal-btn');
+
+    openEditSelfBtn?.addEventListener('click', () => {
+      editSelfModal?.classList.remove('hidden');
+    });
+    closeEditSelfBtn?.addEventListener('click', () => {
+      editSelfModal?.classList.add('hidden');
+    });
+
+    // Client-side AJAX submission handler for self edit form (#self-edit-form)
+    const selfEditForm = document.getElementById('self-edit-form');
+    selfEditForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = selfEditForm.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.textContent : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent =
+          document.documentElement.lang === 'bn' ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving...';
+      }
+
+      try {
+        const formData = new FormData(selfEditForm);
+        const response = await fetch(selfEditForm.action || '/api/donor/register', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          let errorMsg =
+            document.documentElement.lang === 'bn'
+              ? 'তথ্য সংরক্ষণে ত্রুটি হয়েছে।'
+              : 'An error occurred while updating donor information.';
+          try {
+            const data = await response.json();
+            if (data && data.error) {
+              if (data.error === 'phone_exists' || data.error === 'phone_exists_active') {
+                errorMsg =
+                  document.documentElement.lang === 'bn'
+                    ? 'এই ফোন নম্বরটি ইতিমধ্যে অন্য একজন সক্রিয় ব্যবহারকারীর প্রোফাইলে যুক্ত আছে।'
+                    : 'This phone number is already linked to another active user.';
+              } else {
+                errorMsg = data.error;
+              }
+            }
+          } catch (_) {}
+
+          alert(errorMsg);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+          }
+          return;
+        }
+
+        // On success, close modal and reload
+        editSelfModal?.classList.add('hidden');
+        window.location.reload();
+      } catch (err) {
+        console.error('Error submitting self edit form:', err);
+        const isBn = document.documentElement.lang === 'bn';
+        alert(
+          isBn
+            ? 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
+            : 'An unexpected error occurred. Please try again.'
+        );
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalBtnText;
+        }
+      }
+    });
+
+    // 1. Referral Modal (Add New)
+    const referModal = document.getElementById('refer-donor-modal');
+    const openReferBtns = [
+      document.getElementById('open-referral-modal-btn'),
+      document.getElementById('open-referral-modal-btn-2'),
+      document.getElementById('open-referral-modal-btn-empty'),
+    ];
+    const closeReferBtn = document.getElementById('close-referral-modal-btn');
+
+    openReferBtns.forEach((btn) => btn?.addEventListener('click', () => referModal?.classList.remove('hidden')));
+    closeReferBtn?.addEventListener('click', () => referModal?.classList.add('hidden'));
+
+    // Client-side AJAX submission handler for referral form (#modal-refer-form)
+    const referForm = document.getElementById('modal-refer-form');
+    referForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = referForm.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.textContent : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent =
+          document.documentElement.lang === 'bn' ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving...';
+      }
+
+      try {
+        const formData = new FormData(referForm);
+        const response = await fetch(referForm.action || '/api/donor/register', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          let errorMsg =
+            document.documentElement.lang === 'bn'
+              ? 'এই ফোন নম্বরটি ইতিমধ্যে সিস্টেমে বিদ্যমান।'
+              : 'This phone number is already registered or in use.';
+          try {
+            const data = await response.json();
+            if (data && data.error) {
+              if (data.error === 'phone_exists' || data.error === 'phone_exists_active') {
+                errorMsg =
+                  document.documentElement.lang === 'bn'
+                    ? 'এই ফোন নম্বরটি ইতিমধ্যে সিস্টেমে বিদ্যমান।'
+                    : 'This phone number is already registered or in use.';
+              } else {
+                errorMsg = data.error;
+              }
+            }
+          } catch (_) {}
+
+          alert(errorMsg);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+          }
+          return;
+        }
+
+        // On success, close the modal and reload the dashboard
+        referModal?.classList.add('hidden');
+        window.location.reload();
+      } catch (err) {
+        console.error('Error submitting referral form:', err);
+        const isBn = document.documentElement.lang === 'bn';
+        alert(
+          isBn
+            ? 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
+            : 'An unexpected error occurred. Please try again.'
+        );
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalBtnText;
+        }
+      }
+    });
+
+    // 2. Unpublish Self Modal
+    const unpublishModal = document.getElementById('unpublish-self-modal');
+    const openUnpublishBtn = document.getElementById('open-unpublish-self-modal-btn');
+    const closeUnpublishBtn = document.getElementById('close-unpublish-self-modal-btn');
+
+    openUnpublishBtn?.addEventListener('click', () => unpublishModal?.classList.remove('hidden'));
+    closeUnpublishBtn?.addEventListener('click', () => unpublishModal?.classList.add('hidden'));
+
+    // 3. Edit Referred Donor Modal
+    const editModal = document.getElementById('edit-referred-modal');
+    const closeEditBtn = document.getElementById('close-edit-modal-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-modal-btn');
+    const editIdInput = document.getElementById('edit-donor-id');
+    const editNameInput = document.getElementById('edit-name');
+    const editPhoneInput = document.getElementById('edit-phone');
+    const editBloodGroupSelect = document.getElementById('edit-blood-group');
+    const editLocationInput = document.getElementById('edit-location');
+    const editPreferenceSelect = document.getElementById('edit-donation-preference');
+    const editLastDateInput = document.getElementById('edit-last-donation-date');
+
+    document.querySelectorAll('.edit-referred-donor-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        const phone = btn.getAttribute('data-phone');
+        const bg = btn.getAttribute('data-blood-group');
+        const loc = btn.getAttribute('data-location');
+        const pref = btn.getAttribute('data-preference');
+        const lastDate = btn.getAttribute('data-last-date');
+
+        if (editIdInput) editIdInput.value = id || '';
+        if (editNameInput) editNameInput.value = name || '';
+        if (editPhoneInput) editPhoneInput.value = phone || '';
+        if (editBloodGroupSelect) editBloodGroupSelect.value = bg || '';
+        if (editLocationInput) editLocationInput.value = loc || '';
+        if (editPreferenceSelect) editPreferenceSelect.value = pref || 'whole_blood';
+        if (editLastDateInput) editLastDateInput.value = lastDate || '';
+
+        editModal?.classList.remove('hidden');
+      });
+    });
+
+    closeEditBtn?.addEventListener('click', () => editModal?.classList.add('hidden'));
+    cancelEditBtn?.addEventListener('click', () => editModal?.classList.add('hidden'));
+
+    // 4. Delete Referred Donor Modal
+    const deleteModal = document.getElementById('delete-referred-modal');
+    const closeDeleteBtn = document.getElementById('close-delete-referred-modal-btn');
+    const deleteDonorIdInput = document.getElementById('delete-donor-id-input');
+    const deleteDonorNamePlaceholder = document.getElementById('delete-donor-name-placeholder');
+
+    document.querySelectorAll('.delete-referred-donor-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+
+        if (deleteDonorIdInput) deleteDonorIdInput.value = id || '';
+        if (deleteDonorNamePlaceholder) deleteDonorNamePlaceholder.textContent = name || '';
+
+        deleteModal?.classList.remove('hidden');
+      });
+    });
+
+    closeDeleteBtn?.addEventListener('click', () => deleteModal?.classList.add('hidden'));
+
+    // 5. View Referred Donor History Modal (Strictly Read-Only)
+    const refHistoryModal = document.getElementById('referred-history-modal');
+    const refHistoryTitle = document.getElementById('referred-history-title');
+    const refHistorySubtitle = document.getElementById('referred-history-subtitle');
+    const refHistoryContent = document.getElementById('referred-history-content');
+    const closeRefHistoryBtn = document.getElementById('close-referred-history-modal-btn');
+    const closeRefHistoryActionBtn = document.getElementById('referred-history-close-btn');
+
+    let donorHistoryMap = {};
+    try {
+      const dataEl = document.getElementById('dashboard-donations-data');
+      if (dataEl && dataEl.textContent) {
+        donorHistoryMap = JSON.parse(dataEl.textContent);
+      }
+    } catch (e) {
+      console.error('Error parsing dashboard donations data:', e);
+    }
+
+    document.querySelectorAll('.view-referred-history-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const donorId = btn.getAttribute('data-donor-id');
+        const donorName = btn.getAttribute('data-name') || '';
+        const list = (donorId && donorHistoryMap[donorId]) || [];
+
+        if (refHistoryTitle) {
+          refHistoryTitle.textContent = `${donorName} — ডোনেশন ইতিহাস`;
+        }
+        if (refHistorySubtitle) {
+          refHistorySubtitle.textContent = `সর্বমোট ${list.length}টি রেকর্ড (শুধুমাত্র পাঠযোগ্য)`;
+        }
+
+        if (refHistoryContent) {
+          if (list.length === 0) {
+            refHistoryContent.innerHTML = `
+              <div class="py-8 text-center text-gray-600">
+                <span class="text-3xl block mb-2" aria-hidden="true">🩸</span>
+                <p class="text-xs font-semibold">পূর্বে কোনো রক্তদানের ইতিহাস রেকর্ড নেই।</p>
+              </div>
+            `;
+          } else {
+            refHistoryContent.innerHTML = list
+              .map((item) => {
+                const isPlat = (item.donationType || item.type || '').toLowerCase().includes('platelet');
+                const dDate = item.donationDate ? new Date(item.donationDate).toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+                const nDate = item.nextEligibleDate ? new Date(item.nextEligibleDate).toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+
+                return `
+                  <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 text-xs space-y-1.5">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-gray-900 flex items-center gap-1.5">
+                        <span>${isPlat ? '🟡' : '🩸'}</span>
+                        <span>${isPlat ? 'প্লাটিলেট (SDP)' : 'সম্পূর্ণ রক্ত (Whole Blood)'}</span>
+                      </span>
+                      <span class="font-mono text-gray-500">${dDate}</span>
+                    </div>
+                    ${item.hospital ? `<p class="text-gray-600">🏥 <strong>স্থান:</strong> ${item.hospital}</p>` : ''}
+                    ${item.notes ? `<p class="text-gray-700 bg-white p-2 rounded-xl border border-gray-100">📝 <strong>মন্তব্য:</strong> ${item.notes}</p>` : ''}
+                    ${nDate ? `<p class="text-[11px] text-emerald-700 font-semibold">পরবর্তী গ্রহণযোগ্য তারিখ: ${nDate}</p>` : ''}
+                  </div>
+                `;
+              })
+              .join('');
+          }
+        }
+
+        refHistoryModal?.classList.remove('hidden');
+      });
+    });
+
+    const closeRefHistoryModal = () => refHistoryModal?.classList.add('hidden');
+    closeRefHistoryBtn?.addEventListener('click', closeRefHistoryModal);
+    closeRefHistoryActionBtn?.addEventListener('click', closeRefHistoryModal);
+
+    // Universal modal backdrop and Escape dismiss
+    const allModals = [editSelfModal, referModal, unpublishModal, editModal, deleteModal, refHistoryModal];
+
+    allModals.forEach((m) => {
+      m?.addEventListener('click', (e) => {
+        if (e.target === m) m.classList.add('hidden');
+      });
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        allModals.forEach((m) => m?.classList.add('hidden'));
+      }
+    });
+  })();
+</script>

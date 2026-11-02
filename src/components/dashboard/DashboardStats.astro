@@ -1,0 +1,62 @@
+---
+import type { SelfDonor, SelfCooldown } from './types';
+
+interface Props {
+  lang: 'bn' | 'en';
+  selfDonor: SelfDonor;
+  selfCooldown: SelfCooldown | null;
+  totalReferred: number;
+  availableReferred: number;
+  coolingDownReferred: number;
+}
+
+const { lang, selfDonor, selfCooldown, totalReferred, availableReferred, coolingDownReferred } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+  <!-- Metric 1: My Donor Status -->
+  <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200">
+    <span class="text-xs text-gray-500 block mb-1">
+      {isBn ? 'আমার ডোনার স্ট্যাটাস' : 'My Donor Status'}
+    </span>
+    {selfDonor ? (
+      <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
+        selfCooldown?.status === 'available'
+          ? 'bg-emerald-100 text-emerald-800'
+          : 'bg-amber-100 text-amber-800'
+      }`}>
+        <span>{selfCooldown?.status === 'available' ? '🟢 প্রস্তুত' : '🟡 বিশ্রামরত'}</span>
+        <span>({selfDonor.bloodGroup})</span>
+      </span>
+    ) : (
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-700">
+        {isBn ? 'নিবন্ধন করা হয়নি' : 'Not Registered'}
+      </span>
+    )}
+  </div>
+
+  <!-- Metric 2: Total Referred -->
+  <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200">
+    <span class="text-xs text-gray-500 block mb-1">
+      {isBn ? 'মোট রেফার করা ডোনার' : 'Total Referred'}
+    </span>
+    <span class="text-2xl font-extrabold text-gray-900">{totalReferred}</span>
+  </div>
+
+  <!-- Metric 3: Ready Donors -->
+  <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100">
+    <span class="text-xs text-emerald-700 block mb-1">
+      {isBn ? 'রক্তদানে প্রস্তুত' : 'Ready to Donate'}
+    </span>
+    <span class="text-2xl font-extrabold text-emerald-700">{availableReferred}</span>
+  </div>
+
+  <!-- Metric 4: Cooling Down -->
+  <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-100">
+    <span class="text-xs text-amber-700 block mb-1">
+      {isBn ? 'কুলডাউনে আছেন' : 'Cooling Down'}
+    </span>
+    <span class="text-2xl font-extrabold text-amber-700">{coolingDownReferred}</span>
+  </div>
+</div>

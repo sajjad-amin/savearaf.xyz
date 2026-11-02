@@ -1,0 +1,37 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+  userName?: string | null;
+}
+
+const { lang, userName } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-100">
+  <div>
+    <span class="text-xs uppercase font-bold tracking-wider text-rose-600">
+      {isBn ? 'রক্তদাতা ও ডোনার পোর্টাল' : 'Donor CRM & Volunteer Portal'}
+    </span>
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1">
+      {isBn ? `স্বাগতম, ${userName || 'বন্ধু'}` : `Welcome, ${userName || 'Friend'}`}
+    </h1>
+    <p class="text-sm text-gray-500 mt-1">
+      {isBn
+        ? 'আরাফের চিকিৎসার জন্য রক্ত ও প্লাটিলেট সরবরাহ নিশ্চিত করতে আপনার ভূমিকা অত্যন্ত গুরুত্বপূর্ণ।'
+        : 'Your contribution is vital in securing urgent blood and platelet donors for Araf.'}
+    </p>
+  </div>
+
+  <!-- Quick Action: Refer Button -->
+  <div class="w-full sm:w-auto">
+    <button
+      type="button"
+      id="open-referral-modal-btn"
+      class="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-xs transition cursor-pointer"
+    >
+      <span class="text-base">➕</span>
+      <span>{isBn ? 'নতুন রক্তদাতা রেফার করুন' : 'Refer New Donor'}</span>
+    </button>
+  </div>
+</div>

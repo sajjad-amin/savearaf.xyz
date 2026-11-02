@@ -1,0 +1,152 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+  bloodGroups: readonly string[];
+  today: string;
+}
+
+const { lang, bloodGroups, today } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<div
+  id="edit-referred-modal"
+  class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-edit-headline"
+>
+  <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 transform transition-all max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
+      <div class="flex items-center gap-2.5 text-rose-600">
+        <span class="text-xl">✏️</span>
+        <h3 id="modal-edit-headline" class="text-lg font-bold text-gray-900">
+          {isBn ? 'রক্তদাতার তথ্য সম্পাদনা করুন' : 'Edit Referred Donor'}
+        </h3>
+      </div>
+      <button
+        type="button"
+        id="close-edit-modal-btn"
+        aria-label={isBn ? 'সম্পাদনা ফরম বন্ধ করুন' : 'Close edit modal'}
+        class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+      >
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+
+    <!-- Edit Form -->
+    <form method="POST" action="/api/donor/update" class="space-y-4">
+      <input type="hidden" name="type" value="referral" />
+      <input type="hidden" name="donor_id" id="edit-donor-id" value="" />
+
+      <!-- Name -->
+      <div>
+        <label for="edit-name" class="block text-xs font-semibold text-gray-800 mb-1">
+          {isBn ? 'পূর্ণ নাম' : 'Full Name'} <span class="text-rose-600">*</span>
+        </label>
+        <input
+          type="text"
+          id="edit-name"
+          name="name"
+          required
+          class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm focus:border-rose-500 focus:ring-rose-500 transition"
+        />
+      </div>
+
+      <!-- Phone -->
+      <div>
+        <label for="edit-phone" class="block text-xs font-semibold text-gray-800 mb-1">
+          {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর' : 'Phone / WhatsApp'} <span class="text-rose-600">*</span>
+        </label>
+        <input
+          type="tel"
+          id="edit-phone"
+          name="phone"
+          required
+          class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm focus:border-rose-500 focus:ring-rose-500 transition"
+        />
+      </div>
+
+      <!-- Blood Group & Location -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="edit-blood-group" class="block text-xs font-semibold text-gray-800 mb-1">
+            {isBn ? 'রক্তের গ্রুপ' : 'Blood Group'} <span class="text-rose-600">*</span>
+          </label>
+          <select
+            id="edit-blood-group"
+            name="blood_group"
+            required
+            class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:border-rose-500 focus:ring-rose-500 transition"
+          >
+            {bloodGroups.map((bg) => (
+              <option value={bg}>{bg}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label for="edit-location" class="block text-xs font-semibold text-gray-800 mb-1">
+            {isBn ? 'এলাকা / শহর' : 'Area / City'}
+          </label>
+          <input
+            type="text"
+            id="edit-location"
+            name="location"
+            class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm focus:border-rose-500 focus:ring-rose-500 transition"
+          />
+        </div>
+      </div>
+
+      <!-- Donation Preference -->
+      <div>
+        <label for="edit-donation-preference" class="block text-xs font-semibold text-gray-800 mb-1">
+          {isBn ? 'রক্তদানের ধরন / অগ্রাধিকার' : 'Donation Preference'} <span class="text-rose-600">*</span>
+        </label>
+        <select
+          id="edit-donation-preference"
+          name="donation_preference"
+          required
+          class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:border-rose-500 focus:ring-rose-500 transition"
+        >
+          <option value="whole_blood">
+            {isBn ? 'সম্পূর্ণ রক্ত (Whole Blood) — নিরাপদ বিরতি ৯০ দিন' : 'Whole Blood (90d cooldown)'}
+          </option>
+          <option value="platelets">
+            {isBn ? 'প্লাটিলেট / এফারিসিস (Platelets / SDP) — নিরাপদ বিরতি ১৫ দিন' : 'Platelets / SDP (15d cooldown)'}
+          </option>
+        </select>
+      </div>
+
+      <!-- Last Donation Date -->
+      <div>
+        <label for="edit-last-donation-date" class="block text-xs font-semibold text-gray-800 mb-1">
+          {isBn ? 'সর্বশেষ রক্তদানের তারিখ' : 'Last Donation Date'}
+        </label>
+        <input
+          type="date"
+          id="edit-last-donation-date"
+          name="last_donation_date"
+          max={today}
+          class="block w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:border-rose-500 focus:ring-rose-500 transition"
+        />
+      </div>
+
+      <div class="pt-4 flex items-center justify-end gap-3 border-t border-gray-100">
+        <button
+          type="button"
+          id="cancel-edit-modal-btn"
+          class="py-2 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 text-xs font-semibold transition cursor-pointer"
+        >
+          {isBn ? 'বাতিল' : 'Cancel'}
+        </button>
+        <button
+          type="submit"
+          class="py-2 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+        >
+          {isBn ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+---
+import DonorForm from '@/components/donor/DonorForm.astro';
+import type { SelfDonor } from '../types';
+
+interface Props {
+  lang: 'bn' | 'en';
+  selfDonor: SelfDonor;
+}
+
+const { lang, selfDonor } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+{selfDonor && (
+  <div
+    id="edit-self-profile-modal"
+    class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-edit-self-headline"
+  >
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 transform transition-all max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
+        <div class="flex items-center gap-2.5 text-rose-600">
+          <span class="text-xl">✏️</span>
+          <h3 id="modal-edit-self-headline" class="text-lg font-bold text-gray-900">
+            {isBn ? 'ডোনার তথ্য পরিবর্তন করুন' : 'Update Donor Profile'}
+          </h3>
+        </div>
+        <button
+          type="button"
+          id="close-edit-self-modal-btn"
+          aria-label={isBn ? 'সম্পাদনা ফরম বন্ধ করুন' : 'Close edit modal'}
+          class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+        >
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
+
+      <p class="text-xs text-gray-600 mb-6">
+        {isBn
+          ? 'আপনার রক্তদানের তথ্য, অবস্থান বা পছন্দ পরিবর্তন করুন। জরুরি প্রয়োজনে সমন্বয় করতে এটি সর্বদা হালনাগাদ রাখুন।'
+          : 'Update your donation preferences, location, or contact details to stay reachable for urgent transfusions.'}
+      </p>
+
+      <DonorForm
+        lang={lang}
+        registrationType="self"
+        defaultName={selfDonor.name}
+        defaultPhone={selfDonor.phone}
+        defaultBloodGroup={selfDonor.bloodGroup}
+        defaultLocation={selfDonor.location || ''}
+        defaultPreference={selfDonor.donationPreference}
+        defaultLastDonationDate={
+          selfDonor.lastDonationDate
+            ? new Date(selfDonor.lastDonationDate).toISOString().split('T')[0]
+            : ''
+        }
+        formId="self-edit-form"
+        isUpdate={true}
+      />
+    </div>
+  </div>
+)}

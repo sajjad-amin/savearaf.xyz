@@ -1,0 +1,55 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<div
+  id="delete-referred-modal"
+  class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-del-referred-headline"
+>
+  <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-rose-200">
+    <div class="flex items-center gap-3 text-rose-600 mb-4">
+      <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-xl font-bold">🗑️</div>
+      <h3 id="modal-del-referred-headline" class="text-lg font-bold text-gray-900">
+        {isBn ? 'রক্তদাতা অপসারণ' : 'Delete Referred Donor'}
+      </h3>
+    </div>
+    <p class="text-xs sm:text-sm text-gray-600 leading-relaxed mb-6">
+      {isBn ? (
+        <span>
+          আপনি কি নিশ্চিত যে রক্তদাতা <strong id="delete-donor-name-placeholder" class="text-gray-900"></strong>-কে আপনার রেফারেল তালিকা থেকে স্থায়ীভাবে অপসারণ করতে চান?
+        </span>
+      ) : (
+        <span>
+          Are you sure you want to remove <strong id="delete-donor-name-placeholder" class="text-gray-900"></strong> from your referred donors list?
+        </span>
+      )}
+    </p>
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        id="close-delete-referred-modal-btn"
+        class="flex-1 py-2.5 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold text-sm transition cursor-pointer"
+      >
+        {isBn ? 'বাতিল' : 'Cancel'}
+      </button>
+      <form method="POST" action="/api/donor/delete" class="flex-1 m-0">
+        <input type="hidden" name="type" value="referral" />
+        <input type="hidden" name="donor_id" id="delete-donor-id-input" value="" />
+        <button
+          type="submit"
+          class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-xs transition cursor-pointer"
+        >
+          {isBn ? 'মুছে ফেলুন' : 'Confirm Delete'}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

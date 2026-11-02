@@ -1,0 +1,136 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+  errorParam: string | null;
+  successParam: string | null;
+}
+
+const { lang, errorParam, successParam } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+{errorParam === 'phone_exists_active' && (
+  <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2.5">
+      <span class="text-xl">⚠️</span>
+      <span class="font-medium">
+        {isBn
+          ? 'এই ফোন নম্বরটি ইতিমধ্যে একজন সক্রিয় ব্যবহারকারীর প্রোফাইলে যুক্ত আছে। যদি এটি ভুলবশত হয়ে থাকে, তবে অ্যাডমিনের সাথে যোগাযোগ করুন।'
+          : 'This phone number is already linked to an active user. If this is a mistake, please contact the admin.'}
+      </span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{errorParam === 'phone_exists' && (
+  <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2.5">
+      <span class="text-xl">⚠️</span>
+      <span class="font-medium">
+        {isBn
+          ? 'এই ফোন নম্বরটি অন্য একজন রক্তদাতার প্রোফাইলে ব্যবহৃত হচ্ছে।'
+          : 'This phone number is already registered to another donor.'}
+      </span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{successParam === 'registered' && (
+  <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2.5">
+      <span class="text-xl">✅</span>
+      <span class="font-medium">
+        {isBn
+          ? 'রক্তদাতার তথ্য সফলভাবে সংরক্ষণ করা হয়েছে।'
+          : 'Donor details have been successfully saved.'}
+      </span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-emerald-700 hover:text-emerald-900 text-sm font-bold px-2 py-1 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{successParam === 'updated' && (
+  <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2.5">
+      <span class="text-xl">✅</span>
+      <span class="font-medium">
+        {isBn
+          ? 'রক্তদাতার তথ্য সফলভাবে হালনাগাদ করা হয়েছে।'
+          : 'Donor details have been successfully updated.'}
+      </span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-emerald-700 hover:text-emerald-900 text-sm font-bold px-2 py-1 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{successParam === 'deleted' && (
+  <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2.5">
+      <span class="text-xl">🗑️</span>
+      <span class="font-medium">
+        {isBn
+          ? 'রেফার করা রক্তদাতার তথ্য তালিকা থেকে অপসারণ করা হয়েছে।'
+          : 'Referred donor has been removed from your list.'}
+      </span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{successParam === 'unregistered' && (
+  <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2.5">
+      <span class="text-xl">ℹ️</span>
+      <span class="font-medium">
+        {isBn
+          ? 'আপনার ডোনার প্রোফাইল সফলভাবে প্রত্যাহার করা হয়েছে। আপনার মূল অ্যাকাউন্ট সক্রিয় রয়েছে।'
+          : 'Your donor profile has been unpublished. Your user account remains active.'}
+      </span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-amber-700 hover:text-amber-900 text-sm font-bold px-2 py-1 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}

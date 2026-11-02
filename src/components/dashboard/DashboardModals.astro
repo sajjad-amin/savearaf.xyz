@@ -1,0 +1,36 @@
+---
+import DashboardEditSelfModal from './modals/DashboardEditSelfModal.astro';
+import DashboardReferModal from './modals/DashboardReferModal.astro';
+import DashboardEditReferredModal from './modals/DashboardEditReferredModal.astro';
+import DashboardDeleteReferredModal from './modals/DashboardDeleteReferredModal.astro';
+import DashboardUnpublishModal from './modals/DashboardUnpublishModal.astro';
+import DashboardHistoryModal from './modals/DashboardHistoryModal.astro';
+import type { SelfDonor } from './types';
+
+interface Props {
+  lang: 'bn' | 'en';
+  selfDonor: SelfDonor;
+  bloodGroups: readonly string[];
+  today: string;
+}
+
+const { lang, selfDonor, bloodGroups, today } = Astro.props;
+---
+
+<!-- Modal 0: Update Self Donor Profile Modal -->
+<DashboardEditSelfModal lang={lang} selfDonor={selfDonor} />
+
+<!-- Modal 1: Refer Offline Donor (Add New) -->
+<DashboardReferModal lang={lang} />
+
+<!-- Modal 2: Edit Referred Donor -->
+<DashboardEditReferredModal lang={lang} bloodGroups={bloodGroups} today={today} />
+
+<!-- Modal 3: Delete Referred Donor Confirmation -->
+<DashboardDeleteReferredModal lang={lang} />
+
+<!-- Modal 4: Unpublish Self Donor Confirmation -->
+<DashboardUnpublishModal lang={lang} />
+
+<!-- Modal 5: View Referred Donor Donation History (Strictly Read-Only) -->
+<DashboardHistoryModal lang={lang} />

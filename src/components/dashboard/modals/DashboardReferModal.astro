@@ -1,0 +1,51 @@
+---
+import DonorForm from '@/components/donor/DonorForm.astro';
+
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<div
+  id="refer-donor-modal"
+  class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-refer-headline"
+>
+  <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-200 transform transition-all max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
+      <div class="flex items-center gap-2.5 text-rose-600">
+        <span class="text-xl">🤝</span>
+        <h3 id="modal-refer-headline" class="text-lg font-bold text-gray-900">
+          {isBn ? 'নতুন রক্তদাতা রেফার করুন' : 'Refer an Offline Donor'}
+        </h3>
+      </div>
+      <button
+        type="button"
+        id="close-referral-modal-btn"
+        aria-label={isBn ? 'রেফারেল ফরম বন্ধ করুন' : 'Close referral modal'}
+        class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+      >
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+
+    <p class="text-xs text-gray-600 mb-6">
+      {isBn
+        ? 'আপনার পরিচিত রক্তদাতার তথ্য প্রদান করুন। জরুরি প্রয়োজনে তাদের সাথে রক্তের গ্রুপের সমন্বয়ে যোগাযোগ করা হবে।'
+        : 'Enter the offline donor’s details. They will be added to your referral list with dynamic cooldown tracking.'}
+    </p>
+
+    <!-- Embedded Referral Donor Form -->
+    <DonorForm
+      lang={lang}
+      registrationType="referral"
+      formId="modal-refer-form"
+      isUpdate={false}
+    />
+  </div>
+</div>

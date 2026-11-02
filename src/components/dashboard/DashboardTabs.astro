@@ -1,0 +1,55 @@
+---
+import type { SelfDonor } from './types';
+
+interface Props {
+  lang: 'bn' | 'en';
+  initialTab: string;
+  selfDonor: SelfDonor;
+  totalReferred: number;
+}
+
+const { lang, initialTab, selfDonor, totalReferred } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<div class="flex items-center gap-2 border-b border-gray-200 mb-8 overflow-x-auto whitespace-nowrap pb-px" role="tablist">
+  <button
+    type="button"
+    id="tab-btn-profile"
+    role="tab"
+    aria-selected={initialTab === 'profile'}
+    aria-controls="panel-profile"
+    class={`tab-btn py-3 px-5 text-sm font-bold border-b-2 transition cursor-pointer flex items-center gap-2 ${
+      initialTab === 'profile'
+        ? 'border-rose-600 text-rose-600'
+        : 'border-transparent text-gray-500 hover:text-gray-800'
+    }`}
+  >
+    <span>👤</span>
+    <span>{isBn ? 'আমার ডোনার প্রোফাইল' : 'My Donor Profile'}</span>
+    {selfDonor && (
+      <span class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-extrabold">
+        {selfDonor.bloodGroup}
+      </span>
+    )}
+  </button>
+
+  <button
+    type="button"
+    id="tab-btn-referrals"
+    role="tab"
+    aria-selected={initialTab === 'referrals'}
+    aria-controls="panel-referrals"
+    class={`tab-btn py-3 px-5 text-sm font-bold border-b-2 transition cursor-pointer flex items-center gap-2 ${
+      initialTab === 'referrals'
+        ? 'border-rose-600 text-rose-600'
+        : 'border-transparent text-gray-500 hover:text-gray-800'
+    }`}
+  >
+    <span>🤝</span>
+    <span>{isBn ? 'রেফার করা রক্তদাতাগণ' : 'Referred Donors'}</span>
+    <span class="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-gray-200 text-gray-700 font-extrabold">
+      {totalReferred}
+    </span>
+  </button>
+</div>
