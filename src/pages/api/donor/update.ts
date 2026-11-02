@@ -4,8 +4,8 @@ import type { APIRoute } from 'astro';
 import { getSession } from '@/lib/auth';
 import { db } from '@/db';
 import { donors, donations, users, accounts, sessions } from '@/db/schema';
-import { eq, and, ne, inArray } from 'drizzle-orm';
-import { calculateCooldown, type DonationPreference } from '@/lib/cooldown';
+import { eq, and, ne, inArray, desc } from 'drizzle-orm';
+import { calculateTwoStepCooldown, type DonationPreference } from '@/lib/cooldown';
 import {
   sanitizeName,
   sanitizePhone,
@@ -62,7 +62,13 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
     // Verify ownership: logged in user must either own the donor profile (self) or have added it (referral)
     const [donorRecord] = await db
-      .select({ id: donors.id, userId: donors.userId, addedByUserId: donors.addedByUserId })
+      .select({
+        id: donors.id,
+        userId: donors.userId,
+        addedByUserId: donors.addedByUserId,
+        lastDonationDate: donors.lastDonationDate,
+        plateletDonationDate: donors.plateletDonationDate,
+      })
       .from(donors)
       .where(
         and(
@@ -152,37 +158,82 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
     // Parse date and calculate cooldown
     let lastDate: Date | null = null;
+    let dateProvided = false;
     if (lastDonationDateRaw) {
       const parsed = new Date(lastDonationDateRaw);
       if (!isNaN(parsed.getTime())) {
         lastDate = parsed;
+        dateProvided = true;
       }
     }
 
-    const cooldown = calculateCooldown(lastDate, donationPreference);
+    // Determine updated legacy dates based on donationPreference and whether date was provided
+    let updatedBloodDate = donorRecord.lastDonationDate;
+    let updatedPlateletDate = donorRecord.plateletDonationDate;
 
-    // Update donor record ONLY (do not touch donations table)
+    if (dateProvided) {
+      if (donationPreference === 'platelets') {
+        updatedPlateletDate = lastDate;
+      } else {
+        updatedBloodDate = lastDate;
+      }
+    }
+
+    // Fetch the donor's actual history from the donations table
+    const donorDonations = await db
+      .select()
+      .from(donations)
+      .where(eq(donations.donorId, donorId))
+      .orderBy(desc(donations.donationDate));
+
+    // Calculate two-step cooldown incorporating full donation history
+    const twoStepCooldown = calculateTwoStepCooldown(
+      updatedBloodDate,
+      updatedPlateletDate,
+      donorDonations,
+      new Date()
+    );
+
+    const safeStatus = twoStepCooldown.status === 'available' ? 'available' : 'cooling_down';
+
+    // Update donor record (do not touch donations table)
     const updatePayload: Record<string, any> = {
       name,
       phone,
       bloodGroup,
       location,
       donationPreference,
-      status: cooldown.status,
+      status: safeStatus,
       isGuest: type === 'referral' || !donorRecord.userId,
       updatedAt: new Date(),
     };
 
-    if (donationPreference === 'platelets') {
-      updatePayload.plateletDonationDate = lastDate;
-    } else {
-      updatePayload.lastDonationDate = lastDate;
+    if (dateProvided) {
+      if (donationPreference === 'platelets') {
+        updatePayload.plateletDonationDate = lastDate;
+      } else {
+        updatePayload.lastDonationDate = lastDate;
+      }
     }
 
-    await db
-      .update(donors)
-      .set(updatePayload)
-      .where(eq(donors.id, donorId));
+    await db.transaction(async (tx) => {
+      await tx
+        .update(donors)
+        .set(updatePayload)
+        .where(eq(donors.id, donorId));
+
+      // Sync name and phone with users table if this is a self-donor update
+      if (type === 'self' && donorRecord.userId) {
+        await tx
+          .update(users)
+          .set({
+            name,
+            phone,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, donorRecord.userId));
+      }
+    });
 
     const redirectUrl = isEn
       ? `/en/dashboard?success=updated&tab=${targetTab}`

@@ -2,9 +2,10 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getSession } from '@/lib/auth';
 import { db } from '@/db';
-import { users, donors, accounts, sessions } from '@/db/schema';
-import { eq, and, ne, inArray } from 'drizzle-orm';
+import { users, donors, accounts, sessions, donations } from '@/db/schema';
+import { eq, and, ne, inArray, isNull, desc } from 'drizzle-orm';
 import { sanitizePhone, getPhoneVariants } from '@/lib/sanitize';
+import { calculateTwoStepCooldown } from '@/lib/cooldown';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   const session = await getSession(request);
@@ -62,13 +63,15 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       .from(users)
       .where(and(inArray(users.phone, phoneVariants), ne(users.id, userId)));
 
+    // Only check donors where userId is NOT null (registered users).
+    // Strictly ignore records where userId is null (guest/referred donors), and do NOT block based on addedByUserId.
     const duplicateDonors = await db
-      .select({ id: donors.id, userId: donors.userId, addedByUserId: donors.addedByUserId })
+      .select({ id: donors.id, userId: donors.userId })
       .from(donors)
       .where(inArray(donors.phone, phoneVariants));
 
     const donorAssociatedUserIds = duplicateDonors
-      .flatMap((d) => [d.userId, d.addedByUserId])
+      .map((d) => d.userId)
       .filter((id): id is string => Boolean(id && id !== userId));
 
     const candidateUserIds = Array.from(
@@ -133,6 +136,80 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         isOnboarded: true,
       })
       .where(eq(users.id, userId));
+
+    // Check if user already has a self-donor profile (e.g. from earlier or zombie transfer)
+    const [existingSelfDonor] = await db
+      .select({ id: donors.id })
+      .from(donors)
+      .where(eq(donors.userId, userId))
+      .limit(1);
+
+    if (existingSelfDonor) {
+      await db
+        .update(donors)
+        .set({
+          phone: cleanedPhone,
+          isGuest: false,
+          updatedAt: new Date(),
+        })
+        .where(eq(donors.id, existingSelfDonor.id));
+    } else {
+      // Check if a guest donor profile exists for this phone (userId IS NULL)
+      const [guestDonor] = await db
+        .select({
+          id: donors.id,
+          name: donors.name,
+          lastDonationDate: donors.lastDonationDate,
+          plateletDonationDate: donors.plateletDonationDate,
+        })
+        .from(donors)
+        .where(and(inArray(donors.phone, phoneVariants), isNull(donors.userId)))
+        .limit(1);
+
+      if (guestDonor) {
+        // Auto-merge / Profile Claiming: claim the guest record and preserve its donation history
+        const guestDonations = await db
+          .select()
+          .from(donations)
+          .where(eq(donations.donorId, guestDonor.id))
+          .orderBy(desc(donations.donationDate));
+
+        const cooldownResult = calculateTwoStepCooldown(
+          guestDonor.lastDonationDate,
+          guestDonor.plateletDonationDate,
+          guestDonations,
+          new Date()
+        );
+
+        await db
+          .update(donors)
+          .set({
+            userId,
+            isGuest: false,
+            addedByUserId: null,
+            name: session.user.name || guestDonor.name,
+            phone: cleanedPhone,
+            status: cooldownResult.status === 'available' ? 'available' : 'cooling_down',
+            updatedAt: new Date(),
+          })
+          .where(eq(donors.id, guestDonor.id));
+      } else {
+        // Automatically insert a new record into donors table
+        await db.insert(donors).values({
+          userId,
+          name: session.user.name || 'Donor',
+          phone: cleanedPhone,
+          bloodGroup: 'B+',
+          location: null,
+          donationPreference: 'whole_blood',
+          status: 'available',
+          lastDonationDate: null,
+          plateletDonationDate: null,
+          isGuest: false,
+          addedByUserId: null,
+        });
+      }
+    }
 
     // Redirect to dashboard upon onboarding success with locale preservation
     return redirect(isEn ? '/en/dashboard' : '/dashboard', 303);

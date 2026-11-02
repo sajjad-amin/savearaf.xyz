@@ -4,7 +4,8 @@ import { db } from '@/db';
 import { donors, donations } from '@/db/schema';
 import { requireAdminSession } from '@/lib/auth';
 import { calculateCooldown, type DonationPreference } from '@/lib/cooldown';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
+import { sanitizeName, sanitizePhone, getPhoneVariants } from '@/lib/sanitize';
 
 export const POST: APIRoute = async ({ request, redirect }) => {
   // 1. Verify admin session
@@ -64,17 +65,17 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   }
 
   // 3. Validation
-  name = name.trim();
-  phone = phone.trim().replace(/[\s-]/g, '');
+  const cleanName = sanitizeName(name);
+  const cleanPhone = sanitizePhone(phone);
 
-  if (!name || name.length < 2) {
+  if (!cleanName || cleanName.length < 2) {
     return new Response(JSON.stringify({ error: 'Name must be at least 2 characters' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  if (!phone || phone.length < 11) {
+  if (!cleanPhone || cleanPhone.length < 11) {
     return new Response(
       JSON.stringify({ error: 'Valid 11-digit phone number is required' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -101,11 +102,12 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const cooldown = calculateCooldown(lastDate, donationPreference);
 
   try {
-    // 4. Check for existing phone duplicate
+    // 4. Check for existing phone duplicate using phoneVariants
+    const phoneVariants = getPhoneVariants(cleanPhone);
     const [existingDonor] = await db
       .select({ id: donors.id, name: donors.name })
       .from(donors)
-      .where(eq(donors.phone, phone))
+      .where(inArray(donors.phone, phoneVariants))
       .limit(1);
 
     if (existingDonor) {
@@ -125,8 +127,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     let createdDonorId: number | null = null;
     await db.transaction(async (tx) => {
       const insertResult: any = await tx.insert(donors).values({
-        name,
-        phone,
+        name: cleanName,
+        phone: cleanPhone,
         bloodGroup,
         location: location.trim() || null,
         donationPreference,

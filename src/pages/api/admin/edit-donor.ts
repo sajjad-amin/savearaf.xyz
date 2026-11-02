@@ -159,6 +159,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
           .update(users)
           .set({
             name: cleanName,
+            phone: cleanPhone,
             updatedAt: new Date(),
           })
           .where(eq(users.id, targetDonor.userId));

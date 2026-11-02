@@ -2,8 +2,8 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getSession } from '@/lib/auth';
 import { db } from '@/db';
-import { users, accounts, sessions, donors } from '@/db/schema';
-import { eq, or } from 'drizzle-orm';
+import { users, accounts, sessions, donors, donations } from '@/db/schema';
+import { eq, inArray } from 'drizzle-orm';
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const session = await getSession(request);
@@ -17,36 +17,35 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const userId = session.user.id;
 
   try {
-    // 1. Query the donors table to check for existing relational data (self or referrals)
-    const [relationalDonor] = await db
-      .select({ id: donors.id })
-      .from(donors)
-      .where(or(eq(donors.userId, userId), eq(donors.addedByUserId, userId)))
-      .limit(1);
+    // 1. Permanently delete all associated donors records, donation history, and user data in a single transaction
+    await db.transaction(async (tx) => {
+      // Find all self-donor profiles belonging to this user
+      const selfDonors = await tx
+        .select({ id: donors.id })
+        .from(donors)
+        .where(eq(donors.userId, userId));
 
-    if (relationalDonor) {
-      // Relational donor/donation data exists: perform SOFT DELETE to preserve donation history
-      const freedEmail = `deleted_${Date.now()}_${userId}@savearaf.xyz`;
-      await db
-        .update(users)
-        .set({
-          name: 'Anonymous Donor',
-          phone: null,
-          image: null,
-          isOnboarded: false,
-          email: freedEmail,
-        })
-        .where(eq(users.id, userId));
+      const donorIds = selfDonors.map((d) => d.id);
 
-      // Revoke OAuth account and session records
-      await db.delete(accounts).where(eq(accounts.userId, userId));
-      await db.delete(sessions).where(eq(sessions.userId, userId));
-    } else {
-      // User has NEVER added a donor profile (self or referral): perform complete HARD DELETE
-      await db.delete(accounts).where(eq(accounts.userId, userId));
-      await db.delete(sessions).where(eq(sessions.userId, userId));
-      await db.delete(users).where(eq(users.id, userId));
-    }
+      // Permanently delete donation history for this user's self-donor profile(s)
+      if (donorIds.length > 0) {
+        await tx.delete(donations).where(inArray(donations.donorId, donorIds));
+      }
+
+      // Permanently delete self-donor profile(s) from donors table to prevent PII leak
+      await tx.delete(donors).where(eq(donors.userId, userId));
+
+      // For any guest referrals added by this user, safely unassign addedByUserId
+      await tx
+        .update(donors)
+        .set({ addedByUserId: null })
+        .where(eq(donors.addedByUserId, userId));
+
+      // Permanently delete user authentication accounts, active sessions, and user record
+      await tx.delete(accounts).where(eq(accounts.userId, userId));
+      await tx.delete(sessions).where(eq(sessions.userId, userId));
+      await tx.delete(users).where(eq(users.id, userId));
+    });
 
     // 2. Clear all Auth.js session cookies
     const cookieNames = [

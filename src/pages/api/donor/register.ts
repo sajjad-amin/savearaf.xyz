@@ -4,8 +4,8 @@ import type { APIRoute } from 'astro';
 import { getSession } from '@/lib/auth';
 import { db } from '@/db';
 import { donors, donations, users, accounts, sessions } from '@/db/schema';
-import { eq, and, ne, or, inArray } from 'drizzle-orm';
-import { calculateCooldown, type DonationPreference } from '@/lib/cooldown';
+import { eq, and, ne, inArray, desc } from 'drizzle-orm';
+import { calculateTwoStepCooldown, type DonationPreference } from '@/lib/cooldown';
 import {
   sanitizeName,
   sanitizePhone,
@@ -59,7 +59,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     const donationPreference: DonationPreference =
       donationPreferenceRaw === 'platelets' ? 'platelets' : 'whole_blood';
 
-    // 3. Parse date and calculate cooldown
+    // 3. Parse date
     let lastDate: Date | null = null;
     if (lastDonationDateRaw) {
       const parsed = new Date(lastDonationDateRaw);
@@ -67,8 +67,6 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         lastDate = parsed;
       }
     }
-
-    const cooldown = calculateCooldown(lastDate, donationPreference);
 
     // 4. Deduplication Check: Query donors table using phoneVariants
     const phoneVariants = getPhoneVariants(phone);
@@ -78,16 +76,26 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         id: donors.id,
         userId: donors.userId,
         addedByUserId: donors.addedByUserId,
+        lastDonationDate: donors.lastDonationDate,
+        plateletDonationDate: donors.plateletDonationDate,
       })
       .from(donors)
       .where(inArray(donors.phone, phoneVariants))
       .limit(1);
 
     // If self-registering, also check if current user already has a self-donor record
-    let selfExistingDonor: { id: number } | null = null;
+    let selfExistingDonor: {
+      id: number;
+      lastDonationDate: Date | null;
+      plateletDonationDate: Date | null;
+    } | null = null;
     if (registrationType === 'self') {
       const [ownDonor] = await db
-        .select({ id: donors.id })
+        .select({
+          id: donors.id,
+          lastDonationDate: donors.lastDonationDate,
+          plateletDonationDate: donors.plateletDonationDate,
+        })
         .from(donors)
         .where(eq(donors.userId, userId))
         .limit(1);
@@ -102,12 +110,51 @@ export const POST: APIRoute = async ({ request, redirect }) => {
           : { lastDonationDate: lastDate })
       : {};
 
+    // Helper to calculate two-step cooldown incorporating full donation history
+    const getComputedStatus = async (
+      targetDonorId: number | null,
+      legacyBlood: Date | null,
+      legacyPlatelet: Date | null
+    ) => {
+      let history: any[] = [];
+      if (targetDonorId) {
+        history = await db
+          .select()
+          .from(donations)
+          .where(eq(donations.donorId, targetDonorId))
+          .orderBy(desc(donations.donationDate));
+      }
+
+      let effectiveBlood = legacyBlood;
+      let effectivePlatelet = legacyPlatelet;
+      if (lastDate) {
+        if (donationPreference === 'platelets') {
+          effectivePlatelet = lastDate;
+        } else {
+          effectiveBlood = lastDate;
+        }
+      }
+
+      const twoStep = calculateTwoStepCooldown(
+        effectiveBlood,
+        effectivePlatelet,
+        history,
+        new Date()
+      );
+      return twoStep.status === 'available' ? 'available' : 'cooling_down';
+    };
+
     if (existingDonor) {
       if (existingDonor.userId) {
         // Condition A: Donor is linked to an existing user
         if (existingDonor.userId === userId) {
           // Current user is updating their own record
           donorId = existingDonor.id;
+          const status = await getComputedStatus(
+            existingDonor.id,
+            existingDonor.lastDonationDate,
+            existingDonor.plateletDonationDate
+          );
           await db
             .update(donors)
             .set({
@@ -116,12 +163,19 @@ export const POST: APIRoute = async ({ request, redirect }) => {
               bloodGroup,
               location,
               donationPreference,
-              status: cooldown.status,
+              status,
               ...dateUpdates,
               isGuest: false,
               updatedAt: new Date(),
             })
             .where(eq(donors.id, existingDonor.id));
+
+          if (registrationType === 'self') {
+            await db
+              .update(users)
+              .set({ name, phone, updatedAt: new Date() })
+              .where(eq(users.id, userId));
+          }
         } else {
           // Check if candidate user is a zombie/deleted user
           const [u] = await db
@@ -145,6 +199,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
           // Candidate is a zombie user: take ownership of this donor record
           donorId = existingDonor.id;
+          const status = await getComputedStatus(
+            existingDonor.id,
+            existingDonor.lastDonationDate,
+            existingDonor.plateletDonationDate
+          );
           if (registrationType === 'self') {
             await db
               .update(donors)
@@ -156,12 +215,17 @@ export const POST: APIRoute = async ({ request, redirect }) => {
                 bloodGroup,
                 location,
                 donationPreference,
-                status: cooldown.status,
+                status,
                 ...dateUpdates,
                 isGuest: false,
                 updatedAt: new Date(),
               })
               .where(eq(donors.id, existingDonor.id));
+
+            await db
+              .update(users)
+              .set({ name, phone, updatedAt: new Date() })
+              .where(eq(users.id, userId));
 
             if (selfExistingDonor && selfExistingDonor.id !== existingDonor.id) {
               await db.delete(donations).where(eq(donations.donorId, selfExistingDonor.id));
@@ -179,7 +243,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
                 bloodGroup,
                 location,
                 donationPreference,
-                status: cooldown.status,
+                status,
                 ...dateUpdates,
                 isGuest: true,
                 updatedAt: new Date(),
@@ -200,6 +264,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
           // Claim the guest/referred donor record, transfer all history to this user,
           // and detach it from the referrer's dashboard.
           donorId = existingDonor.id;
+          const status = await getComputedStatus(
+            existingDonor.id,
+            existingDonor.lastDonationDate,
+            existingDonor.plateletDonationDate
+          );
           await db
             .update(donors)
             .set({
@@ -211,11 +280,16 @@ export const POST: APIRoute = async ({ request, redirect }) => {
               bloodGroup,
               location,
               donationPreference,
-              status: cooldown.status,
+              status,
               ...dateUpdates,
               updatedAt: new Date(),
             })
             .where(eq(donors.id, existingDonor.id));
+
+          await db
+            .update(users)
+            .set({ name, phone, updatedAt: new Date() })
+            .where(eq(users.id, userId));
 
           // If the user already had another self-donor record, remove the obsolete duplicate
           if (selfExistingDonor && selfExistingDonor.id !== existingDonor.id) {
@@ -227,6 +301,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
           if (existingDonor.addedByUserId === userId) {
             // User updating their own referral
             donorId = existingDonor.id;
+            const status = await getComputedStatus(
+              existingDonor.id,
+              existingDonor.lastDonationDate,
+              existingDonor.plateletDonationDate
+            );
             await db
               .update(donors)
               .set({
@@ -235,7 +314,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
                 bloodGroup,
                 location,
                 donationPreference,
-                status: cooldown.status,
+                status,
                 ...dateUpdates,
                 isGuest: true,
                 updatedAt: new Date(),
@@ -253,6 +332,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     } else if (selfExistingDonor && registrationType === 'self') {
       // User is updating their existing self-donor profile with an available phone number
       donorId = selfExistingDonor.id;
+      const status = await getComputedStatus(
+        selfExistingDonor.id,
+        selfExistingDonor.lastDonationDate,
+        selfExistingDonor.plateletDonationDate
+      );
       await db
         .update(donors)
         .set({
@@ -261,15 +345,21 @@ export const POST: APIRoute = async ({ request, redirect }) => {
           bloodGroup,
           location,
           donationPreference,
-          status: cooldown.status,
+          status,
           ...dateUpdates,
           isGuest: false,
           updatedAt: new Date(),
         })
         .where(eq(donors.id, selfExistingDonor.id));
+
+      await db
+        .update(users)
+        .set({ name, phone, updatedAt: new Date() })
+        .where(eq(users.id, userId));
     } else {
       // INSERT: Create new donor record
       const isSelf = registrationType === 'self';
+      const status = await getComputedStatus(null, null, null);
       const [insertResult] = await db.insert(donors).values({
         userId: isSelf ? userId : null,
         addedByUserId: isSelf ? null : userId,
@@ -278,13 +368,20 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         bloodGroup,
         location,
         donationPreference,
-        status: cooldown.status,
+        status,
         lastDonationDate: donationPreference === 'platelets' ? null : lastDate,
         plateletDonationDate: donationPreference === 'platelets' ? lastDate : null,
         isGuest: !isSelf,
       });
 
       donorId = Number(insertResult.insertId);
+
+      if (isSelf) {
+        await db
+          .update(users)
+          .set({ name, phone, updatedAt: new Date() })
+          .where(eq(users.id, userId));
+      }
     }
 
     // 5. Redirect back to dashboard preserving language and active tab
