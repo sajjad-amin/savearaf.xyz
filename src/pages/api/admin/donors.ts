@@ -93,8 +93,8 @@ export const GET: APIRoute = async ({ request }) => {
 
     // 6. Server-Side Pagination
     const pageParam = Number(url.searchParams.get('page')) || 1;
-    const limitParam = Number(url.searchParams.get('limit')) || 20;
-    const limit = Math.min(100, Math.max(5, limitParam));
+    const limitParam = Number(url.searchParams.get('limit')) || 100;
+    const limit = Math.min(500, Math.max(5, limitParam));
     const totalCount = enrichedDonors.length;
     const totalPages = Math.max(1, Math.ceil(totalCount / limit));
     const page = Math.min(Math.max(1, pageParam), totalPages);
