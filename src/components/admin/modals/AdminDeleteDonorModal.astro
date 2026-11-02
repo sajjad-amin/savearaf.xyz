@@ -72,6 +72,45 @@ const isBn = lang === 'bn';
             : 'This is a registered user account. Deleting the donor profile frees up the phone number and allows the user to re-register a new profile if needed.'}
         </p>
       </div>
+
+      <!-- Optional User Account Deletion (only for registered users) -->
+      <div id="delete-user-account-container" class="hidden p-3 rounded-2xl bg-rose-50 border border-rose-300">
+        <label class="flex items-start gap-2.5 cursor-pointer">
+          <input
+            type="checkbox"
+            id="delete-user-account-checkbox"
+            class="mt-0.5 rounded text-rose-600 focus:ring-rose-500 cursor-pointer"
+          />
+          <div class="text-xs">
+            <span class="font-extrabold text-rose-900 block">
+              {isBn ? 'সংশ্লিষ্ট ব্যবহারকারী অ্যাকাউন্টও মুছে ফেলুন (স্থায়ী)' : 'Delete the associated user login account as well (Permanent)'}
+            </span>
+            <span class="text-[11px] text-rose-700 block mt-0.5 leading-normal">
+              {isBn
+                ? 'চিহ্নিত করলে ব্যবহারকারীর সকল সেশন, অ্যাকাউন্ট ও প্রোফাইল স্থায়ীভাবে মুছে যাবে।'
+                : 'If checked, the associated user login account and active sessions will also be permanently deleted.'}
+            </span>
+          </div>
+        </label>
+      </div>
+
+      <!-- Typed Confirmation Field -->
+      <div class="pt-1">
+        <label for="delete-confirm-input" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? (
+            <>নিশ্চিত করতে অনুগ্রহ করে বক্সে <span class="font-mono font-black text-rose-600 px-1 py-0.5 bg-rose-50 rounded">CONFIRM</span> লিখুন:</>
+          ) : (
+            <>Please type <span class="font-mono font-black text-rose-600 px-1 py-0.5 bg-rose-50 rounded">CONFIRM</span> to proceed:</>
+          )}
+        </label>
+        <input
+          type="text"
+          id="delete-confirm-input"
+          autocomplete="off"
+          placeholder="CONFIRM"
+          class="w-full py-2 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm font-mono tracking-wider text-gray-900 bg-white"
+        />
+      </div>
     </div>
 
     <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
@@ -85,7 +124,8 @@ const isBn = lang === 'bn';
       <button
         type="button"
         id="confirm-delete-donor-btn"
-        class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer flex items-center gap-2"
+        disabled
+        class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer flex items-center gap-2"
       >
         <span id="confirm-delete-donor-btn-text">{isBn ? 'হ্যাঁ, স্থায়ীভাবে মুছুন' : 'Yes, Delete Donor'}</span>
       </button>

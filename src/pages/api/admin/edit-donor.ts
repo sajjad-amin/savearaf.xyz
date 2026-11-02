@@ -1,7 +1,7 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
 import { db } from '@/db';
-import { donors } from '@/db/schema';
+import { donors, users } from '@/db/schema';
 import { requireAdminSession } from '@/lib/auth';
 import { eq, and, ne, inArray } from 'drizzle-orm';
 import {
@@ -140,18 +140,30 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       return redirect(redirectUrl.pathname + redirectUrl.search);
     }
 
-    // 6. Update donor record
-    await db
-      .update(donors)
-      .set({
-        name: cleanName,
-        phone: cleanPhone,
-        bloodGroup,
-        location: cleanLocation,
-        donationPreference,
-        updatedAt: new Date(),
-      })
-      .where(eq(donors.id, donorId));
+    // 6. Update donor record and sync name with users table if tied to registered user
+    await db.transaction(async (tx) => {
+      await tx
+        .update(donors)
+        .set({
+          name: cleanName,
+          phone: cleanPhone,
+          bloodGroup,
+          location: cleanLocation,
+          donationPreference,
+          updatedAt: new Date(),
+        })
+        .where(eq(donors.id, donorId));
+
+      if (targetDonor.userId) {
+        await tx
+          .update(users)
+          .set({
+            name: cleanName,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, targetDonor.userId));
+      }
+    });
 
     if (returnJson) {
       return new Response(

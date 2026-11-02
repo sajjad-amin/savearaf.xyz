@@ -686,6 +686,9 @@ const errorParam = Astro.url.searchParams.get('error');
         const deleteDonorNameText = document.getElementById('delete-donor-name-text');
         const deleteDonorHistoryWarning = document.getElementById('delete-donor-history-warning');
         const deleteDonorUserNotice = document.getElementById('delete-donor-user-notice');
+        const deleteUserAccountContainer = document.getElementById('delete-user-account-container');
+        const deleteUserAccountCheckbox = document.getElementById('delete-user-account-checkbox');
+        const deleteConfirmInput = document.getElementById('delete-confirm-input');
         const deleteDonorError = document.getElementById('delete-donor-error');
 
         let activeDeleteDonorId = null;
@@ -693,6 +696,9 @@ const errorParam = Astro.url.searchParams.get('error');
         const closeDeleteDonorModal = () => {
           deleteDonorModal?.classList.add('hidden');
           activeDeleteDonorId = null;
+          if (deleteConfirmInput) deleteConfirmInput.value = '';
+          if (deleteUserAccountCheckbox) deleteUserAccountCheckbox.checked = false;
+          confirmDeleteDonorBtn?.setAttribute('disabled', 'true');
           if (deleteDonorError) {
             deleteDonorError.textContent = '';
             deleteDonorError.classList.add('hidden');
@@ -701,6 +707,14 @@ const errorParam = Astro.url.searchParams.get('error');
 
         closeDeleteDonorBtn?.addEventListener('click', closeDeleteDonorModal);
         cancelDeleteDonorBtn?.addEventListener('click', closeDeleteDonorModal);
+
+        deleteConfirmInput?.addEventListener('input', () => {
+          if (deleteConfirmInput.value === 'CONFIRM') {
+            confirmDeleteDonorBtn?.removeAttribute('disabled');
+          } else {
+            confirmDeleteDonorBtn?.setAttribute('disabled', 'true');
+          }
+        });
 
         document.querySelectorAll('.delete-donor-btn').forEach((btn) => {
           btn.addEventListener('click', () => {
@@ -712,6 +726,9 @@ const errorParam = Astro.url.searchParams.get('error');
             activeDeleteDonorId = id;
 
             if (deleteDonorNameText) deleteDonorNameText.textContent = name;
+            if (deleteConfirmInput) deleteConfirmInput.value = '';
+            if (deleteUserAccountCheckbox) deleteUserAccountCheckbox.checked = false;
+            confirmDeleteDonorBtn?.setAttribute('disabled', 'true');
 
             if (deleteDonorHistoryWarning) {
               if (historyCount > 0) {
@@ -733,6 +750,14 @@ const errorParam = Astro.url.searchParams.get('error');
               }
             }
 
+            if (deleteUserAccountContainer) {
+              if (hasUser) {
+                deleteUserAccountContainer.classList.remove('hidden');
+              } else {
+                deleteUserAccountContainer.classList.add('hidden');
+              }
+            }
+
             if (deleteDonorError) {
               deleteDonorError.textContent = '';
               deleteDonorError.classList.add('hidden');
@@ -744,6 +769,7 @@ const errorParam = Astro.url.searchParams.get('error');
 
         confirmDeleteDonorBtn?.addEventListener('click', async () => {
           if (!activeDeleteDonorId) return;
+          if (deleteConfirmInput && deleteConfirmInput.value !== 'CONFIRM') return;
 
           if (deleteDonorError) {
             deleteDonorError.textContent = '';
@@ -756,11 +782,16 @@ const errorParam = Astro.url.searchParams.get('error');
             confirmDeleteDonorBtnText.textContent = isClientBn ? 'মুছে ফেলা হচ্ছে...' : 'Deleting...';
           }
 
+          const deleteUserAccount = Boolean(deleteUserAccountCheckbox && deleteUserAccountCheckbox.checked);
+
           try {
             const res = await fetch('/api/admin/delete-donor', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ donorId: activeDeleteDonorId }),
+              body: JSON.stringify({
+                donorId: activeDeleteDonorId,
+                deleteUserAccount,
+              }),
             });
 
             const data = await res.json();

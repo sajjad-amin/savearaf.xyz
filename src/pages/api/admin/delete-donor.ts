@@ -1,7 +1,7 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
 import { db } from '@/db';
-import { donors, donations } from '@/db/schema';
+import { donors, donations, users, accounts, sessions } from '@/db/schema';
 import { requireAdminSession } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 
@@ -18,6 +18,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   // 2. Parse request data (support JSON or form data)
   const contentType = request.headers.get('content-type') || '';
   let donorId: number | null = null;
+  let deleteUserAccount = false;
   let returnJson = false;
 
   if (contentType.includes('application/json')) {
@@ -25,6 +26,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     try {
       const body = await request.json();
       donorId = Number(body.donorId || body.id);
+      deleteUserAccount = Boolean(body.deleteUserAccount);
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
         status: 400,
@@ -35,6 +37,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     try {
       const formData = await request.formData();
       donorId = Number(formData.get('donorId') || formData.get('id'));
+      const rawDeleteUser = formData.get('deleteUserAccount');
+      deleteUserAccount =
+        rawDeleteUser === 'true' || rawDeleteUser === '1' || rawDeleteUser === 'on';
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid form data' }), {
         status: 400,
@@ -69,10 +74,16 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       });
     }
 
-    // 4. Atomic deletion: first delete all associated donations, then delete donor
+    // 4. Atomic deletion: delete donations, donor, and optionally user account
     await db.transaction(async (tx) => {
       await tx.delete(donations).where(eq(donations.donorId, donorId));
       await tx.delete(donors).where(eq(donors.id, donorId));
+
+      if (deleteUserAccount && targetDonor.userId) {
+        await tx.delete(accounts).where(eq(accounts.userId, targetDonor.userId));
+        await tx.delete(sessions).where(eq(sessions.userId, targetDonor.userId));
+        await tx.delete(users).where(eq(users.id, targetDonor.userId));
+      }
     });
 
     if (returnJson) {
@@ -82,6 +93,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
           message: 'Donor and donation history deleted successfully',
           donorId,
           freedUserId: targetDonor.userId,
+          userAccountDeleted: Boolean(deleteUserAccount && targetDonor.userId),
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
