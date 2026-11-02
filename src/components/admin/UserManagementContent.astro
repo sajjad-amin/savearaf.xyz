@@ -1,0 +1,906 @@
+---
+import Navbar from '@/components/common/Navbar.astro';
+import Footer from '@/components/common/Footer.astro';
+import { db } from '@/db';
+import { users, donors } from '@/db/schema';
+import { desc, eq, like, or, inArray, count, isNotNull } from 'drizzle-orm';
+
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+
+const session = Astro.locals.session;
+const currentUser = Astro.locals.user;
+
+// Security check: Only Admins can access user management
+if (!session || !currentUser || currentUser.role !== 'admin') {
+  return Astro.redirect(isBn ? '/' : '/en');
+}
+
+const searchParam = Astro.url.searchParams.get('search')?.trim() || '';
+const pageParam = Number(Astro.url.searchParams.get('page')) || 1;
+const limit = 100;
+
+// Search condition
+const searchCondition = searchParam
+  ? or(
+      like(users.name, `%${searchParam}%`),
+      like(users.email, `%${searchParam}%`),
+      like(users.phone, `%${searchParam}%`)
+    )
+  : undefined;
+
+// 1. Compute aggregate system metrics
+const [allUsersCountRes] = await db.select({ count: count() }).from(users);
+const [allAdminsCountRes] = await db
+  .select({ count: count() })
+  .from(users)
+  .where(eq(users.role, 'admin'));
+const [linkedDonorsCountRes] = await db
+  .select({ count: count() })
+  .from(donors)
+  .where(isNotNull(donors.userId));
+
+const totalUsersCount = allUsersCountRes ? Number(allUsersCountRes.count) : 0;
+const totalAdminsCount = allAdminsCountRes ? Number(allAdminsCountRes.count) : 0;
+const totalLinkedDonors = linkedDonorsCountRes ? Number(linkedDonorsCountRes.count) : 0;
+
+// 2. Count filtered records for pagination
+const [filteredCountRes] = await db
+  .select({ count: count() })
+  .from(users)
+  .where(searchCondition);
+const totalCount = filteredCountRes ? Number(filteredCountRes.count) : 0;
+const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+const currentPage = Math.min(Math.max(1, pageParam), totalPages);
+const offset = (currentPage - 1) * limit;
+
+// 3. Fetch paginated users
+const paginatedUsers = await db
+  .select()
+  .from(users)
+  .where(searchCondition)
+  .orderBy(desc(users.createdAt))
+  .limit(limit)
+  .offset(offset);
+
+// 4. Fetch linked donors for these users
+const userIds = paginatedUsers.map((u) => u.id);
+const linkedDonorsMap = new Map<string, typeof donors.$inferSelect>();
+
+if (userIds.length > 0) {
+  const linkedDonors = await db
+    .select()
+    .from(donors)
+    .where(inArray(donors.userId, userIds));
+
+  for (const d of linkedDonors) {
+    if (d.userId) {
+      linkedDonorsMap.set(d.userId, d);
+    }
+  }
+}
+
+const enrichedUsers = paginatedUsers.map((u) => {
+  const donor = linkedDonorsMap.get(u.id) || null;
+  return {
+    ...u,
+    donor,
+  };
+});
+
+// Pagination helper values
+const startItem = totalCount > 0 ? (currentPage - 1) * limit + 1 : 0;
+const endItem = Math.min(currentPage * limit, totalCount);
+
+function getPageUrl(p: number): string {
+  const url = new URL(Astro.url);
+  url.searchParams.set('page', p.toString());
+  url.searchParams.set('limit', limit.toString());
+  return url.pathname + url.search;
+}
+
+function getPaginationItems(current: number, total: number): (number | '...')[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, '...', total];
+  }
+  if (current >= total - 3) {
+    return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+  }
+  return [1, '...', current - 1, current, current + 1, '...', total];
+}
+const paginationItems = getPaginationItems(currentPage, totalPages);
+
+function formatDate(d: Date | string | null | undefined): string {
+  if (!d) return isBn ? 'তথ্য নেই' : 'N/A';
+  const dateObj = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(dateObj.getTime())) return isBn ? 'তথ্য নেই' : 'N/A';
+  return dateObj.toLocaleDateString(isBn ? 'bn-BD' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+---
+
+<!doctype html>
+<html lang={lang} class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{isBn ? 'ইউজার ম্যানেজমেন্ট ও একাউন্ট কন্ট্রোল' : 'User Management & Accounts'} - Save Araf</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
+    <!-- Navbar -->
+    <Navbar lang={lang} />
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <!-- Header Area -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-200">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-100 text-rose-700 uppercase tracking-wider">
+              {isBn ? 'অ্যাডমিন পোর্টাল' : 'Admin Portal'}
+            </span>
+            <span class="text-xs text-gray-400">/</span>
+            <span class="text-xs text-gray-500 font-semibold">{isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management'}</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-black text-gray-900 mt-1 flex items-center gap-2.5">
+            <span>👥</span>
+            <span>{isBn ? 'নিবন্ধিত ইউজার তালিকা ও ভূমিকা নিয়ন্ত্রণ' : 'User Directory & Access Control'}</span>
+          </h1>
+          <p class="text-xs sm:text-sm text-gray-600 mt-1">
+            {isBn
+              ? 'সকল গুগল-লগইনকৃত ব্যবহারকারীদের প্রোফাইল পর্যবেক্ষণ, ভূমিকা (রোল) পরিবর্তন ও একাউন্ট নিরাপত্তা পরিচালনা করুন।'
+              : 'Monitor all registered users, manage role assignments (Admin/User), and maintain platform security.'}
+          </p>
+        </div>
+
+        <!-- Quick link to CRM -->
+        <div class="flex items-center gap-2.5">
+          <a
+            href={isBn ? '/admin/crm' : '/en/admin/crm'}
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs sm:text-sm shadow-xs transition"
+          >
+            <span>🩸</span>
+            <span>{isBn ? 'ব্লাড সিআরএম ড্যাশবোর্ড' : 'Back to Blood CRM'}</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Admin Navigation Tabs -->
+      <div class="flex items-center gap-2 border-b border-gray-200 mt-6 mb-6 overflow-x-auto whitespace-nowrap">
+        <a
+          href={isBn ? '/admin/crm' : '/en/admin/crm'}
+          class="py-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-800 flex items-center gap-1.5"
+        >
+          <span>🩸</span>
+          <span>{isBn ? 'ব্লাড ডোনার সিআরএম' : 'Blood CRM'}</span>
+        </a>
+        <a
+          href={isBn ? '/admin/users' : '/en/admin/users'}
+          class="py-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 border-rose-600 text-rose-600 flex items-center gap-1.5"
+        >
+          <span>👥</span>
+          <span>{isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management'}</span>
+        </a>
+      </div>
+
+      <!-- Stats Cards Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-xs">
+          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
+            {isBn ? 'মোট ইউজার' : 'Total Users'}
+          </span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl sm:text-3xl font-black text-gray-900">{totalUsersCount}</span>
+            <span class="text-xl">👥</span>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-rose-100 bg-rose-50/30 p-4 sm:p-5 shadow-xs">
+          <span class="text-xs font-semibold text-rose-700 uppercase tracking-wider block mb-1">
+            {isBn ? 'অ্যাডমিন একাউন্ট' : 'Total Admins'}
+          </span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl sm:text-3xl font-black text-rose-700">{totalAdminsCount}</span>
+            <span class="text-xl">🛡️</span>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-emerald-100 bg-emerald-50/30 p-4 sm:p-5 shadow-xs">
+          <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider block mb-1">
+            {isBn ? 'লিঙ্কড ডোনার' : 'Linked Donors'}
+          </span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl sm:text-3xl font-black text-emerald-700">{totalLinkedDonors}</span>
+            <span class="text-xl">🩸</span>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-xs">
+          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
+            {isBn ? 'অনুসন্ধান ফলাফল' : 'Filtered Records'}
+          </span>
+          <div class="flex items-baseline justify-between">
+            <span class="text-2xl sm:text-3xl font-black text-gray-900">{totalCount}</span>
+            <span class="text-xl">🔍</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter & Search Bar -->
+      <div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-xs mb-6">
+        <form id="user-search-form" method="GET" action="" class="flex items-center gap-3">
+          <div class="relative flex-1">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+              🔍
+            </span>
+            <input
+              type="text"
+              id="user-search-input"
+              name="search"
+              value={searchParam}
+              placeholder={isBn ? 'নাম, ইমেইল বা ফোন নম্বর দিয়ে খুঁজুন (Enter চাপুন)...' : 'Search by name, email, or phone (Press Enter)...'}
+              class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-xs sm:text-sm text-gray-900 bg-gray-50/50"
+            />
+            {searchParam && (
+              <a
+                href={isBn ? '/admin/users' : '/en/admin/users'}
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-700 text-xs font-bold"
+                title={isBn ? 'অনুসন্ধান মুছুন' : 'Clear search'}
+                aria-label={isBn ? 'অনুসন্ধান মুছুন' : 'Clear search'}
+              >
+                ✕
+              </a>
+            )}
+          </div>
+          <button
+            type="submit"
+            class="py-2.5 px-5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs sm:text-sm shadow-xs transition cursor-pointer shrink-0"
+          >
+            {isBn ? 'খুঁজুন' : 'Search'}
+          </button>
+        </form>
+      </div>
+
+      <!-- Users Data Table Card -->
+      <div class="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden">
+        {enrichedUsers.length === 0 ? (
+          <div class="p-16 text-center text-gray-600">
+            <span class="text-4xl block mb-2" aria-hidden="true">🔍</span>
+            <p class="font-bold text-base text-gray-800">
+              {isBn ? 'কোনো ইউজার খুঁজে পাওয়া যায়নি' : 'No users matched your search criteria'}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">
+              {isBn ? 'অনুগ্রহ করে ভিন্ন কোনো নাম, ইমেইল বা নম্বর দিয়ে চেষ্টা করুন।' : 'Try searching a different name, email, or phone number.'}
+            </p>
+            {searchParam && (
+              <a
+                href={isBn ? '/admin/users' : '/en/admin/users'}
+                class="inline-block mt-4 text-xs font-bold text-rose-600 hover:underline"
+              >
+                {isBn ? '← সম্পূর্ণ তালিকায় ফিরে যান' : '← Back to all users'}
+              </a>
+            )}
+          </div>
+        ) : (
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
+              <thead class="bg-gray-50/75 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">{isBn ? 'ইউজার' : 'User'}</th>
+                  <th scope="col" class="py-3.5 px-4">{isBn ? 'ফোন নম্বর' : 'Phone'}</th>
+                  <th scope="col" class="py-3.5 px-4">{isBn ? 'ভূমিকা (Role)' : 'Role'}</th>
+                  <th scope="col" class="py-3.5 px-4">{isBn ? 'ডোনার স্ট্যাটাস' : 'Donor Status'}</th>
+                  <th scope="col" class="py-3.5 px-4">{isBn ? 'যুক্ত হয়েছেন' : 'Joined'}</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">{isBn ? 'অ্যাকশন' : 'Actions'}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 bg-white">
+                {enrichedUsers.map((u) => {
+                  const isCurrentSessionUser = u.id === currentUser.id;
+                  const crmSearchUrl = u.phone
+                    ? isBn
+                      ? `/admin/crm?search=${encodeURIComponent(u.phone)}`
+                      : `/en/admin/crm?search=${encodeURIComponent(u.phone)}`
+                    : null;
+
+                  return (
+                    <tr class="hover:bg-gray-50/60 transition">
+                      <!-- User Avatar & Info -->
+                      <td class="py-4 px-4 sm:px-6">
+                        <div class="flex items-center gap-3">
+                          {u.image ? (
+                            <img
+                              src={u.image}
+                              alt={u.name || 'User'}
+                              class="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-2xs"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-sm shadow-2xs">
+                              {u.name ? u.name[0] : 'U'}
+                            </div>
+                          )}
+                          <div class="min-w-0">
+                            <div class="font-bold text-gray-900 truncate flex items-center gap-1.5">
+                              <span>{u.name || (isBn ? 'নামহীন ব্যবহারকারী' : 'Anonymous User')}</span>
+                              {isCurrentSessionUser && (
+                                <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-extrabold">
+                                  {isBn ? 'আপনি' : 'You'}
+                                </span>
+                              )}
+                            </div>
+                            <div class="text-xs text-gray-500 font-mono truncate">{u.email}</div>
+                          </div>
+                        </div>
+                      </td>
+
+                      <!-- Phone & WhatsApp -->
+                      <td class="py-4 px-4 whitespace-nowrap">
+                        {u.phone ? (
+                          <div>
+                            <a
+                              href={`tel:${u.phone}`}
+                              class="text-xs font-mono font-medium text-gray-800 hover:text-rose-600 transition"
+                            >
+                              {u.phone}
+                            </a>
+                            <span class="block text-[11px] text-emerald-700 font-semibold">
+                              ✓ WhatsApp
+                            </span>
+                          </div>
+                        ) : (
+                          <span class="text-xs text-gray-400 italic">
+                            {isBn ? 'অনবোর্ডিং অসমাপ্ত' : 'No Phone'}
+                          </span>
+                        )}
+                      </td>
+
+                      <!-- Role Badge -->
+                      <td class="py-4 px-4 whitespace-nowrap">
+                        {u.role === 'admin' ? (
+                          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs">
+                            <span aria-hidden="true">🛡️</span>
+                            <span>Admin</span>
+                          </span>
+                        ) : (
+                          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                            <span aria-hidden="true">👤</span>
+                            <span>User</span>
+                          </span>
+                        )}
+                      </td>
+
+                      <!-- Donor Status Badge -->
+                      <td class="py-4 px-4 whitespace-nowrap">
+                        {u.donor ? (
+                          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
+                            <span aria-hidden="true">🩸</span>
+                            <span>{u.donor.bloodGroup} Donor</span>
+                          </span>
+                        ) : (
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs text-gray-500 bg-gray-100">
+                            {isBn ? 'ডোনার নন' : 'Not Donor'}
+                          </span>
+                        )}
+                      </td>
+
+                      <!-- Joined Date -->
+                      <td class="py-4 px-4 text-xs text-gray-600 font-mono whitespace-nowrap">
+                        {formatDate(u.createdAt)}
+                      </td>
+
+                      <!-- Actions -->
+                      <td class="py-4 px-4 sm:px-6 text-right whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5 justify-end">
+                          {crmSearchUrl && (
+                            <a
+                              href={crmSearchUrl}
+                              class="px-2.5 py-1 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold text-xs transition cursor-pointer flex items-center gap-1"
+                              title={isBn ? 'সিআরএম-এ ডোনার প্রোফাইল দেখুন' : 'View in CRM'}
+                            >
+                              <span>🩸</span>
+                              <span class="hidden sm:inline">{isBn ? 'সিআরএম' : 'CRM'}</span>
+                            </a>
+                          )}
+
+                          <button
+                            type="button"
+                            class="change-role-btn px-2.5 py-1 rounded-lg border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold text-xs transition cursor-pointer flex items-center gap-1"
+                            data-user-id={u.id}
+                            data-user-name={u.name || u.email}
+                            data-current-role={u.role}
+                            disabled={isCurrentSessionUser}
+                            title={
+                              isCurrentSessionUser
+                                ? isBn
+                                  ? 'নিজের রোল পরিবর্তন করা যাবে না'
+                                  : 'Cannot change your own role'
+                                : isBn
+                                  ? 'ব্যবহারকারীর ভূমিকা পরিবর্তন করুন'
+                                  : 'Change user role'
+                            }
+                          >
+                            <span>⚙️</span>
+                            <span>{isBn ? 'রোল' : 'Role'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="delete-user-btn px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs transition cursor-pointer flex items-center gap-1"
+                            data-user-id={u.id}
+                            data-user-name={u.name || u.email}
+                            data-user-email={u.email}
+                            disabled={isCurrentSessionUser}
+                            title={
+                              isCurrentSessionUser
+                                ? isBn
+                                  ? 'নিজের অ্যাকাউন্ট মুছে ফেলা যাবে না'
+                                  : 'Cannot delete your own account'
+                                : isBn
+                                  ? 'একাউন্ট সম্পূর্ণ মুছে ফেলুন'
+                                  : 'Delete account'
+                            }
+                          >
+                            <span>🗑️</span>
+                            <span>{isBn ? 'মুছুন' : 'Delete'}</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <!-- Accessible Pagination Bar -->
+        <div class="px-4 py-4 sm:px-6 border-t border-gray-200 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <!-- Summary Text -->
+          <div class="text-xs sm:text-sm text-gray-600">
+            {isBn ? (
+              <span>
+                সর্বমোট <strong class="font-bold text-gray-900">{totalCount}</strong> জন ইউজারের মধ্যে{' '}
+                <strong class="font-bold text-gray-900">{startItem} - {endItem}</strong> দেখানো হচ্ছে
+              </span>
+            ) : (
+              <span>
+                Showing <strong class="font-bold text-gray-900">{startItem}</strong> to{' '}
+                <strong class="font-bold text-gray-900">{endItem}</strong> of{' '}
+                <strong class="font-bold text-gray-900">{totalCount}</strong> users
+              </span>
+            )}
+          </div>
+
+          <!-- Navigation Controls -->
+          <nav aria-label={isBn ? 'ইউজার পৃষ্ঠা নির্বাচন' : 'Users pagination'} class="inline-flex items-center gap-1">
+            <!-- Previous Button -->
+            {currentPage > 1 ? (
+              <a
+                href={getPageUrl(currentPage - 1)}
+                aria-label={isBn ? 'পূর্ববর্তী পৃষ্ঠা' : 'Previous page'}
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-xs font-semibold text-gray-700 transition shadow-2xs"
+              >
+                <span aria-hidden="true">‹</span>
+                <span>{isBn ? 'পূর্ববর্তী' : 'Previous'}</span>
+              </a>
+            ) : (
+              <span
+                aria-disabled="true"
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-100 text-xs font-semibold text-gray-400 cursor-not-allowed"
+              >
+                <span aria-hidden="true">‹</span>
+                <span>{isBn ? 'পূর্ববর্তী' : 'Previous'}</span>
+              </span>
+            )}
+
+            <!-- Page Numbers -->
+            <div class="flex items-center gap-1">
+              {paginationItems.map((item) => {
+                if (item === '...') {
+                  return (
+                    <span class="px-2 py-1 text-xs text-gray-400 font-bold select-none" aria-hidden="true">
+                      …
+                    </span>
+                  );
+                }
+                const isCurrent = item === currentPage;
+                return isCurrent ? (
+                  <span
+                    aria-current="page"
+                    class="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-black text-xs shadow-xs"
+                  >
+                    {item}
+                  </span>
+                ) : (
+                  <a
+                    href={getPageUrl(item)}
+                    aria-label={isBn ? `${item} নম্বর পৃষ্ঠা` : `Page ${item}`}
+                    class="px-3 py-1.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-bold text-xs transition shadow-2xs"
+                  >
+                    {item}
+                  </a>
+                );
+              })}
+            </div>
+
+            <!-- Next Button -->
+            {currentPage < totalPages && totalCount > 0 ? (
+              <a
+                href={getPageUrl(currentPage + 1)}
+                aria-label={isBn ? 'পরবর্তী পৃষ্ঠা' : 'Next page'}
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-xs font-semibold text-gray-700 transition shadow-2xs"
+              >
+                <span>{isBn ? 'পরবর্তী' : 'Next'}</span>
+                <span aria-hidden="true">›</span>
+              </a>
+            ) : (
+              <span
+                aria-disabled="true"
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-100 text-xs font-semibold text-gray-400 cursor-not-allowed"
+              >
+                <span>{isBn ? 'পরবর্তী' : 'Next'}</span>
+                <span aria-hidden="true">›</span>
+              </span>
+            )}
+          </nav>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal 1: Change Role Modal -->
+    <div
+      id="change-role-modal"
+      class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="role-modal-title"
+    >
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-200">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+          <div class="flex items-center gap-2.5 text-rose-600">
+            <span class="text-xl">🛡️</span>
+            <h3 id="role-modal-title" class="text-lg font-bold text-gray-900">
+              {isBn ? 'ইউজার রোল পরিবর্তন' : 'Change User Role'}
+            </h3>
+          </div>
+          <button
+            type="button"
+            id="close-role-modal-btn"
+            class="text-gray-400 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center cursor-pointer transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form id="role-update-form" class="space-y-4 pt-4">
+          <input type="hidden" id="role-modal-user-id" name="userId" value="" />
+
+          <p class="text-xs text-gray-600">
+            {isBn ? 'ব্যবহারকারী:' : 'Target User:'}{' '}
+            <strong id="role-modal-user-name" class="text-gray-900"></strong>
+          </p>
+
+          <div>
+            <label for="role-modal-select" class="block text-xs font-semibold text-gray-800 mb-1">
+              {isBn ? 'ভূমিকা (Role) নির্বাচন করুন' : 'Select Access Level'}
+            </label>
+            <select
+              id="role-modal-select"
+              name="role"
+              required
+              class="block w-full rounded-xl border border-gray-300 py-2.5 px-3 text-gray-900 text-sm bg-white focus:border-rose-500 focus:ring-rose-500 transition"
+            >
+              <option value="user">{isBn ? 'User — সাধারণ ব্যবহারকারী' : 'User — Regular Member'}</option>
+              <option value="admin">{isBn ? 'Admin — পূর্ণ অ্যাডমিন ক্ষমতা' : 'Admin — Full Administrative Privileges'}</option>
+            </select>
+          </div>
+
+          <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+            ⚠️ {isBn
+              ? 'অ্যাডমিন অধিকার প্রদান করলে উক্ত ব্যবহারকারী সম্পূর্ণ সিআরএম, ইউজার ডেটা ও অনুদান হিস্ট্রি পরিবর্তন করার অনুমতি পাবেন।'
+              : 'Granting Admin role allows this user to edit or delete all donor records, user accounts, and CRM settings.'}
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+            <button
+              type="button"
+              id="cancel-role-modal-btn"
+              class="py-2.5 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold text-xs transition cursor-pointer"
+            >
+              {isBn ? 'বাতিল' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              id="submit-role-btn"
+              class="py-2.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+            >
+              {isBn ? 'রোল হালনাগাদ করুন' : 'Update Role'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 2: Delete User Modal (with Typed CONFIRM Safeguard) -->
+    <div
+      id="delete-user-modal"
+      class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-user-modal-title"
+    >
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-rose-200">
+        <div class="flex items-center gap-3 text-rose-600 mb-4">
+          <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-xl font-bold">🗑️</div>
+          <h3 id="delete-user-modal-title" class="text-lg font-bold text-gray-900">
+            {isBn ? 'ইউজার একাউন্ট স্থায়ী অপসারণ' : 'Delete User Account Permanently'}
+          </h3>
+        </div>
+
+        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed mb-4">
+          {isBn ? (
+            <span>
+              আপনি <strong id="delete-modal-user-name" class="text-gray-900"></strong> (<span id="delete-modal-user-email" class="font-mono text-gray-700"></span>)-এর অ্যাকাউন্ট সম্পূর্ণ মুছে ফেলতে যাচ্ছেন।
+            </span>
+          ) : (
+            <span>
+              You are about to permanently delete <strong id="delete-modal-user-name" class="text-gray-900"></strong> (<span id="delete-modal-user-email" class="font-mono text-gray-700"></span>).
+            </span>
+          )}
+        </p>
+
+        <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs mb-4 space-y-1">
+          <p class="font-bold">⚠️ {isBn ? 'গুরুত্বপূর্ণ সতর্কতা:' : 'Cascade Deletion Warning:'}</p>
+          <p>
+            {isBn
+              ? 'এই ব্যবহারকারীর সাথে সম্পর্কিত সকল সেশন, গুগল লগইন ডেটা, ডোনার প্রোফাইল ও রক্তদানের হিস্ট্রি সিস্টেম থেকে স্থায়ীভাবে মুছে যাবে।'
+              : 'All associated Auth.js sessions, Google accounts, donor profiles, and donation records will be permanently deleted.'}
+          </p>
+        </div>
+
+        <form id="delete-user-form" class="space-y-4">
+          <input type="hidden" id="delete-modal-user-id" name="userId" value="" />
+
+          <div>
+            <label for="confirm-delete-input" class="block text-xs font-semibold text-gray-800 mb-1">
+              {isBn ? "নিশ্চিত করতে ইংরেজিতে 'CONFIRM' টাইপ করুন:" : "Type 'CONFIRM' to verify:"}
+            </label>
+            <input
+              type="text"
+              id="confirm-delete-input"
+              required
+              placeholder="CONFIRM"
+              autocomplete="off"
+              class="block w-full rounded-xl border border-gray-300 py-2.5 px-3 text-gray-900 text-sm focus:border-rose-500 focus:ring-rose-500 font-mono transition"
+            />
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button
+              type="button"
+              id="close-delete-modal-btn"
+              class="flex-1 py-2.5 px-4 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold text-sm transition cursor-pointer"
+            >
+              {isBn ? 'বাতিল' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              id="submit-delete-btn"
+              disabled
+              class="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-rose-700 text-white font-bold text-sm shadow-xs transition cursor-pointer"
+            >
+              {isBn ? 'স্থায়ীভাবে মুছুন' : 'Delete User'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Interactive Client Scripts -->
+    <script is:inline>
+      (() => {
+        const isBn = document.documentElement.lang === 'bn';
+
+        // 1. Search Form
+        const searchForm = document.getElementById('user-search-form');
+        const searchInput = document.getElementById('user-search-input');
+
+        searchForm?.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const query = searchInput ? searchInput.value.trim() : '';
+          const url = new URL(window.location.href);
+          if (query) {
+            url.searchParams.set('search', query);
+          } else {
+            url.searchParams.delete('search');
+          }
+          url.searchParams.set('page', '1');
+          window.location.href = url.toString();
+        });
+
+        // 2. Change Role Modal
+        const roleModal = document.getElementById('change-role-modal');
+        const closeRoleBtn = document.getElementById('close-role-modal-btn');
+        const cancelRoleBtn = document.getElementById('cancel-role-modal-btn');
+        const roleUserIdInput = document.getElementById('role-modal-user-id');
+        const roleUserNamePlaceholder = document.getElementById('role-modal-user-name');
+        const roleSelect = document.getElementById('role-modal-select');
+        const roleForm = document.getElementById('role-update-form');
+        const submitRoleBtn = document.getElementById('submit-role-btn');
+
+        document.querySelectorAll('.change-role-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const uid = btn.getAttribute('data-user-id') || '';
+            const uname = btn.getAttribute('data-user-name') || '';
+            const crole = btn.getAttribute('data-current-role') || 'user';
+
+            if (roleUserIdInput) roleUserIdInput.value = uid;
+            if (roleUserNamePlaceholder) roleUserNamePlaceholder.textContent = uname;
+            if (roleSelect) roleSelect.value = crole;
+
+            roleModal?.classList.remove('hidden');
+          });
+        });
+
+        const closeRoleModal = () => roleModal?.classList.add('hidden');
+        closeRoleBtn?.addEventListener('click', closeRoleModal);
+        cancelRoleBtn?.addEventListener('click', closeRoleModal);
+
+        roleForm?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (!roleUserIdInput || !roleSelect) return;
+
+          const uid = roleUserIdInput.value;
+          const selectedRole = roleSelect.value;
+          const origText = submitRoleBtn ? submitRoleBtn.textContent : '';
+
+          if (submitRoleBtn) {
+            submitRoleBtn.disabled = true;
+            submitRoleBtn.textContent = isBn ? 'সংরক্ষণ করা হচ্ছে...' : 'Updating...';
+          }
+
+          try {
+            const res = await fetch('/api/admin/users', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: uid, role: selectedRole }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+              alert(data.error || (isBn ? 'রোল পরিবর্তনে ত্রুটি হয়েছে।' : 'Failed to update role.'));
+              if (submitRoleBtn) {
+                submitRoleBtn.disabled = false;
+                submitRoleBtn.textContent = origText;
+              }
+              return;
+            }
+
+            roleModal?.classList.add('hidden');
+            window.location.reload();
+          } catch (err) {
+            console.error('Error updating user role:', err);
+            alert(isBn ? 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে।' : 'An unexpected error occurred.');
+            if (submitRoleBtn) {
+              submitRoleBtn.disabled = false;
+              submitRoleBtn.textContent = origText;
+            }
+          }
+        });
+
+        // 3. Delete User Modal
+        const deleteModal = document.getElementById('delete-user-modal');
+        const closeDeleteBtn = document.getElementById('close-delete-modal-btn');
+        const deleteUserIdInput = document.getElementById('delete-modal-user-id');
+        const deleteUserNamePlaceholder = document.getElementById('delete-modal-user-name');
+        const deleteUserEmailPlaceholder = document.getElementById('delete-modal-user-email');
+        const confirmDeleteInput = document.getElementById('confirm-delete-input');
+        const deleteForm = document.getElementById('delete-user-form');
+        const submitDeleteBtn = document.getElementById('submit-delete-btn');
+
+        document.querySelectorAll('.delete-user-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const uid = btn.getAttribute('data-user-id') || '';
+            const uname = btn.getAttribute('data-user-name') || '';
+            const uemail = btn.getAttribute('data-user-email') || '';
+
+            if (deleteUserIdInput) deleteUserIdInput.value = uid;
+            if (deleteUserNamePlaceholder) deleteUserNamePlaceholder.textContent = uname;
+            if (deleteUserEmailPlaceholder) deleteUserEmailPlaceholder.textContent = uemail;
+            if (confirmDeleteInput) confirmDeleteInput.value = '';
+            if (submitDeleteBtn) submitDeleteBtn.disabled = true;
+
+            deleteModal?.classList.remove('hidden');
+          });
+        });
+
+        const closeDeleteModal = () => deleteModal?.classList.add('hidden');
+        closeDeleteBtn?.addEventListener('click', closeDeleteModal);
+
+        // Safeguard verification
+        confirmDeleteInput?.addEventListener('input', () => {
+          if (submitDeleteBtn) {
+            submitDeleteBtn.disabled = confirmDeleteInput.value.trim() !== 'CONFIRM';
+          }
+        });
+
+        deleteForm?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (!deleteUserIdInput || !confirmDeleteInput) return;
+
+          const uid = deleteUserIdInput.value;
+          const confirmText = confirmDeleteInput.value.trim();
+
+          if (confirmText !== 'CONFIRM') {
+            alert(isBn ? "নিশ্চিত করতে 'CONFIRM' টাইপ করুন।" : "Must type 'CONFIRM' to verify deletion.");
+            return;
+          }
+
+          const origText = submitDeleteBtn ? submitDeleteBtn.textContent : '';
+          if (submitDeleteBtn) {
+            submitDeleteBtn.disabled = true;
+            submitDeleteBtn.textContent = isBn ? 'মুছে ফেলা হচ্ছে...' : 'Deleting...';
+          }
+
+          try {
+            const res = await fetch('/api/admin/users', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: uid, confirmText }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+              alert(data.error || (isBn ? 'ব্যবহারকারী মুছতে ব্যর্থ হয়েছে।' : 'Failed to delete user.'));
+              if (submitDeleteBtn) {
+                submitDeleteBtn.disabled = false;
+                submitDeleteBtn.textContent = origText;
+              }
+              return;
+            }
+
+            deleteModal?.classList.add('hidden');
+            window.location.reload();
+          } catch (err) {
+            console.error('Error deleting user:', err);
+            alert(isBn ? 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে।' : 'An unexpected error occurred.');
+            if (submitDeleteBtn) {
+              submitDeleteBtn.disabled = false;
+              submitDeleteBtn.textContent = origText;
+            }
+          }
+        });
+
+        // Backdrop & Escape dismiss
+        const allModals = [roleModal, deleteModal];
+        allModals.forEach((m) => {
+          m?.addEventListener('click', (e) => {
+            if (e.target === m) m.classList.add('hidden');
+          });
+        });
+
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            allModals.forEach((m) => m?.classList.add('hidden'));
+          }
+        });
+      })();
+    </script>
+
+    <!-- Footer -->
+    <Footer lang={lang} />
+  </body>
+</html>

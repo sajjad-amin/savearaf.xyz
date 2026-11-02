@@ -101,6 +101,29 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
 
             <!-- Menu Links -->
             <div class="py-1">
+              {user.role === 'admin' && (
+                <>
+                  <a
+                    href={isBn ? '/admin/crm' : '/en/admin/crm'}
+                    role="menuitem"
+                    class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-700 bg-rose-50/60 hover:bg-rose-100/70 transition"
+                  >
+                    <span>🩸</span>
+                    <span>{isBn ? 'ব্লাড ডোনার সিআরএম' : 'Blood CRM'}</span>
+                  </a>
+
+                  <a
+                    href={isBn ? '/admin/users' : '/en/admin/users'}
+                    role="menuitem"
+                    class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-800 hover:bg-gray-50 hover:text-rose-600 transition"
+                  >
+                    <span>👥</span>
+                    <span>{isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management'}</span>
+                  </a>
+                  <div class="border-t border-gray-100 my-1"></div>
+                </>
+              )}
+
               <a
                 href={dashboardUrl}
                 role="menuitem"

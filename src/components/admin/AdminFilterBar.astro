@@ -4,9 +4,10 @@ import type { CRMStats } from './types';
 interface Props {
   stats: CRMStats;
   lang: 'bn' | 'en';
+  searchParam?: string;
 }
 
-const { stats, lang } = Astro.props;
+const { stats, lang, searchParam = '' } = Astro.props;
 const isBn = lang === 'bn';
 ---
 
@@ -14,17 +15,31 @@ const isBn = lang === 'bn';
 <div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-xs mb-6 space-y-4">
   <!-- Top Row: Search input + Blood Group Select + Sort Select -->
   <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
-    <!-- Live Search Input -->
-    <div class="sm:col-span-6 relative">
-      <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-        🔍
-      </span>
-      <input
-        type="text"
-        id="crm-search-input"
-        placeholder={isBn ? 'নাম, মোবাইল নম্বর, ঠিকানা বা রক্তের গ্রুপ খুঁজুন...' : 'Search by name, phone, location, or blood group...'}
-        class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-xs sm:text-sm text-gray-900 bg-gray-50/50"
-      />
+    <!-- Live Search Input Form -->
+    <div class="sm:col-span-6">
+      <form id="crm-search-form" method="GET" action="" class="relative w-full">
+        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+          🔍
+        </span>
+        <input
+          type="text"
+          id="crm-search-input"
+          name="search"
+          value={searchParam}
+          placeholder={isBn ? 'নাম, মোবাইল নম্বর, বা এলাকা খুঁজুন (Enter চাপুন)...' : 'Search by name, phone, or location (Press Enter)...'}
+          class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-xs sm:text-sm text-gray-900 bg-gray-50/50"
+        />
+        {searchParam && (
+          <a
+            href={isBn ? '/admin/crm' : '/en/admin/crm'}
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-700 text-xs font-bold"
+            title={isBn ? 'অনুসন্ধান মুছুন' : 'Clear search'}
+            aria-label={isBn ? 'অনুসন্ধান মুছুন' : 'Clear search'}
+          >
+            ✕
+          </a>
+        )}
+      </form>
     </div>
 
     <!-- Blood Group Dropdown -->

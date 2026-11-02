@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { donors, donations } from '@/db/schema';
 import { requireAdminSession } from '@/lib/auth';
 import { calculateTwoStepCooldown } from '@/lib/cooldown';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, like, or } from 'drizzle-orm';
 
 export const GET: APIRoute = async ({ request }) => {
   // 1. Verify admin access
@@ -18,6 +18,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   const url = new URL(request.url);
   const singleDonorId = url.searchParams.get('donorId');
+  const searchParam = url.searchParams.get('search')?.trim() || '';
 
   try {
     // If requesting history for a single donor
@@ -42,10 +43,19 @@ export const GET: APIRoute = async ({ request }) => {
       });
     }
 
-    // 2. Fetch all donors
+    // 2. Fetch donors (optionally filtered by SQL LIKE)
+    const searchCondition = searchParam
+      ? or(
+          like(donors.name, `%${searchParam}%`),
+          like(donors.phone, `%${searchParam}%`),
+          like(donors.location, `%${searchParam}%`)
+        )
+      : undefined;
+
     const allDonors = await db
       .select()
       .from(donors)
+      .where(searchCondition)
       .orderBy(desc(donors.createdAt));
 
     // 3. Fetch all donations history records

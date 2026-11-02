@@ -16,7 +16,7 @@ import AdminDeleteDonorModal from './modals/AdminDeleteDonorModal.astro';
 import { db } from '@/db';
 import { donors, donations, users } from '@/db/schema';
 import { calculateTwoStepCooldown } from '@/lib/cooldown';
-import { desc } from 'drizzle-orm';
+import { desc, like, or } from 'drizzle-orm';
 
 interface Props {
   lang: 'bn' | 'en';
@@ -29,10 +29,21 @@ const session = Astro.locals.session;
 const user = Astro.locals.user;
 const isAdmin = user?.role === 'admin';
 
-// 1. Fetch all donors, past donations, and users
+const searchParam = Astro.url.searchParams.get('search')?.trim() || '';
+
+const searchCondition = searchParam
+  ? or(
+      like(donors.name, `%${searchParam}%`),
+      like(donors.phone, `%${searchParam}%`),
+      like(donors.location, `%${searchParam}%`)
+    )
+  : undefined;
+
+// 1. Fetch all donors (optionally filtered by search), past donations, and users
 const allDonors = await db
   .select()
   .from(donors)
+  .where(searchCondition)
   .orderBy(desc(donors.createdAt));
 
 const allDonations = await db
@@ -145,7 +156,15 @@ const errorParam = Astro.url.searchParams.get('error');
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-3 shrink-0 flex-wrap">
+          <a
+            href={isBn ? '/admin/users' : '/en/admin/users'}
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-bold text-xs sm:text-sm shadow-xs transition"
+          >
+            <span>👥</span>
+            <span>{isBn ? 'ইউজার ম্যানেজমেন্ট' : 'Manage Users'}</span>
+          </a>
+
           <button
             type="button"
             id="open-guest-modal-btn"
@@ -157,6 +176,24 @@ const errorParam = Astro.url.searchParams.get('error');
         </div>
       </div>
 
+      <!-- Admin Navigation Tabs -->
+      <div class="flex items-center gap-2 border-b border-gray-200 mt-6 mb-6 overflow-x-auto whitespace-nowrap">
+        <a
+          href={isBn ? '/admin/crm' : '/en/admin/crm'}
+          class="py-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 border-rose-600 text-rose-600 flex items-center gap-1.5"
+        >
+          <span>🩸</span>
+          <span>{isBn ? 'ব্লাড ডোনার সিআরএম' : 'Blood CRM'}</span>
+        </a>
+        <a
+          href={isBn ? '/admin/users' : '/en/admin/users'}
+          class="py-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-800 flex items-center gap-1.5"
+        >
+          <span>👥</span>
+          <span>{isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management'}</span>
+        </a>
+      </div>
+
       <!-- Success / Error Feedback Alerts -->
       <AdminAlerts successParam={successParam} errorParam={errorParam} lang={lang} />
 
@@ -164,7 +201,7 @@ const errorParam = Astro.url.searchParams.get('error');
       <AdminStats stats={stats} lang={lang} />
 
       <!-- Search, Filtering, and Controls Bar -->
-      <AdminFilterBar stats={stats} lang={lang} />
+      <AdminFilterBar stats={stats} lang={lang} searchParam={searchParam} />
 
       <!-- Donors Data Table Section -->
       <AdminDonorTable
@@ -270,6 +307,20 @@ const errorParam = Astro.url.searchParams.get('error');
         }
 
         // Event listeners
+        const searchForm = document.getElementById('crm-search-form');
+        searchForm?.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const q = searchInput ? searchInput.value.trim() : '';
+          const url = new URL(window.location.href);
+          if (q) {
+            url.searchParams.set('search', q);
+          } else {
+            url.searchParams.delete('search');
+          }
+          url.searchParams.set('page', '1');
+          window.location.href = url.toString();
+        });
+
         searchInput?.addEventListener('input', filterAndSort);
         bloodSelect?.addEventListener('change', filterAndSort);
         sortSelect?.addEventListener('change', filterAndSort);
