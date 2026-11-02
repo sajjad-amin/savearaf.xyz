@@ -160,8 +160,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         return new Response(
           JSON.stringify({
             error: isEn
-              ? 'This phone number is already in use.'
-              : 'এই ফোন নম্বরটি ইতিমধ্যে ব্যবহৃত হচ্ছে (Phone number is already in use).',
+              ? 'This phone number is already registered or in use.'
+              : 'এই ফোন নম্বরটি ইতিমধ্যে সিস্টেমে বিদ্যমান।',
           }),
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         );
@@ -469,7 +469,21 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       }
     }
 
-    // 5. Redirect back to dashboard preserving language and active tab
+    // 5. Respond with JSON if requested or redirect back to dashboard
+    if (
+      contentType.includes('application/json') ||
+      request.headers.get('accept')?.includes('application/json')
+    ) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Donor registered successfully',
+          donorId,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const targetTab = registrationType === 'self' ? 'profile' : 'referrals';
     const redirectUrl = isEn
       ? `/en/dashboard?success=registered&tab=${targetTab}`

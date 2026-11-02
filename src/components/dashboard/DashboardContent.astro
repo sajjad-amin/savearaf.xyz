@@ -1247,6 +1247,74 @@ const today = new Date().toISOString().split('T')[0];
         openReferBtns.forEach((btn) => btn?.addEventListener('click', () => referModal?.classList.remove('hidden')));
         closeReferBtn?.addEventListener('click', () => referModal?.classList.add('hidden'));
 
+        // Client-side AJAX submission handler for referral form (#modal-refer-form)
+        const referForm = document.getElementById('modal-refer-form');
+        referForm?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const submitBtn = referForm.querySelector('button[type="submit"]');
+          const originalBtnText = submitBtn ? submitBtn.textContent : '';
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent =
+              document.documentElement.lang === 'bn' ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving...';
+          }
+
+          try {
+            const formData = new FormData(referForm);
+            const response = await fetch(referForm.action || '/api/donor/register', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                Accept: 'application/json',
+              },
+            });
+
+            if (!response.ok) {
+              let errorMsg =
+                document.documentElement.lang === 'bn'
+                  ? 'এই ফোন নম্বরটি ইতিমধ্যে সিস্টেমে বিদ্যমান।'
+                  : 'This phone number is already registered or in use.';
+              try {
+                const data = await response.json();
+                if (data && data.error) {
+                  if (data.error === 'phone_exists' || data.error === 'phone_exists_active') {
+                    errorMsg =
+                      document.documentElement.lang === 'bn'
+                        ? 'এই ফোন নম্বরটি ইতিমধ্যে সিস্টেমে বিদ্যমান।'
+                        : 'This phone number is already registered or in use.';
+                  } else {
+                    errorMsg = data.error;
+                  }
+                }
+              } catch (_) {}
+
+              alert(errorMsg);
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+              }
+              return;
+            }
+
+            // On success, close the modal and reload the dashboard
+            referModal?.classList.add('hidden');
+            window.location.reload();
+          } catch (err) {
+            console.error('Error submitting referral form:', err);
+            const isBn = document.documentElement.lang === 'bn';
+            alert(
+              isBn
+                ? 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
+                : 'An unexpected error occurred. Please try again.'
+            );
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalBtnText;
+            }
+          }
+        });
+
         // 2. Unpublish Self Modal
         const unpublishModal = document.getElementById('unpublish-self-modal');
         const openUnpublishBtn = document.getElementById('open-unpublish-self-modal-btn');
