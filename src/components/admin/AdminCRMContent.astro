@@ -214,6 +214,40 @@ function formatDate(d: Date | string | null | undefined): string {
         </div>
       )}
 
+      {successParam === 'donor_updated' && (
+        <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">✓</span>
+            <span>{isBn ? 'রক্তদাতার তথ্য সফলভাবে পরিবর্তন করা হয়েছে!' : 'Donor profile updated successfully!'}</span>
+          </div>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
+        </div>
+      )}
+
+      {successParam === 'donor_deleted' && (
+        <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">✓</span>
+            <span>{isBn ? 'রক্তদাতা এবং সংশ্লিষ্ট সকল ডোনেশন হিস্ট্রি সফলভাবে অপসারণ করা হয়েছে!' : 'Donor and associated history deleted successfully!'}</span>
+          </div>
+          <button
+            type="button"
+            onclick="this.parentElement.remove()"
+            aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+            class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
+        </div>
+      )}
+
       {errorParam === 'phone_exists' && (
         <div class="my-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
           <div class="flex items-center gap-2">
@@ -520,19 +554,52 @@ function formatDate(d: Date | string | null | undefined): string {
                       </button>
                     </td>
 
-                    <!-- Actions: Log Donation Button -->
+                    <!-- Actions: Log, Edit, and Delete Buttons -->
                     <td class="py-4 px-4 sm:px-6 text-right whitespace-nowrap">
-                      <button
-                        type="button"
-                        class="log-donation-btn inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
-                        data-donor-id={donor.id}
-                        data-donor-name={donor.name}
-                        data-donor-blood={donor.bloodGroup}
-                        data-donor-phone={donor.phone}
-                      >
-                        <span>💉</span>
-                        <span>{isBn ? 'ডোনেশন রেকর্ড করুন' : 'Log Donation'}</span>
-                      </button>
+                      <div class="inline-flex items-center gap-1.5 justify-end">
+                        <button
+                          type="button"
+                          class="log-donation-btn inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                          data-donor-id={donor.id}
+                          data-donor-name={donor.name}
+                          data-donor-blood={donor.bloodGroup}
+                          data-donor-phone={donor.phone}
+                          title={isBn ? 'ডোনেশন রেকর্ড করুন' : 'Log Donation'}
+                        >
+                          <span>💉</span>
+                          <span class="hidden md:inline">{isBn ? 'ডোনেশন' : 'Log'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="edit-donor-btn p-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer shadow-2xs"
+                          data-donor-id={donor.id}
+                          data-donor-name={donor.name}
+                          data-donor-phone={donor.phone}
+                          data-donor-blood={donor.bloodGroup}
+                          data-donor-location={donor.location || ''}
+                          data-donor-preference={donor.donationPreference}
+                          data-donor-is-guest={donor.isGuest ? 'true' : 'false'}
+                          data-donor-has-user={donor.userId ? 'true' : 'false'}
+                          title={isBn ? 'রক্তদাতার তথ্য সম্পাদনা করুন' : 'Edit Donor Profile'}
+                          aria-label={isBn ? `${donor.name} এর তথ্য সম্পাদনা করুন` : `Edit profile for ${donor.name}`}
+                        >
+                          <span aria-hidden="true">✏️</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          class="delete-donor-btn p-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition cursor-pointer shadow-2xs"
+                          data-donor-id={donor.id}
+                          data-donor-name={donor.name}
+                          data-donor-history-count={donor.historyCount}
+                          data-donor-has-user={donor.userId ? 'true' : 'false'}
+                          title={isBn ? 'রক্তদাতা অপসারণ করুন' : 'Delete Donor'}
+                          aria-label={isBn ? `${donor.name} কে অপসারণ করুন` : `Delete donor ${donor.name}`}
+                        >
+                          <span aria-hidden="true">🗑️</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -995,6 +1062,240 @@ function formatDate(d: Date | string | null | undefined): string {
       </div>
     </div>
 
+    <!-- ============================================== -->
+    <!-- MODAL 5: EDIT DONOR PROFILE -->
+    <!-- ============================================== -->
+    <div
+      id="edit-donor-modal"
+      class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-donor-modal-title"
+    >
+      <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">✏️</span>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-black text-gray-900 text-base sm:text-lg" id="edit-donor-modal-title">
+                  {isBn ? 'রক্তদাতার তথ্য সম্পাদনা' : 'Edit Donor Profile'}
+                </h3>
+                <span
+                  id="edit-donor-type-badge"
+                  class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold"
+                ></span>
+              </div>
+              <p class="text-xs text-gray-500">
+                {isBn ? 'নাম, মোবাইল নম্বর বা এলাকা সংশোধন করুন' : 'Update donor name, phone number, or details'}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            id="close-edit-donor-modal-btn"
+            aria-label={isBn ? 'সম্পাদনা উইন্ডো বন্ধ করুন' : 'Close edit donor modal'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
+        </div>
+
+        <form id="edit-donor-form" class="space-y-4 pt-4 overflow-y-auto flex-1">
+          <input type="hidden" name="donorId" id="edit-donor-id" />
+
+          <!-- Error Alert Container -->
+          <div id="edit-donor-error" class="hidden p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold"></div>
+
+          <!-- Full Name -->
+          <div>
+            <label for="edit-donor-name" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'রক্তদাতার পূর্ণ নাম' : 'Donor Full Name'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              id="edit-donor-name"
+              required
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            />
+          </div>
+
+          <!-- Phone Number -->
+          <div>
+            <label for="edit-donor-phone" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর' : 'Phone / WhatsApp'} <span class="text-rose-600">*</span>
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              id="edit-donor-phone"
+              required
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm font-mono text-gray-900 bg-white"
+            />
+            <p class="text-[11px] text-gray-500 mt-1">
+              {isBn ? 'ফোন নম্বর পরিবর্তনের ক্ষেত্রে ডুপ্লিকেট নম্বর গ্রহণ করা হবে না।' : 'Duplicate phone numbers are rejected.'}
+            </p>
+          </div>
+
+          <!-- Blood Group & Preference -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="edit-donor-blood" class="block text-xs font-bold text-gray-700 mb-1.5">
+                {isBn ? 'রক্তের গ্রুপ' : 'Blood Group'} <span class="text-rose-600">*</span>
+              </label>
+              <select
+                name="bloodGroup"
+                id="edit-donor-blood"
+                required
+                class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+              >
+                <option value="B+">B+ (Positive)</option>
+                <option value="A+">A+ (Positive)</option>
+                <option value="O+">O+ (Positive)</option>
+                <option value="AB+">AB+ (Positive)</option>
+                <option value="B-">B- (Negative)</option>
+                <option value="A-">A- (Negative)</option>
+                <option value="O-">O- (Negative)</option>
+                <option value="AB-">AB- (Negative)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="edit-donor-pref" class="block text-xs font-bold text-gray-700 mb-1.5">
+                {isBn ? 'ডোনেশনের পছন্দ' : 'Preference'}
+              </label>
+              <select
+                name="donationPreference"
+                id="edit-donor-pref"
+                class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+              >
+                <option value="whole_blood">{isBn ? 'সম্পূর্ণ রক্ত (Whole Blood)' : 'Whole Blood'}</option>
+                <option value="platelets">{isBn ? 'প্লাটিলেট (SDP Platelets)' : 'SDP Platelets'}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div>
+            <label for="edit-donor-location" class="block text-xs font-bold text-gray-700 mb-1.5">
+              {isBn ? 'বর্তমান ঠিকানা / এলাকা' : 'Location / City'}
+            </label>
+            <input
+              type="text"
+              name="location"
+              id="edit-donor-location"
+              placeholder={isBn ? 'যেমন: ঢাকা, ধানমন্ডি' : 'e.g. Dhanmondi, Dhaka'}
+              class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+            />
+          </div>
+
+          <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              id="cancel-edit-donor-btn"
+              class="py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition cursor-pointer"
+            >
+              {isBn ? 'বাতিল' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              id="save-edit-donor-btn"
+              class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer flex items-center gap-2"
+            >
+              <span id="save-edit-donor-btn-text">{isBn ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 6: DELETE DONOR CONFIRMATION -->
+    <!-- ============================================== -->
+    <div
+      id="delete-donor-modal"
+      class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-donor-modal-title"
+    >
+      <div class="relative bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div class="flex items-center gap-2.5 text-rose-600">
+            <span class="text-2xl" aria-hidden="true">⚠️</span>
+            <h3 class="font-black text-gray-900 text-base sm:text-lg" id="delete-donor-modal-title">
+              {isBn ? 'রক্তদাতা অপসারণ নিশ্চিতকরণ' : 'Confirm Donor Deletion'}
+            </h3>
+          </div>
+          <button
+            type="button"
+            id="close-delete-donor-modal-btn"
+            aria-label={isBn ? 'উইন্ডো বন্ধ করুন' : 'Close delete donor modal'}
+            class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
+        </div>
+
+        <div class="py-4 space-y-3">
+          <!-- Error Alert Container -->
+          <div id="delete-donor-error" class="hidden p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold"></div>
+
+          <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
+            {isBn ? (
+              <>আপনি কি নিশ্চিত যে রক্তদাতা <strong id="delete-donor-name-text" class="text-gray-950 font-bold"></strong> কে সম্পূর্ণভাবে মুছে ফেলতে চান?</>
+            ) : (
+              <>Are you sure you want to permanently delete donor <strong id="delete-donor-name-text" class="text-gray-950 font-bold"></strong>?</>
+            )}
+          </p>
+
+          <!-- Permanent History Warning -->
+          <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs space-y-1.5">
+            <div class="flex items-center gap-1.5 font-bold">
+              <span>🚨</span>
+              <span>{isBn ? 'স্থায়ী হিস্ট্রি মুছে ফেলা হবে:' : 'Permanent History Loss:'}</span>
+            </div>
+            <p class="text-rose-800 leading-normal" id="delete-donor-history-warning">
+              {isBn
+                ? 'এই রক্তদাতার অতীতের সকল ডোনেশন লগ ও হিস্ট্রি স্থায়ীভাবে মুছে যাবে। এটি পূর্বাবস্থায় ফিরিয়ে আনা সম্ভব নয়।'
+                : 'All donation history records for this donor will be permanently purged. This action cannot be undone.'}
+            </p>
+          </div>
+
+          <!-- Registered User Decoupling Notice -->
+          <div id="delete-donor-user-notice" class="hidden p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+            <div class="flex items-center gap-1.5 font-bold mb-1">
+              <span>ℹ️</span>
+              <span>{isBn ? 'নিবন্ধিত অ্যাকাউন্ট সম্পর্কিত তথ্য:' : 'Registered Account Note:'}</span>
+            </div>
+            <p class="text-amber-800 leading-normal">
+              {isBn
+                ? 'এটি একটি গুগল লগইন ব্যবহারকারীর অ্যাকাউন্ট। রক্তদাতার রেকর্ড মুছে ফেললে এই ফোন নম্বরটি মুক্ত হবে এবং ব্যবহারকারী প্রয়োজনে আবার নতুন প্রোফাইল তৈরি করতে পারবেন।'
+                : 'This is a registered user account. Deleting the donor profile frees up the phone number and allows the user to re-register a new profile if needed.'}
+            </p>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            id="cancel-delete-donor-btn"
+            class="py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition cursor-pointer"
+          >
+            {isBn ? 'বাতিল' : 'Cancel'}
+          </button>
+          <button
+            type="button"
+            id="confirm-delete-donor-btn"
+            class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer flex items-center gap-2"
+          >
+            <span id="confirm-delete-donor-btn-text">{isBn ? 'হ্যাঁ, স্থায়ীভাবে মুছুন' : 'Yes, Delete Donor'}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Client-Side Script: Search, Sorting, Filter, and Modals -->
     <script is:inline>
       (() => {
@@ -1392,6 +1693,226 @@ function formatDate(d: Date | string | null | undefined): string {
         closeGuestBtn?.addEventListener('click', closeGuestModal);
         cancelGuestBtn?.addEventListener('click', closeGuestModal);
 
+        // 6. Edit Donor Modal & Actions
+        const editDonorModal = document.getElementById('edit-donor-modal');
+        const closeEditDonorBtn = document.getElementById('close-edit-donor-modal-btn');
+        const cancelEditDonorBtn = document.getElementById('cancel-edit-donor-btn');
+        const editDonorForm = document.getElementById('edit-donor-form');
+        const editDonorId = document.getElementById('edit-donor-id');
+        const editDonorName = document.getElementById('edit-donor-name');
+        const editDonorPhone = document.getElementById('edit-donor-phone');
+        const editDonorBlood = document.getElementById('edit-donor-blood');
+        const editDonorPref = document.getElementById('edit-donor-pref');
+        const editDonorLocation = document.getElementById('edit-donor-location');
+        const editDonorBadge = document.getElementById('edit-donor-type-badge');
+        const editDonorError = document.getElementById('edit-donor-error');
+        const saveEditDonorBtn = document.getElementById('save-edit-donor-btn');
+        const saveEditDonorBtnText = document.getElementById('save-edit-donor-btn-text');
+
+        const closeEditDonorModal = () => {
+          editDonorModal?.classList.add('hidden');
+          if (editDonorError) {
+            editDonorError.textContent = '';
+            editDonorError.classList.add('hidden');
+          }
+        };
+
+        closeEditDonorBtn?.addEventListener('click', closeEditDonorModal);
+        cancelEditDonorBtn?.addEventListener('click', closeEditDonorModal);
+
+        document.querySelectorAll('.edit-donor-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-donor-id') || '';
+            const name = btn.getAttribute('data-donor-name') || '';
+            const phone = btn.getAttribute('data-donor-phone') || '';
+            const blood = btn.getAttribute('data-donor-blood') || 'B+';
+            const location = btn.getAttribute('data-donor-location') || '';
+            const pref = btn.getAttribute('data-donor-preference') || 'whole_blood';
+            const hasUser = btn.getAttribute('data-donor-has-user') === 'true';
+
+            if (editDonorId) editDonorId.value = id;
+            if (editDonorName) editDonorName.value = name;
+            if (editDonorPhone) editDonorPhone.value = phone;
+            if (editDonorBlood) editDonorBlood.value = blood;
+            if (editDonorPref) editDonorPref.value = pref;
+            if (editDonorLocation) editDonorLocation.value = location;
+
+            if (editDonorBadge) {
+              if (hasUser) {
+                editDonorBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+                editDonorBadge.textContent = isClientBn ? 'নিবন্ধিত ব্যবহারকারী' : 'Registered User';
+              } else {
+                editDonorBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200';
+                editDonorBadge.textContent = isClientBn ? 'গেস্ট ডোনার' : 'Guest Donor';
+              }
+            }
+
+            if (editDonorError) {
+              editDonorError.textContent = '';
+              editDonorError.classList.add('hidden');
+            }
+
+            editDonorModal?.classList.remove('hidden');
+          });
+        });
+
+        editDonorForm?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (editDonorError) {
+            editDonorError.textContent = '';
+            editDonorError.classList.add('hidden');
+          }
+
+          const originalText = saveEditDonorBtnText ? saveEditDonorBtnText.textContent : '';
+          if (saveEditDonorBtn) saveEditDonorBtn.setAttribute('disabled', 'true');
+          if (saveEditDonorBtnText) {
+            saveEditDonorBtnText.textContent = isClientBn ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving...';
+          }
+
+          const payload = {
+            donorId: Number(editDonorId?.value),
+            name: editDonorName?.value?.trim(),
+            phone: editDonorPhone?.value?.trim(),
+            bloodGroup: editDonorBlood?.value,
+            donationPreference: editDonorPref?.value,
+            location: editDonorLocation?.value?.trim() || null,
+          };
+
+          try {
+            const res = await fetch('/api/admin/edit-donor', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+              window.location.href = window.location.pathname + '?success=donor_updated';
+            } else {
+              if (editDonorError) {
+                editDonorError.textContent = data.error || (isClientBn ? 'তথ্য সংরক্ষণ করতে ব্যর্থ হয়েছে।' : 'Failed to update donor.');
+                editDonorError.classList.remove('hidden');
+              }
+              if (saveEditDonorBtn) saveEditDonorBtn.removeAttribute('disabled');
+              if (saveEditDonorBtnText) saveEditDonorBtnText.textContent = originalText;
+            }
+          } catch (err) {
+            if (editDonorError) {
+              editDonorError.textContent = isClientBn ? 'নেটওয়ার্ক ত্রুটি। আবার চেষ্টা করুন।' : 'Network error. Please try again.';
+              editDonorError.classList.remove('hidden');
+            }
+            if (saveEditDonorBtn) saveEditDonorBtn.removeAttribute('disabled');
+            if (saveEditDonorBtnText) saveEditDonorBtnText.textContent = originalText;
+          }
+        });
+
+        // 7. Delete Donor Modal & Actions
+        const deleteDonorModal = document.getElementById('delete-donor-modal');
+        const closeDeleteDonorBtn = document.getElementById('close-delete-donor-modal-btn');
+        const cancelDeleteDonorBtn = document.getElementById('cancel-delete-donor-btn');
+        const confirmDeleteDonorBtn = document.getElementById('confirm-delete-donor-btn');
+        const confirmDeleteDonorBtnText = document.getElementById('confirm-delete-donor-btn-text');
+        const deleteDonorNameText = document.getElementById('delete-donor-name-text');
+        const deleteDonorHistoryWarning = document.getElementById('delete-donor-history-warning');
+        const deleteDonorUserNotice = document.getElementById('delete-donor-user-notice');
+        const deleteDonorError = document.getElementById('delete-donor-error');
+
+        let activeDeleteDonorId = null;
+
+        const closeDeleteDonorModal = () => {
+          deleteDonorModal?.classList.add('hidden');
+          activeDeleteDonorId = null;
+          if (deleteDonorError) {
+            deleteDonorError.textContent = '';
+            deleteDonorError.classList.add('hidden');
+          }
+        };
+
+        closeDeleteDonorBtn?.addEventListener('click', closeDeleteDonorModal);
+        cancelDeleteDonorBtn?.addEventListener('click', closeDeleteDonorModal);
+
+        document.querySelectorAll('.delete-donor-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = Number(btn.getAttribute('data-donor-id'));
+            const name = btn.getAttribute('data-donor-name') || '';
+            const historyCount = Number(btn.getAttribute('data-donor-history-count') || 0);
+            const hasUser = btn.getAttribute('data-donor-has-user') === 'true';
+
+            activeDeleteDonorId = id;
+
+            if (deleteDonorNameText) deleteDonorNameText.textContent = name;
+
+            if (deleteDonorHistoryWarning) {
+              if (historyCount > 0) {
+                deleteDonorHistoryWarning.textContent = isClientBn
+                  ? `এই রক্তদাতার সাথে যুক্ত ${historyCount}টি ডোনেশন হিস্ট্রি রেকর্ড স্থায়ীভাবে মুছে যাবে। এটি পূর্বাবস্থায় ফিরিয়ে আনা সম্ভব নয়।`
+                  : `All ${historyCount} donation history records for this donor will be permanently purged. This action cannot be undone.`;
+              } else {
+                deleteDonorHistoryWarning.textContent = isClientBn
+                  ? 'এই রক্তদাতার অতীতের সকল ডেটা স্থায়ীভাবে মুছে যাবে। এটি পূর্বাবস্থায় ফিরিয়ে আনা সম্ভব নয়।'
+                  : 'All donor profile records will be permanently purged. This action cannot be undone.';
+              }
+            }
+
+            if (deleteDonorUserNotice) {
+              if (hasUser) {
+                deleteDonorUserNotice.classList.remove('hidden');
+              } else {
+                deleteDonorUserNotice.classList.add('hidden');
+              }
+            }
+
+            if (deleteDonorError) {
+              deleteDonorError.textContent = '';
+              deleteDonorError.classList.add('hidden');
+            }
+
+            deleteDonorModal?.classList.remove('hidden');
+          });
+        });
+
+        confirmDeleteDonorBtn?.addEventListener('click', async () => {
+          if (!activeDeleteDonorId) return;
+
+          if (deleteDonorError) {
+            deleteDonorError.textContent = '';
+            deleteDonorError.classList.add('hidden');
+          }
+
+          const originalText = confirmDeleteDonorBtnText ? confirmDeleteDonorBtnText.textContent : '';
+          if (confirmDeleteDonorBtn) confirmDeleteDonorBtn.setAttribute('disabled', 'true');
+          if (confirmDeleteDonorBtnText) {
+            confirmDeleteDonorBtnText.textContent = isClientBn ? 'মুছে ফেলা হচ্ছে...' : 'Deleting...';
+          }
+
+          try {
+            const res = await fetch('/api/admin/delete-donor', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ donorId: activeDeleteDonorId }),
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+              window.location.href = window.location.pathname + '?success=donor_deleted';
+            } else {
+              if (deleteDonorError) {
+                deleteDonorError.textContent = data.error || (isClientBn ? 'রক্তদাতা মুছতে ব্যর্থ হয়েছে।' : 'Failed to delete donor.');
+                deleteDonorError.classList.remove('hidden');
+              }
+              if (confirmDeleteDonorBtn) confirmDeleteDonorBtn.removeAttribute('disabled');
+              if (confirmDeleteDonorBtnText) confirmDeleteDonorBtnText.textContent = originalText;
+            }
+          } catch (err) {
+            if (deleteDonorError) {
+              deleteDonorError.textContent = isClientBn ? 'নেটওয়ার্ক ত্রুটি। আবার চেষ্টা করুন।' : 'Network error. Please try again.';
+              deleteDonorError.classList.remove('hidden');
+            }
+            if (confirmDeleteDonorBtn) confirmDeleteDonorBtn.removeAttribute('disabled');
+            if (confirmDeleteDonorBtnText) confirmDeleteDonorBtnText.textContent = originalText;
+          }
+        });
+
         // Close on escape
         window.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
@@ -1399,6 +1920,8 @@ function formatDate(d: Date | string | null | undefined): string {
             closeHistoryModal();
             closeEditModal();
             closeGuestModal();
+            closeEditDonorModal();
+            closeDeleteDonorModal();
           }
         });
       })();
