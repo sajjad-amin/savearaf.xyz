@@ -96,99 +96,161 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
     let donorId: number;
 
+    const dateUpdates = lastDate
+      ? (donationPreference === 'platelets'
+          ? { plateletDonationDate: lastDate }
+          : { lastDonationDate: lastDate })
+      : {};
+
     if (existingDonor) {
-      // Find candidate users associated with this donor (other than the current user)
-      const candidateUserIds = Array.from(
-        new Set(
-          [existingDonor.userId, existingDonor.addedByUserId].filter(
-            (id): id is string => Boolean(id && id !== userId)
-          )
-        )
-      );
+      if (existingDonor.userId) {
+        // Condition A: Donor is linked to an existing user
+        if (existingDonor.userId === userId) {
+          // Current user is updating their own record
+          donorId = existingDonor.id;
+          await db
+            .update(donors)
+            .set({
+              name,
+              phone,
+              bloodGroup,
+              location,
+              donationPreference,
+              status: cooldown.status,
+              ...dateUpdates,
+              isGuest: false,
+              updatedAt: new Date(),
+            })
+            .where(eq(donors.id, existingDonor.id));
+        } else {
+          // Check if candidate user is a zombie/deleted user
+          const [u] = await db
+            .select({ id: users.id, name: users.name, email: users.email })
+            .from(users)
+            .where(eq(users.id, existingDonor.userId))
+            .limit(1);
 
-      let hasActiveUser = false;
-      const zombieUserIds: string[] = [];
-
-      for (const candidateId of candidateUserIds) {
-        const [u] = await db
-          .select({ id: users.id, name: users.name, email: users.email })
-          .from(users)
-          .where(eq(users.id, candidateId))
-          .limit(1);
-
-        if (u) {
           const isZombie =
-            u.name === 'Anonymous Donor' || Boolean(u.email && u.email.startsWith('deleted_'));
-          if (!isZombie) {
-            hasActiveUser = true;
-            break;
+            u &&
+            (u.name === 'Anonymous Donor' || Boolean(u.email && u.email.startsWith('deleted_')));
+
+          if (u && !isZombie) {
+            // An active user already has this phone number. Strictly reject duplicate.
+            const targetTab = registrationType === 'self' ? 'profile' : 'referrals';
+            const redirectUrl = isEn
+              ? `/en/dashboard?error=phone_exists_active&tab=${targetTab}`
+              : `/dashboard?error=phone_exists_active&tab=${targetTab}`;
+            return redirect(redirectUrl, 303);
+          }
+
+          // Candidate is a zombie user: take ownership of this donor record
+          donorId = existingDonor.id;
+          if (registrationType === 'self') {
+            await db
+              .update(donors)
+              .set({
+                userId,
+                addedByUserId: null,
+                name,
+                phone,
+                bloodGroup,
+                location,
+                donationPreference,
+                status: cooldown.status,
+                ...dateUpdates,
+                isGuest: false,
+                updatedAt: new Date(),
+              })
+              .where(eq(donors.id, existingDonor.id));
+
+            if (selfExistingDonor && selfExistingDonor.id !== existingDonor.id) {
+              await db.delete(donations).where(eq(donations.donorId, selfExistingDonor.id));
+              await db.delete(donors).where(eq(donors.id, selfExistingDonor.id));
+            }
           } else {
-            zombieUserIds.push(candidateId);
+            // Referral taking over zombie record
+            await db
+              .update(donors)
+              .set({
+                userId: null,
+                addedByUserId: userId,
+                name,
+                phone,
+                bloodGroup,
+                location,
+                donationPreference,
+                status: cooldown.status,
+                ...dateUpdates,
+                isGuest: true,
+                updatedAt: new Date(),
+              })
+              .where(eq(donors.id, existingDonor.id));
+          }
+
+          if (u?.id) {
+            await db.delete(accounts).where(eq(accounts.userId, u.id));
+            await db.delete(sessions).where(eq(sessions.userId, u.id));
+            await db.delete(users).where(eq(users.id, u.id));
+          }
+        }
+      } else {
+        // Condition B: existingDonor.userId is null (guest/referred donor)
+        if (registrationType === 'self') {
+          // AUTO-MERGE / PROFILE CLAIMING:
+          // Claim the guest/referred donor record, transfer all history to this user,
+          // and detach it from the referrer's dashboard.
+          donorId = existingDonor.id;
+          await db
+            .update(donors)
+            .set({
+              userId,
+              isGuest: false,
+              addedByUserId: null,
+              name,
+              phone,
+              bloodGroup,
+              location,
+              donationPreference,
+              status: cooldown.status,
+              ...dateUpdates,
+              updatedAt: new Date(),
+            })
+            .where(eq(donors.id, existingDonor.id));
+
+          // If the user already had another self-donor record, remove the obsolete duplicate
+          if (selfExistingDonor && selfExistingDonor.id !== existingDonor.id) {
+            await db.delete(donations).where(eq(donations.donorId, selfExistingDonor.id));
+            await db.delete(donors).where(eq(donors.id, selfExistingDonor.id));
+          }
+        } else {
+          // registrationType === 'referral'
+          if (existingDonor.addedByUserId === userId) {
+            // User updating their own referral
+            donorId = existingDonor.id;
+            await db
+              .update(donors)
+              .set({
+                name,
+                phone,
+                bloodGroup,
+                location,
+                donationPreference,
+                status: cooldown.status,
+                ...dateUpdates,
+                isGuest: true,
+                updatedAt: new Date(),
+              })
+              .where(eq(donors.id, existingDonor.id));
+          } else {
+            // Already added as a guest/referral by another user or admin
+            const redirectUrl = isEn
+              ? `/en/dashboard?error=phone_exists_active&tab=referrals`
+              : `/dashboard?error=phone_exists_active&tab=referrals`;
+            return redirect(redirectUrl, 303);
           }
         }
       }
-
-      if (hasActiveUser) {
-        // Condition A (Active User): strictly REJECT the operation. Do not overwrite.
-        const targetTab = registrationType === 'self' ? 'profile' : 'referrals';
-        const redirectUrl = isEn
-          ? `/en/dashboard?error=phone_exists_active&tab=${targetTab}`
-          : `/dashboard?error=phone_exists_active&tab=${targetTab}`;
-        return redirect(redirectUrl, 303);
-      }
-
-      // Condition B (Zombie User or claiming record): ALLOW the operation.
-      // Update existing donor record to belong to the current user (taking ownership)
-      donorId = existingDonor.id;
-
-      if (registrationType === 'self') {
-        await db
-          .update(donors)
-          .set({
-            userId,
-            addedByUserId: null,
-            name,
-            phone,
-            bloodGroup,
-            location,
-            donationPreference,
-            status: cooldown.status,
-            lastDonationDate: lastDate,
-            isGuest: false,
-          })
-          .where(eq(donors.id, existingDonor.id));
-
-        // If user already had another self-donor record, delete the old duplicate self record
-        if (selfExistingDonor && selfExistingDonor.id !== existingDonor.id) {
-          await db.delete(donations).where(eq(donations.donorId, selfExistingDonor.id));
-          await db.delete(donors).where(eq(donors.id, selfExistingDonor.id));
-        }
-      } else {
-        // Referral: update information and set addedByUserId to current user
-        await db
-          .update(donors)
-          .set({
-            userId: null, // transferred away from zombie user to offline referral
-            addedByUserId: userId,
-            name,
-            phone,
-            bloodGroup,
-            location,
-            donationPreference,
-            status: cooldown.status,
-            lastDonationDate: lastDate,
-            isGuest: true,
-          })
-          .where(eq(donors.id, existingDonor.id));
-      }
-
-      // After successful transfer, execute a HARD DELETE on that zombie user record from the users table
-      for (const zombieId of zombieUserIds) {
-        await db.delete(accounts).where(eq(accounts.userId, zombieId));
-        await db.delete(sessions).where(eq(sessions.userId, zombieId));
-        await db.delete(users).where(eq(users.id, zombieId));
-      }
-    } else if (selfExistingDonor) {
+    } else if (selfExistingDonor && registrationType === 'self') {
       // User is updating their existing self-donor profile with an available phone number
       donorId = selfExistingDonor.id;
       await db
@@ -200,8 +262,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
           location,
           donationPreference,
           status: cooldown.status,
-          lastDonationDate: lastDate,
+          ...dateUpdates,
           isGuest: false,
+          updatedAt: new Date(),
         })
         .where(eq(donors.id, selfExistingDonor.id));
     } else {
@@ -216,7 +279,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         location,
         donationPreference,
         status: cooldown.status,
-        lastDonationDate: donationPreference === 'whole_blood' ? lastDate : null,
+        lastDonationDate: donationPreference === 'platelets' ? null : lastDate,
         plateletDonationDate: donationPreference === 'platelets' ? lastDate : null,
         isGuest: !isSelf,
       });

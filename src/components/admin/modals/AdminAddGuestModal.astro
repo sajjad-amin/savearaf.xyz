@@ -1,0 +1,164 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<!-- ============================================== -->
+<!-- MODAL 3: ADD GUEST DONOR -->
+<!-- ============================================== -->
+<div
+  id="add-guest-modal"
+  class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+  role="dialog"
+  aria-modal="true"
+>
+  <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">👤</span>
+        <h3 class="font-black text-gray-900 text-base sm:text-lg">
+          {isBn ? 'গেস্ট ডোনার যুক্ত করুন' : 'Add Guest Donor'}
+        </h3>
+      </div>
+      <button
+        type="button"
+        id="close-guest-modal-btn"
+        aria-label={isBn ? 'গেস্ট ডোনার ফরম বন্ধ করুন' : 'Close add guest donor modal'}
+        class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+      >
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+
+    <form method="POST" action="/api/admin/add-donor" id="add-guest-form" class="space-y-4 pt-4 overflow-y-auto">
+      <!-- Full Name -->
+      <div>
+        <label for="guest-name" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'রক্তদাতার পূর্ণ নাম' : 'Donor Full Name'} <span class="text-rose-600">*</span>
+        </label>
+        <input
+          type="text"
+          name="name"
+          id="guest-name"
+          required
+          placeholder={isBn ? 'যেমন: মোহাম্মদ রফিকুল ইসলাম' : 'e.g. Rafiqul Islam'}
+          class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+        />
+      </div>
+
+      <!-- Phone Number -->
+      <div>
+        <label for="guest-phone" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর' : 'Phone / WhatsApp'} <span class="text-rose-600">*</span>
+        </label>
+        <input
+          type="tel"
+          name="phone"
+          id="guest-phone"
+          required
+          placeholder="017XXXXXXXX"
+          class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm font-mono text-gray-900 bg-white"
+        />
+      </div>
+
+      <!-- Blood Group & Preference -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="guest-blood" class="block text-xs font-bold text-gray-700 mb-1.5">
+            {isBn ? 'রক্তের গ্রুপ' : 'Blood Group'} <span class="text-rose-600">*</span>
+          </label>
+          <select
+            name="bloodGroup"
+            id="guest-blood"
+            required
+            class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+          >
+            <option value="B+">B+ (Positive)</option>
+            <option value="A+">A+ (Positive)</option>
+            <option value="O+">O+ (Positive)</option>
+            <option value="AB+">AB+ (Positive)</option>
+            <option value="B-">B- (Negative)</option>
+            <option value="A-">A- (Negative)</option>
+            <option value="O-">O- (Negative)</option>
+            <option value="AB-">AB- (Negative)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="guest-pref" class="block text-xs font-bold text-gray-700 mb-1.5">
+            {isBn ? 'ডোনেশনের পছন্দ' : 'Preference'}
+          </label>
+          <select
+            name="donationPreference"
+            id="guest-pref"
+            class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+          >
+            <option value="whole_blood">{isBn ? 'সম্পূর্ণ রক্ত (Whole Blood)' : 'Whole Blood'}</option>
+            <option value="platelets">{isBn ? 'প্লাটিলেট (SDP Platelets)' : 'SDP Platelets'}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div>
+        <label for="guest-location" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'বর্তমান ঠিকানা / এলাকা' : 'Location / City'}
+        </label>
+        <input
+          type="text"
+          name="location"
+          id="guest-location"
+          placeholder={isBn ? 'যেমন: ঢাকা, ধানমন্ডি' : 'e.g. Dhanmondi, Dhaka'}
+          class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+        />
+      </div>
+
+      <!-- Last Donation Date (Optional) -->
+      <div>
+        <label for="guest-last-date" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'সর্বশেষ রক্তদানের তারিখ (যদি থাকে)' : 'Last Donation Date (Optional)'}
+        </label>
+        <input
+          type="date"
+          name="lastDonationDate"
+          id="guest-last-date"
+          class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+        />
+      </div>
+
+      <!-- Notes -->
+      <div>
+        <label for="guest-notes" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'বিশেষ নোট / যোগাযোগের মন্তব্য' : 'Remarks / Reference'}
+        </label>
+        <textarea
+          name="notes"
+          id="guest-notes"
+          rows="2"
+          placeholder={isBn ? 'যেমন: অফিসের সহকর্মী, ফোন করে নিশ্চিত করা হয়েছে...' : 'e.g., Referred by friend, confirmed available on weekends...'}
+          class="w-full py-2 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+        ></textarea>
+      </div>
+
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          id="cancel-guest-btn"
+          class="py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition cursor-pointer"
+        >
+          {isBn ? 'বাতিল' : 'Cancel'}
+        </button>
+        <button
+          type="submit"
+          class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer"
+        >
+          {isBn ? 'গেস্ট ডোনার সংরক্ষণ করুন' : 'Save Guest Donor'}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

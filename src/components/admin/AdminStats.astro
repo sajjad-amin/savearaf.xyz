@@ -1,0 +1,49 @@
+---
+import type { CRMStats } from './types';
+
+interface Props {
+  stats: CRMStats;
+  lang: 'bn' | 'en';
+}
+
+const { stats, lang } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<!-- Summary Stats Cards Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 my-6">
+  <!-- Stat 1: Total Donors -->
+  <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-xs">
+    <span class="text-xs font-bold text-gray-600 block">{isBn ? 'সর্বমোট ডোনার' : 'Total Donors'}</span>
+    <span class="text-2xl sm:text-3xl font-black text-gray-900 mt-1 block" id="stat-total">{stats.total}</span>
+    <span class="text-[11px] text-gray-600 font-medium">{isBn ? 'সিস্টেমে নিবন্ধিত' : 'In Directory'}</span>
+  </div>
+
+  <!-- Stat 2: Ready / Available -->
+  <div class="bg-white rounded-2xl p-4 border border-emerald-200 shadow-xs">
+    <span class="text-xs font-bold text-emerald-700 block">{isBn ? 'উপলব্ধ (Available)' : 'Available Donors'}</span>
+    <span class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1 block" id="stat-available">{stats.available}</span>
+    <span class="text-[11px] text-emerald-600/80 font-medium">{isBn ? 'রক্ত/প্লাটিলেট দিতে প্রস্তুত' : 'Ready to Donate'}</span>
+  </div>
+
+  <!-- Stat 3: Blood Cooldown (90 days) -->
+  <div class="bg-white rounded-2xl p-4 border border-amber-200 shadow-xs">
+    <span class="text-xs font-bold text-amber-700 block">{isBn ? 'রক্ত কুলডাউন (৯০ দিন)' : 'Blood Cooldown (90d)'}</span>
+    <span class="text-2xl sm:text-3xl font-black text-amber-600 mt-1 block" id="stat-blood-cd">{stats.bloodCooldown}</span>
+    <span class="text-[11px] text-amber-600/80 font-medium">{isBn ? 'নিরাপদ বিরতিতে আছেন' : 'Within 90-day window'}</span>
+  </div>
+
+  <!-- Stat 4: Platelet Cooldown (15 days) -->
+  <div class="bg-white rounded-2xl p-4 border border-blue-200 shadow-xs">
+    <span class="text-xs font-bold text-blue-700 block">{isBn ? 'প্লাটিলেট কুলডাউন (১৫ দিন)' : 'Platelet CD (15d)'}</span>
+    <span class="text-2xl sm:text-3xl font-black text-blue-600 mt-1 block" id="stat-platelet-cd">{stats.plateletCooldown}</span>
+    <span class="text-[11px] text-blue-600/80 font-medium">{isBn ? '১৫ দিনের বিরতিতে আছেন' : 'Within 15-day window'}</span>
+  </div>
+
+  <!-- Stat 5: Guest Donors -->
+  <div class="bg-white rounded-2xl p-4 border border-purple-200 shadow-xs col-span-2 sm:col-span-1">
+    <span class="text-xs font-bold text-purple-700 block">{isBn ? 'গেস্ট ডোনার' : 'Guest Donors'}</span>
+    <span class="text-2xl sm:text-3xl font-black text-purple-600 mt-1 block" id="stat-guests">{stats.guests}</span>
+    <span class="text-[11px] text-purple-600/80 font-medium">{isBn ? 'অ্যাডমিন কর্তৃক যুক্ত' : 'Manual / Offline'}</span>
+  </div>
+</div>

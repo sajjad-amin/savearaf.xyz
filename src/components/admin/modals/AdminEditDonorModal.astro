@@ -1,0 +1,156 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<!-- ============================================== -->
+<!-- MODAL 5: EDIT DONOR PROFILE -->
+<!-- ============================================== -->
+<div
+  id="edit-donor-modal"
+  class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="edit-donor-modal-title"
+>
+  <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✏️</span>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="font-black text-gray-900 text-base sm:text-lg" id="edit-donor-modal-title">
+              {isBn ? 'রক্তদাতার তথ্য সম্পাদনা' : 'Edit Donor Profile'}
+            </h3>
+            <span
+              id="edit-donor-type-badge"
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold"
+            ></span>
+          </div>
+          <p class="text-xs text-gray-500">
+            {isBn ? 'নাম, মোবাইল নম্বর বা এলাকা সংশোধন করুন' : 'Update donor name, phone number, or details'}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        id="close-edit-donor-modal-btn"
+        aria-label={isBn ? 'সম্পাদনা উইন্ডো বন্ধ করুন' : 'Close edit donor modal'}
+        class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+      >
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+
+    <form id="edit-donor-form" class="space-y-4 pt-4 overflow-y-auto flex-1">
+      <input type="hidden" name="donorId" id="edit-donor-id" />
+
+      <!-- Error Alert Container -->
+      <div id="edit-donor-error" class="hidden p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold"></div>
+
+      <!-- Full Name -->
+      <div>
+        <label for="edit-donor-name" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'রক্তদাতার পূর্ণ নাম' : 'Donor Full Name'} <span class="text-rose-600">*</span>
+        </label>
+        <input
+          type="text"
+          name="name"
+          id="edit-donor-name"
+          required
+          class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+        />
+      </div>
+
+      <!-- Phone Number -->
+      <div>
+        <label for="edit-donor-phone" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'মোবাইল / হোয়াটসঅ্যাপ নম্বর' : 'Phone / WhatsApp'} <span class="text-rose-600">*</span>
+        </label>
+        <input
+          type="tel"
+          name="phone"
+          id="edit-donor-phone"
+          required
+          class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm font-mono text-gray-900 bg-white"
+        />
+        <p class="text-[11px] text-gray-500 mt-1">
+          {isBn ? 'ফোন নম্বর পরিবর্তনের ক্ষেত্রে ডুপ্লিকেট নম্বর গ্রহণ করা হবে না।' : 'Duplicate phone numbers are rejected.'}
+        </p>
+      </div>
+
+      <!-- Blood Group & Preference -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="edit-donor-blood" class="block text-xs font-bold text-gray-700 mb-1.5">
+            {isBn ? 'রক্তের গ্রুপ' : 'Blood Group'} <span class="text-rose-600">*</span>
+          </label>
+          <select
+            name="bloodGroup"
+            id="edit-donor-blood"
+            required
+            class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+          >
+            <option value="B+">B+ (Positive)</option>
+            <option value="A+">A+ (Positive)</option>
+            <option value="O+">O+ (Positive)</option>
+            <option value="AB+">AB+ (Positive)</option>
+            <option value="B-">B- (Negative)</option>
+            <option value="A-">A- (Negative)</option>
+            <option value="O-">O- (Negative)</option>
+            <option value="AB-">AB- (Negative)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="edit-donor-pref" class="block text-xs font-bold text-gray-700 mb-1.5">
+            {isBn ? 'ডোনেশনের পছন্দ' : 'Preference'}
+          </label>
+          <select
+            name="donationPreference"
+            id="edit-donor-pref"
+            class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 text-xs sm:text-sm text-gray-900 bg-white cursor-pointer"
+          >
+            <option value="whole_blood">{isBn ? 'সম্পূর্ণ রক্ত (Whole Blood)' : 'Whole Blood'}</option>
+            <option value="platelets">{isBn ? 'প্লাটিলেট (SDP Platelets)' : 'SDP Platelets'}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div>
+        <label for="edit-donor-location" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'বর্তমান ঠিকানা / এলাকা' : 'Location / City'}
+        </label>
+        <input
+          type="text"
+          name="location"
+          id="edit-donor-location"
+          placeholder={isBn ? 'যেমন: ঢাকা, ধানমন্ডি' : 'e.g. Dhanmondi, Dhaka'}
+          class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+        />
+      </div>
+
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          id="cancel-edit-donor-btn"
+          class="py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition cursor-pointer"
+        >
+          {isBn ? 'বাতিল' : 'Cancel'}
+        </button>
+        <button
+          type="submit"
+          id="save-edit-donor-btn"
+          class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer flex items-center gap-2"
+        >
+          <span id="save-edit-donor-btn-text">{isBn ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

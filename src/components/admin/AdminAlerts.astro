@@ -1,0 +1,129 @@
+---
+interface Props {
+  successParam?: string | null;
+  errorParam?: string | null;
+  lang: 'bn' | 'en';
+}
+
+const { successParam, errorParam, lang } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+{successParam === 'donation_logged' && (
+  <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">✓</span>
+      <span>{isBn ? 'ডোনেশন সফলভাবে রেকর্ড করা হয়েছে এবং কুলডাউন আপডেট করা হয়েছে!' : 'Donation logged successfully and cooldown dates updated!'}</span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{successParam === 'donation_updated' && (
+  <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">✓</span>
+      <span>{isBn ? 'ডোনেশন রেকর্ড সফলভাবে পরিবর্তন ও কুলডাউন হালনাগাদ করা হয়েছে!' : 'Donation record updated and cooldown synchronized successfully!'}</span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{successParam === 'donation_deleted' && (
+  <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">✓</span>
+      <span>{isBn ? 'ডোনেশন সফলভাবে মুছে ফেলা হয়েছে এবং পূর্ববর্তী রেকর্ডে কুলডাউন ফিরিয়ে নেওয়া হয়েছে!' : 'Donation deleted and donor cooldown rolled back successfully!'}</span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{successParam === 'donor_created' && (
+  <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">✓</span>
+      <span>{isBn ? 'নতুন গেস্ট ডোনার সফলভাবে যুক্ত করা হয়েছে!' : 'Guest donor created successfully!'}</span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{successParam === 'donor_updated' && (
+  <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">✓</span>
+      <span>{isBn ? 'রক্তদাতার তথ্য সফলভাবে পরিবর্তন করা হয়েছে!' : 'Donor profile updated successfully!'}</span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{successParam === 'donor_deleted' && (
+  <div class="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">✓</span>
+      <span>{isBn ? 'রক্তদাতা এবং সংশ্লিষ্ট সকল ডোনেশন হিস্ট্রি সফলভাবে অপসারণ করা হয়েছে!' : 'Donor and associated history deleted successfully!'}</span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-emerald-700 hover:text-emerald-900 font-bold px-2 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}
+
+{errorParam === 'phone_exists' && (
+  <div class="my-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs sm:text-sm flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">⚠️</span>
+      <span>{isBn ? 'এই ফোন নম্বরের একজন রক্তদাতা ইতোমধ্যে তালিকায় বিদ্যমান।' : 'A donor with this phone number already exists in the system.'}</span>
+    </div>
+    <button
+      type="button"
+      onclick="this.parentElement.remove()"
+      aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+      class="text-rose-700 hover:text-rose-900 font-bold px-2 cursor-pointer"
+    >
+      <span aria-hidden="true">✕</span>
+    </button>
+  </div>
+)}

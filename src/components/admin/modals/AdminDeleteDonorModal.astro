@@ -1,0 +1,94 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<!-- ============================================== -->
+<!-- MODAL 6: DELETE DONOR CONFIRMATION -->
+<!-- ============================================== -->
+<div
+  id="delete-donor-modal"
+  class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="delete-donor-modal-title"
+>
+  <div class="relative bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl overflow-hidden flex flex-col">
+    <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+      <div class="flex items-center gap-2.5 text-rose-600">
+        <span class="text-2xl" aria-hidden="true">⚠️</span>
+        <h3 class="font-black text-gray-900 text-base sm:text-lg" id="delete-donor-modal-title">
+          {isBn ? 'রক্তদাতা অপসারণ নিশ্চিতকরণ' : 'Confirm Donor Deletion'}
+        </h3>
+      </div>
+      <button
+        type="button"
+        id="close-delete-donor-modal-btn"
+        aria-label={isBn ? 'উইন্ডো বন্ধ করুন' : 'Close delete donor modal'}
+        class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+      >
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+
+    <div class="py-4 space-y-3">
+      <!-- Error Alert Container -->
+      <div id="delete-donor-error" class="hidden p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold"></div>
+
+      <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
+        {isBn ? (
+          <>আপনি কি নিশ্চিত যে রক্তদাতা <strong id="delete-donor-name-text" class="text-gray-950 font-bold"></strong> কে সম্পূর্ণভাবে মুছে ফেলতে চান?</>
+        ) : (
+          <>Are you sure you want to permanently delete donor <strong id="delete-donor-name-text" class="text-gray-950 font-bold"></strong>?</>
+        )}
+      </p>
+
+      <!-- Permanent History Warning -->
+      <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs space-y-1.5">
+        <div class="flex items-center gap-1.5 font-bold">
+          <span>🚨</span>
+          <span>{isBn ? 'স্থায়ী হিস্ট্রি মুছে ফেলা হবে:' : 'Permanent History Loss:'}</span>
+        </div>
+        <p class="text-rose-800 leading-normal" id="delete-donor-history-warning">
+          {isBn
+            ? 'এই রক্তদাতার অতীতের সকল ডোনেশন লগ ও হিস্ট্রি স্থায়ীভাবে মুছে যাবে। এটি পূর্বাবস্থায় ফিরিয়ে আনা সম্ভব নয়।'
+            : 'All donation history records for this donor will be permanently purged. This action cannot be undone.'}
+        </p>
+      </div>
+
+      <!-- Registered User Decoupling Notice -->
+      <div id="delete-donor-user-notice" class="hidden p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+        <div class="flex items-center gap-1.5 font-bold mb-1">
+          <span>ℹ️</span>
+          <span>{isBn ? 'নিবন্ধিত অ্যাকাউন্ট সম্পর্কিত তথ্য:' : 'Registered Account Note:'}</span>
+        </div>
+        <p class="text-amber-800 leading-normal">
+          {isBn
+            ? 'এটি একটি গুগল লগইন ব্যবহারকারীর অ্যাকাউন্ট। রক্তদাতার রেকর্ড মুছে ফেললে এই ফোন নম্বরটি মুক্ত হবে এবং ব্যবহারকারী প্রয়োজনে আবার নতুন প্রোফাইল তৈরি করতে পারবেন।'
+            : 'This is a registered user account. Deleting the donor profile frees up the phone number and allows the user to re-register a new profile if needed.'}
+        </p>
+      </div>
+    </div>
+
+    <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+      <button
+        type="button"
+        id="cancel-delete-donor-btn"
+        class="py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition cursor-pointer"
+      >
+        {isBn ? 'বাতিল' : 'Cancel'}
+      </button>
+      <button
+        type="button"
+        id="confirm-delete-donor-btn"
+        class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer flex items-center gap-2"
+      >
+        <span id="confirm-delete-donor-btn-text">{isBn ? 'হ্যাঁ, স্থায়ীভাবে মুছুন' : 'Yes, Delete Donor'}</span>
+      </button>
+    </div>
+  </div>
+</div>

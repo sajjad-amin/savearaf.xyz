@@ -1,0 +1,245 @@
+---
+import type { EnrichedDonor } from './types';
+
+interface Props {
+  enrichedDonors: EnrichedDonor[];
+  lang: 'bn' | 'en';
+}
+
+const { enrichedDonors, lang } = Astro.props;
+const isBn = lang === 'bn';
+
+function formatDate(d: Date | string | null | undefined): string {
+  if (!d) return isBn ? 'তথ্য নেই' : 'N/A';
+  const dateObj = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(dateObj.getTime())) return isBn ? 'তথ্য নেই' : 'N/A';
+  return dateObj.toLocaleDateString(isBn ? 'bn-BD' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+---
+
+<!-- Donors Data Table Section -->
+<div class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs sm:text-sm divide-y divide-gray-200">
+      <thead class="bg-gray-50/80 text-gray-600 font-bold uppercase tracking-wider text-[11px]">
+        <tr>
+          <th scope="col" class="py-3.5 px-4 sm:px-6">{isBn ? 'রক্তদাতার বিবরণ' : 'Donor Info'}</th>
+          <th scope="col" class="py-3.5 px-4">{isBn ? 'গ্রুপ ও পছন্দ' : 'Blood & Preference'}</th>
+          <th scope="col" class="py-3.5 px-4">{isBn ? 'বর্তমান স্থিতি ও কুলডাউন' : 'Cooldown & Eligibility'}</th>
+          <th scope="col" class="py-3.5 px-4">{isBn ? 'ঠিকানা / এলাকা' : 'Location'}</th>
+          <th scope="col" class="py-3.5 px-4">{isBn ? 'ডোনেশন হিস্ট্রি' : 'Donations'}</th>
+          <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">{isBn ? 'অ্যাকশন' : 'Actions'}</th>
+        </tr>
+      </thead>
+      <tbody id="crm-table-body" class="divide-y divide-gray-100 bg-white text-gray-800">
+        {enrichedDonors.map((donor) => {
+          const cd = donor.cooldown;
+          return (
+            <tr
+              class="donor-row hover:bg-gray-50/60 transition"
+              data-id={donor.id}
+              data-name={donor.name.toLowerCase()}
+              data-phone={donor.phone.toLowerCase()}
+              data-blood={donor.bloodGroup}
+              data-location={(donor.location || '').toLowerCase()}
+              data-status={cd.status}
+              data-is-blood-cd={(!cd.isBloodEligible).toString()}
+              data-is-platelet-cd={(!cd.isPlateletEligible).toString()}
+              data-is-guest={donor.isGuest ? 'true' : 'false'}
+              data-history-count={donor.historyCount}
+              data-created={donor.createdAt ? new Date(donor.createdAt).getTime() : 0}
+            >
+              <!-- Donor Name & Contact -->
+              <td class="py-4 px-4 sm:px-6">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-black text-xs shrink-0">
+                    {donor.name ? donor.name.trim()[0].toUpperCase() : 'D'}
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="font-extrabold text-gray-900 text-xs sm:text-sm">{donor.name}</span>
+                      {donor.userId === null && donor.addedByUserId ? (
+                        <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800" title={`Added by ${donor.addedByUserName || 'User'}`}>
+                          {donor.addedByUserName
+                            ? (isBn ? `যুক্ত করেছেন: ${donor.addedByUserName}` : `Added by: ${donor.addedByUserName}`)
+                            : (isBn ? 'গেস্ট' : 'Guest')}
+                        </span>
+                      ) : donor.isGuest || donor.userId === null ? (
+                        <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-700">
+                          Guest
+                        </span>
+                      ) : (
+                        <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-700">
+                          User
+                        </span>
+                      )}
+                    </div>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <a
+                        href={`tel:${donor.phone}`}
+                        class="text-xs font-mono font-medium text-gray-600 hover:text-rose-600 transition"
+                      >
+                        📞 {donor.phone}
+                      </a>
+                      <a
+                        href={`https://wa.me/${donor.phone.replace(/[^0-9]/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-[11px] text-emerald-600 hover:text-emerald-700 font-bold"
+                        title="Chat on WhatsApp"
+                      >
+                        💬 WA
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Blood Group & Preference -->
+              <td class="py-4 px-4 whitespace-nowrap">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-black bg-rose-600 text-white shadow-xs">
+                    {donor.bloodGroup}
+                  </span>
+                  <span class="text-xs text-gray-500 font-medium capitalize">
+                    {donor.donationPreference === 'platelets' ? 'SDP Platelet' : 'Whole Blood'}
+                  </span>
+                </div>
+              </td>
+
+              <!-- Cooldown & Two-Step Eligibility Status -->
+              <td class="py-4 px-4">
+                <div>
+                  {cd.status === 'available' ? (
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                      <span>✓</span>
+                      <span>{isBn ? 'উপলব্ধ (Available)' : 'Available'}</span>
+                    </span>
+                  ) : (
+                    <div class="space-y-1">
+                      {!cd.isBloodEligible && (
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                          <span>🩸</span>
+                          <span>{isBn ? `রক্ত কুলডাউন (${cd.bloodDaysRemaining} দিন বাকি)` : `Blood CD (${cd.bloodDaysRemaining}d)`}</span>
+                        </span>
+                      )}
+                      {!cd.isPlateletEligible && (
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">
+                          <span>🟡</span>
+                          <span>{isBn ? `প্লাটিলেট কুলডাউন (${cd.plateletDaysRemaining} দিন বাকি)` : `Platelet CD (${cd.plateletDaysRemaining}d)`}</span>
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <!-- Sub dates -->
+                  <div class="mt-1 text-[11px] text-gray-500 space-y-0.5">
+                    {donor.lastDonationDate && (
+                      <p>
+                        {isBn ? 'রক্ত:' : 'Blood:'} {formatDate(donor.lastDonationDate)}
+                        {cd.nextBloodEligibleDate && !cd.isBloodEligible && ` → ${formatDate(cd.nextBloodEligibleDate)}`}
+                      </p>
+                    )}
+                    {donor.plateletDonationDate && (
+                      <p>
+                        {isBn ? 'প্লাটিলেট:' : 'Platelet:'} {formatDate(donor.plateletDonationDate)}
+                        {cd.nextPlateletEligibleDate && !cd.isPlateletEligible && ` → ${formatDate(cd.nextPlateletEligibleDate)}`}
+                      </p>
+                    )}
+                    {!donor.lastDonationDate && !donor.plateletDonationDate && (
+                      <p class="text-gray-600 italic">{isBn ? 'পূর্বের কোনো রেকর্ড নেই' : 'No prior logs'}</p>
+                    )}
+                  </div>
+                </div>
+              </td>
+
+              <!-- Location -->
+              <td class="py-4 px-4 text-xs text-gray-600">
+                {donor.location ? (
+                  <div class="flex items-center gap-1.5">
+                    <span>📍</span>
+                    <span>{donor.location}</span>
+                  </div>
+                ) : (
+                  <span class="text-gray-600 italic">{isBn ? 'উল্লেখ নেই' : 'Not specified'}</span>
+                )}
+              </td>
+
+              <!-- Donations History -->
+              <td class="py-4 px-4 whitespace-nowrap">
+                <button
+                  type="button"
+                  class="view-history-btn inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold transition cursor-pointer"
+                  data-donor-id={donor.id}
+                  data-donor-name={donor.name}
+                >
+                  <span>📜</span>
+                  <span class="donor-history-count-text">{donor.historyCount} {isBn ? 'ডোনেশন' : 'Donations'}</span>
+                </button>
+              </td>
+
+              <!-- Actions: Log, Edit, and Delete Buttons -->
+              <td class="py-4 px-4 sm:px-6 text-right whitespace-nowrap">
+                <div class="inline-flex items-center gap-1.5 justify-end">
+                  <button
+                    type="button"
+                    class="log-donation-btn inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                    data-donor-id={donor.id}
+                    data-donor-name={donor.name}
+                    data-donor-blood={donor.bloodGroup}
+                    data-donor-phone={donor.phone}
+                    title={isBn ? 'ডোনেশন রেকর্ড করুন' : 'Log Donation'}
+                  >
+                    <span>💉</span>
+                    <span class="hidden md:inline">{isBn ? 'ডোনেশন' : 'Log'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="edit-donor-btn p-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-100 text-gray-700 font-bold text-xs transition cursor-pointer shadow-2xs"
+                    data-donor-id={donor.id}
+                    data-donor-name={donor.name}
+                    data-donor-phone={donor.phone}
+                    data-donor-blood={donor.bloodGroup}
+                    data-donor-location={donor.location || ''}
+                    data-donor-preference={donor.donationPreference}
+                    data-donor-is-guest={donor.isGuest ? 'true' : 'false'}
+                    data-donor-has-user={donor.userId ? 'true' : 'false'}
+                    title={isBn ? 'রক্তদাতার তথ্য সম্পাদনা করুন' : 'Edit Donor Profile'}
+                    aria-label={isBn ? `${donor.name} এর তথ্য সম্পাদনা করুন` : `Edit profile for ${donor.name}`}
+                  >
+                    <span aria-hidden="true">✏️</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="delete-donor-btn p-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition cursor-pointer shadow-2xs"
+                    data-donor-id={donor.id}
+                    data-donor-name={donor.name}
+                    data-donor-history-count={donor.historyCount}
+                    data-donor-has-user={donor.userId ? 'true' : 'false'}
+                    title={isBn ? 'রক্তদাতা অপসারণ করুন' : 'Delete Donor'}
+                    aria-label={isBn ? `${donor.name} কে অপসারণ করুন` : `Delete donor ${donor.name}`}
+                  >
+                    <span aria-hidden="true">🗑️</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state when no donors match search -->
+  <div id="no-results-msg" class="hidden p-12 text-center text-gray-600">
+    <span class="text-3xl block mb-2" aria-hidden="true">🔍</span>
+    <p class="font-bold text-sm text-gray-800">{isBn ? 'কোনো রক্তদাতা খুঁজে পাওয়া যায়নি' : 'No donors matched your search criteria'}</p>
+    <p class="text-xs text-gray-600 mt-1">{isBn ? 'অনুগ্রহ করে ভিন্ন নাম বা নম্বর দিয়ে খুঁজুন।' : 'Try clearing your filters or searching a different term.'}</p>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+---
+import type { CRMStats } from './types';
+
+interface Props {
+  stats: CRMStats;
+  lang: 'bn' | 'en';
+}
+
+const { stats, lang } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<!-- Search, Filtering, and Controls Bar -->
+<div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 shadow-xs mb-6 space-y-4">
+  <!-- Top Row: Search input + Blood Group Select + Sort Select -->
+  <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+    <!-- Live Search Input -->
+    <div class="sm:col-span-6 relative">
+      <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+        🔍
+      </span>
+      <input
+        type="text"
+        id="crm-search-input"
+        placeholder={isBn ? 'নাম, মোবাইল নম্বর, ঠিকানা বা রক্তের গ্রুপ খুঁজুন...' : 'Search by name, phone, location, or blood group...'}
+        class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-xs sm:text-sm text-gray-900 bg-gray-50/50"
+      />
+    </div>
+
+    <!-- Blood Group Dropdown -->
+    <div class="sm:col-span-3">
+      <select
+        id="filter-blood-group"
+        class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-xs sm:text-sm text-gray-800 bg-white cursor-pointer"
+      >
+        <option value="all">{isBn ? 'সকল রক্তের গ্রুপ (All Groups)' : 'All Blood Groups'}</option>
+        <option value="A+">A+ (A Positive)</option>
+        <option value="A-">A- (A Negative)</option>
+        <option value="B+">B+ (B Positive)</option>
+        <option value="B-">B- (B Negative)</option>
+        <option value="O+">O+ (O Positive)</option>
+        <option value="O-">O- (O Negative)</option>
+        <option value="AB+">AB+ (AB Positive)</option>
+        <option value="AB-">AB- (AB Negative)</option>
+      </select>
+    </div>
+
+    <!-- Sort Order Dropdown -->
+    <div class="sm:col-span-3">
+      <select
+        id="sort-donors-by"
+        class="w-full py-2.5 px-3 rounded-xl border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-xs sm:text-sm text-gray-800 bg-white cursor-pointer"
+      >
+        <option value="newest">{isBn ? 'সর্বশেষ যুক্ত (Newest First)' : 'Newest First'}</option>
+        <option value="name_asc">{isBn ? 'নাম অনুযায়ী (A to Z)' : 'Name (A to Z)'}</option>
+        <option value="blood_asc">{isBn ? 'রক্তের গ্রুপ অনুযায়ী' : 'Blood Group'}</option>
+        <option value="history_desc">{isBn ? 'সর্বোচ্চ ডোনেশন সংখ্যা' : 'Most Donations'}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Bottom Row: Filter Pills (Availability Status) -->
+  <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold pt-1">
+    <span class="text-gray-600 shrink-0 text-xs">{isBn ? 'ফিল্টার:' : 'Filter:'}</span>
+    <button
+      type="button"
+      class="status-filter-btn px-3 py-1.5 rounded-lg border border-rose-600 bg-rose-600 text-white transition cursor-pointer whitespace-nowrap active"
+      data-status="all"
+    >
+      {isBn ? 'সব ডোনার' : 'All'} ({stats.total})
+    </button>
+    <button
+      type="button"
+      class="status-filter-btn px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition cursor-pointer whitespace-nowrap"
+      data-status="available"
+    >
+      {isBn ? '✓ প্রস্তুত (Available)' : '✓ Available'} ({stats.available})
+    </button>
+    <button
+      type="button"
+      class="status-filter-btn px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition cursor-pointer whitespace-nowrap"
+      data-status="blood_cooldown"
+    >
+      {isBn ? '⏳ রক্ত কুলডাউন' : '⏳ Blood Cooldown'} ({stats.bloodCooldown})
+    </button>
+    <button
+      type="button"
+      class="status-filter-btn px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition cursor-pointer whitespace-nowrap"
+      data-status="platelet_cooldown"
+    >
+      {isBn ? '⏳ প্লাটিলেট কুলডাউন' : '⏳ Platelet Cooldown'} ({stats.plateletCooldown})
+    </button>
+    <button
+      type="button"
+      class="status-filter-btn px-3 py-1.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition cursor-pointer whitespace-nowrap"
+      data-status="guest"
+    >
+      {isBn ? '👤 গেস্ট ডোনার' : '👤 Guest Donors'} ({stats.guests})
+    </button>
+  </div>
+</div>

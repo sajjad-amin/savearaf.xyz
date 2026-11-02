@@ -1,0 +1,128 @@
+---
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+---
+
+<!-- ============================================== -->
+<!-- MODAL 4: EDIT DONATION RECORD -->
+<!-- ============================================== -->
+<div
+  id="edit-donation-modal"
+  class="fixed inset-0 bg-gray-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+  role="dialog"
+  aria-modal="true"
+>
+  <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">✏️</span>
+        <div>
+          <h3 class="font-black text-gray-900 text-base">
+            {isBn ? 'ডোনেশন তথ্য সংশোধন' : 'Edit Donation Record'}
+          </h3>
+          <p class="text-xs text-gray-600">
+            {isBn ? 'তারিখ বা ধরন পরিবর্তন করলে কুলডাউন স্বয়ংক্রিয়ভাবে পুনঃগণনা করা হবে।' : 'Modifying date or type will automatically recalculate donor cooldown.'}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        id="close-edit-modal-btn"
+        aria-label={isBn ? 'সম্পাদনা উইন্ডো বন্ধ করুন' : 'Close edit donation modal'}
+        class="text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition cursor-pointer"
+      >
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+
+    <form method="POST" action="/api/admin/edit-donation" class="py-4 space-y-4 overflow-y-auto flex-1">
+      <input type="hidden" name="donationId" id="edit-donation-id" />
+
+      <!-- Donation Type Selection -->
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'ডোনেশনের ধরন' : 'Donation Type'} <span class="text-rose-600">*</span>
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="p-3 rounded-xl border border-gray-200 hover:border-rose-400 cursor-pointer flex items-start gap-2 bg-gray-50/50 has-checked:border-rose-600 has-checked:bg-rose-50/60">
+            <input type="radio" name="donationType" id="edit-type-whole" value="whole_blood" class="mt-0.5 text-rose-600 focus:ring-rose-500" />
+            <div>
+              <span class="text-xs font-extrabold text-gray-900 block">{isBn ? 'সম্পূর্ণ রক্ত (Whole Blood)' : 'Whole Blood'}</span>
+              <span class="text-[11px] text-gray-500">{isBn ? '৯০ দিন নিরাপদ বিরতি' : '90 days cooldown'}</span>
+            </div>
+          </label>
+
+          <label class="p-3 rounded-xl border border-gray-200 hover:border-rose-400 cursor-pointer flex items-start gap-2 bg-gray-50/50 has-checked:border-rose-600 has-checked:bg-rose-50/60">
+            <input type="radio" name="donationType" id="edit-type-platelet" value="platelet" class="mt-0.5 text-rose-600 focus:ring-rose-500" />
+            <div>
+              <span class="text-xs font-extrabold text-gray-900 block">{isBn ? 'এফেরেসিস প্লাটিলেট (SDP)' : 'SDP Platelets'}</span>
+              <span class="text-[11px] text-gray-500">{isBn ? '১৫ দিন নিরাপদ বিরতি' : '15 days cooldown'}</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Donation Date -->
+      <div>
+        <label for="edit-donation-date" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'ডোনেশনের তারিখ' : 'Donation Date'} <span class="text-rose-600">*</span>
+        </label>
+        <input
+          type="date"
+          name="donationDate"
+          id="edit-donation-date"
+          required
+          class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+        />
+      </div>
+
+      <!-- Hospital / Center (Optional) -->
+      <div>
+        <label for="edit-hospital" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'হাসপাতাল / ব্লাড ব্যাংক' : 'Hospital / Blood Bank'}
+        </label>
+        <input
+          type="text"
+          name="hospital"
+          id="edit-hospital"
+          placeholder={isBn ? 'যেমন: ঢাকা মেডিকেল কলেজ হাসপাতাল' : 'e.g., DMCH Blood Bank'}
+          class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+        />
+      </div>
+
+      <!-- Admin Notes / Remarks -->
+      <div>
+        <label for="edit-notes" class="block text-xs font-bold text-gray-700 mb-1.5">
+          {isBn ? 'অ্যাডমিন মন্তব্য / বিশেষ নোট' : 'Admin Remarks / Notes'}
+        </label>
+        <textarea
+          name="notes"
+          id="edit-notes"
+          rows="2"
+          placeholder={isBn ? 'নোট বা মন্তব্য লিখুন...' : 'Write notes or remarks...'}
+          class="w-full py-2 px-3.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-rose-500 focus:outline-hidden text-xs sm:text-sm text-gray-900 bg-white"
+        ></textarea>
+      </div>
+
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          id="cancel-edit-btn"
+          class="py-2.5 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition cursor-pointer"
+        >
+          {isBn ? 'বাতিল' : 'Cancel'}
+        </button>
+        <button
+          type="submit"
+          class="py-2.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/25 transition cursor-pointer"
+        >
+          {isBn ? 'হালনাগাদ সংরক্ষণ করুন' : 'Update Donation'}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
