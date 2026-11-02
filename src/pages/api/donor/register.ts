@@ -154,6 +154,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
             donationPreference,
             status: cooldown.status,
             lastDonationDate: lastDate,
+            isGuest: false,
           })
           .where(eq(donors.id, existingDonor.id));
 
@@ -176,6 +177,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
             donationPreference,
             status: cooldown.status,
             lastDonationDate: lastDate,
+            isGuest: true,
           })
           .where(eq(donors.id, existingDonor.id));
       }
@@ -199,13 +201,15 @@ export const POST: APIRoute = async ({ request, redirect }) => {
           donationPreference,
           status: cooldown.status,
           lastDonationDate: lastDate,
+          isGuest: false,
         })
         .where(eq(donors.id, selfExistingDonor.id));
     } else {
       // INSERT: Create new donor record
+      const isSelf = registrationType === 'self';
       const [insertResult] = await db.insert(donors).values({
-        userId: registrationType === 'self' ? userId : null,
-        addedByUserId: registrationType === 'self' ? null : userId,
+        userId: isSelf ? userId : null,
+        addedByUserId: isSelf ? null : userId,
         name,
         phone,
         bloodGroup,
@@ -214,6 +218,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         status: cooldown.status,
         lastDonationDate: donationPreference === 'whole_blood' ? lastDate : null,
         plateletDonationDate: donationPreference === 'platelets' ? lastDate : null,
+        isGuest: !isSelf,
       });
 
       donorId = Number(insertResult.insertId);

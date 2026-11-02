@@ -169,6 +169,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       location,
       donationPreference,
       status: cooldown.status,
+      isGuest: type === 'referral' || !donorRecord.userId,
       updatedAt: new Date(),
     };
 
