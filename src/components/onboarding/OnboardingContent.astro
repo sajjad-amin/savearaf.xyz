@@ -53,8 +53,8 @@ if (user.is_onboarded) {
       </h1>
       <p class="mt-1 text-center text-sm text-gray-600">
         {isBn
-          ? 'জরুরি রক্তদান ও প্লাটিলেট সমন্বয়ের জন্য ফোন নম্বর দিন'
-          : 'Provide your phone number for emergency blood/platelet coordination'}
+          ? 'জরুরি রক্তদান ও প্লাটিলেট সমন্বয়ের জন্য ফোন নম্বর ও রক্তের গ্রুপ দিন'
+          : 'Provide your phone number and blood group for emergency donor coordination'}
       </p>
 
       {user.image && (
@@ -76,6 +76,27 @@ if (user.is_onboarded) {
                 {isBn
                   ? 'এই ফোন নম্বরটি ইতিমধ্যে একজন সক্রিয় ব্যবহারকারীর প্রোফাইলে যুক্ত আছে।'
                   : 'This phone number is already linked to an active user.'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onclick="this.parentElement.remove()"
+              aria-label={isBn ? 'বিজ্ঞপ্তি বন্ধ করুন' : 'Dismiss notification'}
+              class="text-rose-700 hover:text-rose-900 text-sm font-bold px-2 py-1 cursor-pointer"
+            >
+              <span aria-hidden="true">✕</span>
+            </button>
+          </div>
+        )}
+
+        {errorParam === 'invalid_blood_group' && (
+          <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between shadow-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">⚠️</span>
+              <span class="font-medium">
+                {isBn
+                  ? 'অনুগ্রহ করে একটি সঠিক রক্তের গ্রুপ নির্বাচন করুন।'
+                  : 'Please select a valid blood group.'}
               </span>
             </div>
             <button
@@ -131,6 +152,36 @@ if (user.is_onboarded) {
                 {isBn
                   ? 'আপনার নম্বরটি শুধুমাত্র জরুরি রক্তদান সমন্বয়কারী দলের কাছে থাকবে।'
                   : 'Your phone number is strictly kept for emergency donor coordination.'}
+              </span>
+            </p>
+          </div>
+
+          <!-- Blood Group Dropdown -->
+          <div>
+            <label for="bloodGroup" class="block text-sm font-semibold text-gray-900 mb-1.5">
+              {isBn ? 'রক্তের গ্রুপ' : 'Blood Group'} <span class="text-rose-600">*</span>
+            </label>
+            <div class="relative rounded-xl shadow-xs">
+              <select
+                id="bloodGroup"
+                name="bloodGroup"
+                required
+                class="block w-full rounded-xl border border-gray-300 py-3 px-4 text-gray-900 focus:border-rose-500 focus:ring-rose-500 text-base transition sm:text-sm bg-white"
+              >
+                <option value="" disabled selected>
+                  {isBn ? '-- রক্তের গ্রুপ নির্বাচন করুন --' : '-- Select Blood Group --'}
+                </option>
+                {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bg) => (
+                  <option value={bg}>{bg}</option>
+                ))}
+              </select>
+            </div>
+            <p class="mt-2 text-xs text-gray-600 flex items-center gap-1">
+              <span aria-hidden="true">🩸</span>
+              <span>
+                {isBn
+                  ? 'জরুরি রক্তদান বা প্লাটিলেট প্রয়োজনে সমন্বয় করতে রক্তের গ্রুপ জানা অপরিহার্য।'
+                  : 'Essential to coordinate urgent blood or platelet transfusions for Araf.'}
               </span>
             </p>
           </div>

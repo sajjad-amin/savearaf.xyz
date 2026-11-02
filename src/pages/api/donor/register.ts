@@ -30,16 +30,75 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const isEn = referer.includes('/en');
 
   try {
-    const formData = await request.formData();
+    const contentType = request.headers.get('content-type') || '';
+    let rawName: string | null = null;
+    let rawPhone: string | null = null;
+    let rawLocation: string | null = null;
+    let bloodGroupRaw: string | null = null;
+    let donationPreferenceRaw: string | null = null;
+    let lastDonationDateRaw: string | null = null;
+    let rawRegistrationType: string | null = null;
+    let rawIsOwnProfile: any = null;
+
+    if (contentType.includes('application/json')) {
+      try {
+        const body = await request.json();
+        rawName = body.name ?? null;
+        rawPhone = body.phone ?? null;
+        rawLocation = body.location ?? null;
+        bloodGroupRaw = body.blood_group ?? body.bloodGroup ?? null;
+        donationPreferenceRaw = body.donation_preference ?? body.donationPreference ?? null;
+        lastDonationDateRaw = body.last_donation_date ?? body.lastDonationDate ?? null;
+        rawRegistrationType = body.registration_type ?? body.registrationType ?? null;
+        rawIsOwnProfile = body.isOwnProfile;
+      } catch {
+        return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      const formData = await request.formData();
+      rawName = formData.get('name')?.toString() ?? null;
+      rawPhone = formData.get('phone')?.toString() ?? null;
+      rawLocation = formData.get('location')?.toString() ?? null;
+      bloodGroupRaw =
+        formData.get('blood_group')?.toString().trim() ??
+        formData.get('bloodGroup')?.toString().trim() ??
+        null;
+      donationPreferenceRaw =
+        formData.get('donation_preference')?.toString().trim() ??
+        formData.get('donationPreference')?.toString().trim() ??
+        null;
+      lastDonationDateRaw =
+        formData.get('last_donation_date')?.toString().trim() ??
+        formData.get('lastDonationDate')?.toString().trim() ??
+        null;
+      rawRegistrationType =
+        formData.get('registration_type')?.toString().trim() ??
+        formData.get('registrationType')?.toString().trim() ??
+        null;
+      rawIsOwnProfile = formData.get('isOwnProfile')?.toString().trim();
+    }
+
+    let isOwnProfile = false;
+    if (rawIsOwnProfile !== null && rawIsOwnProfile !== undefined && rawIsOwnProfile !== '') {
+      isOwnProfile =
+        rawIsOwnProfile === true ||
+        rawIsOwnProfile === 'true' ||
+        rawIsOwnProfile === 1 ||
+        rawIsOwnProfile === '1';
+    } else if (rawRegistrationType) {
+      isOwnProfile = rawRegistrationType === 'self';
+    } else {
+      isOwnProfile = false;
+    }
+    const registrationType = isOwnProfile ? 'self' : 'referral';
 
     // 2. Sanitize and strictly type all user inputs (XSS sanitization)
-    const name = sanitizeName(formData.get('name'));
-    const phone = sanitizePhone(formData.get('phone'));
-    const location = sanitizeLocation(formData.get('location'));
-    const bloodGroupRaw = formData.get('blood_group')?.toString().trim();
-    const donationPreferenceRaw = formData.get('donation_preference')?.toString().trim();
-    const lastDonationDateRaw = formData.get('last_donation_date')?.toString().trim() || null;
-    const registrationType = formData.get('registration_type')?.toString().trim() || 'referral';
+    const name = sanitizeName(rawName);
+    const phone = sanitizePhone(rawPhone);
+    const location = sanitizeLocation(rawLocation);
 
     if (!name || !phone || !bloodGroupRaw) {
       return new Response(
@@ -68,7 +127,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       }
     }
 
-    // 4. Deduplication Check: Query donors table using phoneVariants
+    // 4. Deduplication Check: Query donors and users tables using phoneVariants
     const phoneVariants = getPhoneVariants(phone);
 
     const [existingDonor] = await db
@@ -82,6 +141,32 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       .from(donors)
       .where(inArray(donors.phone, phoneVariants))
       .limit(1);
+
+    const [existingUser] = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      })
+      .from(users)
+      .where(inArray(users.phone, phoneVariants))
+      .limit(1);
+
+    // Requirement 1: When a user adds a referred/guest donor (isOwnProfile === false),
+    // cross-verify against both donors and users tables.
+    // If the phone exists in donors OR users, return a 400 error.
+    if (!isOwnProfile) {
+      if (existingDonor || existingUser) {
+        return new Response(
+          JSON.stringify({
+            error: isEn
+              ? 'This phone number is already in use.'
+              : 'এই ফোন নম্বরটি ইতিমধ্যে ব্যবহৃত হচ্ছে (Phone number is already in use).',
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     // If self-registering, also check if current user already has a self-donor record
     let selfExistingDonor: {

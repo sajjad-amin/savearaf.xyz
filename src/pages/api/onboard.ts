@@ -17,12 +17,14 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   }
 
   let rawPhone = '';
+  let rawBloodGroup = '';
   const contentType = request.headers.get('content-type') || '';
 
   if (contentType.includes('application/json')) {
     try {
       const body = await request.json();
       rawPhone = body.phone || '';
+      rawBloodGroup = body.bloodGroup || body.blood_group || '';
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
         status: 400,
@@ -32,10 +34,21 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   } else {
     const formData = await request.formData();
     rawPhone = formData.get('phone')?.toString() || '';
+    rawBloodGroup =
+      formData.get('bloodGroup')?.toString() ||
+      formData.get('blood_group')?.toString() ||
+      '';
   }
 
   // Sanitize input (strip HTML, script tags, whitespace, dashes, and parens)
   const cleanedPhone = sanitizePhone(rawPhone);
+
+  const VALID_BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
+  type BloodGroup = (typeof VALID_BLOOD_GROUPS)[number];
+  const cleanedBloodGroup = rawBloodGroup.trim() as BloodGroup;
+
+  const referer = request.headers.get('referer') || '';
+  const isEn = referer.includes('/en');
 
   // Validation: Accept any valid phone number (minimum 8 digits, e.g. BD 11-digit or international)
   if (!cleanedPhone || cleanedPhone.length < 8 || !/^\+?[0-9]{8,18}$/.test(cleanedPhone)) {
@@ -50,9 +63,26 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     );
   }
 
+  // Validation: Mandatory valid blood group
+  if (!VALID_BLOOD_GROUPS.includes(cleanedBloodGroup)) {
+    if (contentType.includes('application/json')) {
+      return new Response(
+        JSON.stringify({
+          error: 'অনুগ্রহ করে একটি সঠিক রক্তের গ্রুপ নির্বাচন করুন (Please select a valid blood group)',
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+    return redirect(
+      isEn ? '/en/onboarding?error=invalid_blood_group' : '/onboarding?error=invalid_blood_group',
+      303
+    );
+  }
+
   const userId = session.user.id;
-  const referer = request.headers.get('referer') || '';
-  const isEn = referer.includes('/en');
 
   try {
     // 1. Check BOTH users and donors tables using phoneVariants
@@ -149,6 +179,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         .update(donors)
         .set({
           phone: cleanedPhone,
+          bloodGroup: cleanedBloodGroup,
           isGuest: false,
           updatedAt: new Date(),
         })
@@ -189,17 +220,18 @@ export const POST: APIRoute = async ({ request, redirect }) => {
             addedByUserId: null,
             name: session.user.name || guestDonor.name,
             phone: cleanedPhone,
+            bloodGroup: cleanedBloodGroup,
             status: cooldownResult.status === 'available' ? 'available' : 'cooling_down',
             updatedAt: new Date(),
           })
           .where(eq(donors.id, guestDonor.id));
       } else {
-        // Automatically insert a new record into donors table
+        // Automatically insert a new record into donors table with user's selected blood group
         await db.insert(donors).values({
           userId,
           name: session.user.name || 'Donor',
           phone: cleanedPhone,
-          bloodGroup: 'B+',
+          bloodGroup: cleanedBloodGroup,
           location: null,
           donationPreference: 'whole_blood',
           status: 'available',
