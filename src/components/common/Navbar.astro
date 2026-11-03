@@ -37,10 +37,9 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
 
 <header class="border-b border-gray-200 bg-white sticky top-0 z-30 shadow-xs">
   <div class="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between">
-    <!-- Left: Brand Logo & Title -->
-    <a href={homeUrl} class="flex items-center gap-2 sm:gap-2.5 font-bold text-base sm:text-lg text-rose-600 hover:text-rose-700 transition shrink-0">
-      <img src="/logo.png" alt="Save Araf Logo" class="h-7 sm:h-8 w-auto object-contain shadow-xs rounded-sm" width="80" height="32" loading="eager" decoding="async" />
-      <span class="tracking-tight">Save Araf</span>
+    <!-- Left: Brand Logo -->
+    <a href={homeUrl} class="flex items-center transition shrink-0" aria-label="Save Araf Home">
+      <img src="/logo.png" alt="Save Araf Logo" class="h-7 sm:h-8 w-auto object-contain rounded-sm" width="80" height="32" loading="eager" decoding="async" />
     </a>
 
     <!-- Right: Actions, User Dropdown & Compact Language Switcher -->
