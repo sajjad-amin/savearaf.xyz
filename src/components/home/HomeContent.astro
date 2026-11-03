@@ -36,8 +36,8 @@ const fundDate = isBn
   : 'Audited and updated as of November 2, 12:00 AM';
 const newsUrl = 'https://www.shomoyeralo.com/news/393324';
 const newsTitle = isBn
-  ? '“বাঁচতে চায় ক্যানসার আক্রান্ত কলেজছাত্র আরাফ”'
-  : '“College Student Araf Fights Cancer to Survive”';
+  ? '“বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের আরাফ”'
+  : '“17-Year-Old Araf Fights Cancer to Survive”';
 const newsSource = isBn
   ? '৩ নভেম্বর ২০২৬ • সময়ের আলো'
   : 'November 3, 2026 • Daily Shomoyer Alo';
@@ -89,13 +89,13 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
     <title>
-      {isBn ? 'Save Araf | বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কলেজছাত্র আরাফ' : 'Save Araf | Help 17-Year-Old College Student Fight Cancer'}
+      {isBn ? 'Save Araf | বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কিশোর আরাফ' : 'Save Araf | Help 17-Year-Old Araf Fight Cancer'}
     </title>
     <meta
       name="description"
       content={isBn
-        ? 'মাত্র ১৭ বছর বয়সে ব্লাড ক্যানসারে (AML) আক্রান্ত ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির ছাত্র মো. আরাফ। ঢাকা মেডিকেলের কেবিন ১১৪/বি-তে চলছে টানা কেমোথেরাপি ও প্লাটিলেট। ছেলেকে বাঁচাতে সমাজের সহৃদয় মানুষদের কাছে পরিবারের আকুল আবেদন।'
-        : '17-year-old Md. Araf, an 11th-grade student at Faridpur Polytechnic College, is fighting Acute Myeloid Leukemia (AML) at DMCH Cabin 114/B. Urgent appeal for B+ platelets, blood, and medical funds.'}
+        ? 'মাত্র ১৭ বছর বয়সে ব্লাড ক্যানসারে (AML) আক্রান্ত কিশোর মো. আরাফ। ঢাকা মেডিকেলের কেবিন ১১৪/বি-তে চলছে টানা কেমোথেরাপি ও প্লাটিলেট। ছেলেকে বাঁচাতে সমাজের সহৃদয় মানুষদের কাছে পরিবারের আকুল আবেদন।'
+        : '17-year-old Md. Araf is fighting Acute Myeloid Leukemia (AML) at DMCH Cabin 114/B. Urgent appeal for B+ platelets, blood, and medical funds.'}
     />
     <meta
       name="keywords"
@@ -111,7 +111,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content={isBn ? 'Save Araf | বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কলেজছাত্র আরাফ' : 'Save Araf | Help Araf Fight Acute Myeloid Leukemia'} />
+    <meta property="og:title" content={isBn ? 'Save Araf | বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কিশোর আরাফ' : 'Save Araf | Help Araf Fight Acute Myeloid Leukemia'} />
     <meta
       property="og:description"
       content={isBn
@@ -316,11 +316,11 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
               {isBn ? (
                 <span>
-                  বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কলেজছাত্র <span class="text-rose-600 underline decoration-rose-300">আরাফ</span>
+                  বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের <span class="text-rose-600 underline decoration-rose-300">আরাফ</span>
                 </span>
               ) : (
                 <span>
-                  17-Year-Old College Student <span class="text-rose-600 underline decoration-rose-300">Araf</span> Fights Blood Cancer (AML) to Survive
+                  17-Year-Old <span class="text-rose-600 underline decoration-rose-300">Araf</span> Fights Blood Cancer (AML) to Survive
                 </span>
               )}
             </h1>
@@ -328,11 +328,11 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <p class="text-gray-600 text-base sm:text-lg leading-relaxed">
               {isBn ? (
                 <span>
-                  ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির ছাত্র মো. আরাফ। মাত্র ১৭ বছর বয়সে ব্লাড ক্যানসার—<strong>Acute Myeloid Leukemia (AML)</strong> ধরা পড়ার পর পরিবার আজ সম্পূর্ণ নিঃস্ব। ওর বাবা গত মে মাস থেকে বেকার। ঢাকা মেডিকেলে চলছে টানা কেমোথেরাপি। আপনার একটু সাহায্য বা দোয়াই পারে ছেলেটাকে বাঁচিয়ে তুলতে।
+                  মাত্র ১৭ বছর বয়সে ব্লাড ক্যানসার—<strong>Acute Myeloid Leukemia (AML)</strong> ধরা পড়ার পর মো. আরাফের পরিবার আজ সম্পূর্ণ নিঃস্ব। ওর বাবা গত মে মাস থেকে বেকার। ঢাকা মেডিকেলে চলছে টানা কেমোথেরাপি। আপনার একটু সাহায্য বা দোয়াই পারে ছেলেটাকে বাঁচিয়ে তুলতে।
                 </span>
               ) : (
                 <span>
-                  17-year-old Md. Araf, an 11th-grade student at Faridpur Polytechnic College, is critically fighting Acute Myeloid Leukemia (AML). His father has been jobless since May, and the family’s savings have completely depleted. Without urgent community support, his life-saving chemotherapy will stop.
+                  17-year-old Md. Araf is critically fighting Acute Myeloid Leukemia (AML). His father has been jobless since May, and the family’s savings have completely depleted. Without urgent community support, his life-saving chemotherapy will stop.
                 </span>
               )}
             </p>
@@ -1006,7 +1006,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 <p>
                   {isBn ? (
                     <span>
-                      “মাত্র ১৭ বছর বয়সেই ব্লাড ক্যানসারে আক্রান্ত হয়েছে ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির শিক্ষার্থী মো. আরাফ। দুরারোগ্য এই ব্যাধির সঙ্গে লড়াই করে বেঁচে থাকার স্বপ্ন দেখছে কিশোরটি। চিকিৎসকদের ধারণা, আরাফের সম্পূর্ণ চিকিৎসা শেষ করতে প্রয়োজন প্রায় <strong>৪০ লাখ টাকা</strong>। পরিবারের পক্ষে এই বিপুল অর্থ জোগাড় করা অসম্ভব হয়ে পড়েছে।”
+                      “মাত্র ১৭ বছর বয়সেই ব্লাড ক্যানসারে আক্রান্ত হয়েছে কিশোর মো. আরাফ। কঠিন এই রোগের সঙ্গে লড়াই করে বেঁচে থাকার স্বপ্ন দেখছে ছেলেটি। চিকিৎসকদের ধারণা, আরাফের সম্পূর্ণ চিকিৎসা শেষ করতে প্রয়োজন প্রায় <strong>৪০ লাখ টাকা</strong>। পরিবারের পক্ষে এই বিপুল অর্থ জোগাড় করা অসম্ভব হয়ে পড়েছে।”
                     </span>
                   ) : (
                     <span>
@@ -1166,7 +1166,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             {isBn ? 'সরাসরি সাহায্য পাঠানোর মাধ্যম' : 'Official Donation Channels'}
           </span>
           <h2 class="text-2xl sm:text-3xl font-black text-gray-900">
-            {isBn ? 'আপনার সামান্য সহায়তা ফিরিয়ে দিতে পারে আরাফের কলেজ জীবন' : 'Your Contribution Can Bring Araf Back to Life'}
+            {isBn ? 'আপনার সামান্য সহায়তায় বেঁচে যেতে পারে আরাফের জীবন' : 'Your Contribution Can Save Araf’s Life'}
           </h2>
           <p class="text-gray-600 mt-2 text-sm sm:text-base leading-relaxed">
             {isBn
@@ -1499,11 +1499,11 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <p class="font-medium text-gray-900 leading-relaxed">
                 {isBn ? (
                   <span>
-                    আমার আপন সেজ চাচার ছেলে, আমার ছোট ভাই আরাফ। ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির ছাত্র। বয়সটা মাত্র ১৭ বছর! ওর শরীরে যখন ব্লাড ক্যানসার (Acute Myeloid Leukemia - AML) ধরা পড়ল, তখন থেকেই আমাদের পুরো পরিবারের ওপর দিয়ে কী ঝড় বয়ে যাচ্ছে—তা ভাষায় প্রকাশ করার মতো না।
+                    আমার আপন সেজ চাচার ছেলে, আমার ছোট ভাই আরাফ। বয়সটা ওর মাত্র ১৭ বছর! ওর শরীরে যখন ব্লাড ক্যানসার (Acute Myeloid Leukemia - AML) ধরা পড়ল, তখন থেকেই আমাদের পুরো পরিবারের ওপর দিয়ে কী ঝড় বয়ে যাচ্ছে—তা ভাষায় প্রকাশ করার মতো না।
                   </span>
                 ) : (
                   <span>
-                    My cousin brother Araf, an 11th grader at Faridpur Polytechnic College, is only 17. The day he was diagnosed with Acute Myeloid Leukemia (AML), our family was plunged into an unimaginable nightmare.
+                    My cousin brother Araf is only 17 years old. The day he was diagnosed with Acute Myeloid Leukemia (AML), our family was plunged into an unimaginable nightmare.
                   </span>
                 )}
               </p>
@@ -1899,7 +1899,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           <p class="text-xs sm:text-sm text-gray-600 max-w-xl mx-auto font-medium leading-relaxed">
             {isBn
               ? 'একটি সম্ভাবনাময় তরুণ প্রাণের জীবন ফিরিয়ে দিতে আমরা সবাই প্রতিজ্ঞাবদ্ধ। আপনার সাহায্য ও দোয়ায় আরাফ আবারও সুস্থ হয়ে স্বাভাবিক জীবনে ফিরবে।'
-              : 'Together we stand committed to reviving this vibrant young life. Through your kindness and prayers, Araf will return to his college and family.'}
+              : 'Together we stand committed to reviving this vibrant young life. Through your kindness and prayers, Araf will return home healthy and smiling to his family.'}
           </p>
         </div>
       </section>
@@ -2169,8 +2169,8 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
           const shareText = encodeURIComponent(
             isBn
-              ? 'বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কলেজছাত্র আরাফ। ঢাকা মেডিকেলের ১১৪/বি কেবিনে কেমো চলছে। দয়া করে পোস্টটি শেয়ার করুন বা যার যতটুকু সামর্থ্য আছে এগিয়ে আসুন।'
-              : 'Help 17-year-old college student Araf fight blood cancer (AML). Undergoing intensive chemotherapy at DMCH Cabin 114/B. Please donate or share this appeal.'
+              ? 'বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কিশোর আরাফ। ঢাকা মেডিকেলের ১১৪/বি কেবিনে কেমো চলছে। দয়া করে পোস্টটি শেয়ার করুন বা যার যতটুকু সামর্থ্য আছে এগিয়ে আসুন।'
+              : 'Help 17-year-old Araf fight blood cancer (AML). Undergoing intensive chemotherapy at DMCH Cabin 114/B. Please donate or share this appeal.'
           );
           const shareUrl = encodeURIComponent(currentUrl);
 
