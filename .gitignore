@@ -30,3 +30,7 @@ all_documents_so_far.pdf
 # deployment guide
 deploy.md
 
+# demo / prototype directory
+landingpagedemo/
+
+
