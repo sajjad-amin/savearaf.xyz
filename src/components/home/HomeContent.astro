@@ -214,14 +214,14 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           class="px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-rose-600 hover:bg-rose-50 border border-gray-200/60 hover:border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
         >
           <i data-lucide="activity" class="w-3.5 h-3.5 text-rose-600"></i>
-          <span>{isBn ? 'কাউন্ট গতিপথ' : 'Blood Trajectory'}</span>
+          <span>{isBn ? 'রক্তের রিপোর্ট' : 'Blood Counts'}</span>
         </a>
         <a
           href="#target-strategy"
           class="px-3 py-1.5 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
         >
           <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
-          <span>{isBn ? '৪০ লাখের রূপরেখা' : '40L Target'}</span>
+          <span>{isBn ? '৪০ লাখের হিসাব' : '40L Target'}</span>
         </a>
         <a
           href="#media-report"
@@ -249,7 +249,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           class="px-3 py-1.5 rounded-full text-xs font-bold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
         >
           <i data-lucide="droplets" class="w-3.5 h-3.5 fill-rose-600 text-rose-600"></i>
-          <span>{isBn ? 'রক্তবন্ধু নেটওয়ার্ক' : 'Blood Donors'}</span>
+          <span>{isBn ? 'রক্তদাতা' : 'Blood Donors'}</span>
         </a>
         <a
           href="#story"
@@ -328,7 +328,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <p class="text-gray-600 text-base sm:text-lg leading-relaxed">
               {isBn ? (
                 <span>
-                  ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির ছাত্র মো. আরাফ। মাত্র ১৭ বছর বয়সে দুরারোগ্য ব্লাড ক্যানসার—<strong>Acute Myeloid Leukemia (AML)</strong> ধরা পড়ার পর পরিবার আজ নিঃস্ব ও দিশেহারা। ওর বাবা গত মে মাস থেকে সম্পূর্ণ কর্মহীন। ঢাকা মেডিকেলে চলছে কেমোথেরাপির জটিল সাইকেল। আপনার সামান্য অনুদান বা দোয়াই পারে ছেলেটাকে বাঁচাতে।
+                  ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির ছাত্র মো. আরাফ। মাত্র ১৭ বছর বয়সে ব্লাড ক্যানসার—<strong>Acute Myeloid Leukemia (AML)</strong> ধরা পড়ার পর পরিবার আজ সম্পূর্ণ নিঃস্ব। ওর বাবা গত মে মাস থেকে বেকার। ঢাকা মেডিকেলে চলছে টানা কেমোথেরাপি। আপনার একটু সাহায্য বা দোয়াই পারে ছেলেটাকে বাঁচিয়ে তুলতে।
                 </span>
               ) : (
                 <span>
@@ -340,12 +340,12 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <!-- Current Status Highlights Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 py-1">
               <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
-                <span class="text-[11px] text-gray-500 block">{isBn ? 'বয়স ও শিক্ষা' : 'Age & College'}</span>
-                <span class="text-sm font-bold text-gray-800">{isBn ? '১৭ বছর (পলিটেকনিক)' : '17 yrs (Polytechnic)'}</span>
+                <span class="text-[11px] text-gray-500 block">{isBn ? 'জরুরি প্রয়োজন' : 'Urgent Need'}</span>
+                <span class="text-sm font-black text-rose-600">{isBn ? 'B+ রক্ত ও প্লাটিলেট' : 'B+ Blood & SDP'}</span>
               </div>
               <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
-                <span class="text-[11px] text-gray-500 block">{isBn ? 'রক্তের গ্রুপ' : 'Blood Group'}</span>
-                <span class="text-sm font-black text-rose-600">{isBn ? 'B+ (বি পজিটিভ)' : 'B+ (Positive)'}</span>
+                <span class="text-[11px] text-gray-500 block">{isBn ? 'হাসপাতাল কেবিন' : 'Hospital Cabin'}</span>
+                <span class="text-sm font-bold text-gray-800">{isBn ? 'ডিএমসিএইচ ১১৪/বি' : 'DMCH Cabin 114/B'}</span>
               </div>
               <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
                 <span class="text-[11px] text-gray-500 block">{isBn ? 'চিকিৎসা পর্যায়' : 'Treatment Stage'}</span>
@@ -688,14 +688,14 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           <div class="text-center max-w-3xl mx-auto mb-8 space-y-2">
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
               <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-              <span>{isBn ? 'একতার শক্তি ও হিসাব' : 'Collective Action Calculator'}</span>
+              <span>{isBn ? 'সবার সাহায্য ও হিসাব' : 'Collective Action Calculator'}</span>
             </span>
             <h2 class="text-2xl sm:text-3xl font-black text-gray-900">
-              {isBn ? '৪০ লাখ টাকার পাহাড়সম বোঝা যেভাবে দূর হতে পারে' : 'How 4,000,000 BDT Can Be Easily Raised Together'}
+              {isBn ? '৪০ লাখ টাকার বোঝা যেভাবে সবাই মিলে দূর করা সম্ভব' : 'How 4,000,000 BDT Can Be Easily Raised Together'}
             </h2>
             <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
               {isBn
-                ? 'এককভাবে একটি পরিবারের পক্ষে ৪০ লাখ টাকা জোগাড় করা অসম্ভব। কিন্তু আমাদের সবার সামান্য সহানুভূতি ও ঐক্যবদ্ধ ক্ষুদ্র প্রচেষ্টাই পারে আরাফকে বাঁচিয়ে তুলতে।'
+                ? 'একটি পরিবারের পক্ষে একা ৪০ লাখ টাকা জোগাড় করা অসম্ভব। কিন্তু আমাদের সবার একটু একটু সাহায্যেই আরাফকে বাঁচিয়ে তোলা সম্ভব।'
                 : "Alone it's impossible, but together through our small compassionate contributions, Araf can be saved in no time."}
             </p>
           </div>
@@ -707,7 +707,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               onclick="switchImpactTab(0)"
               class="impact-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 whitespace-nowrap bg-rose-600 text-white shadow-2xs transition cursor-pointer"
             >
-              <span>☕ {isBn ? '৫০ টাকার ক্ষুদ্র অনুদান' : '৳50 Micro-Donation'}</span>
+              <span>☕ {isBn ? '৫০ টাকার সাহায্য' : '৳50 Micro-Donation'}</span>
             </button>
 
             <button
@@ -715,7 +715,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               onclick="switchImpactTab(1)"
               class="impact-tab-btn px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-1.5 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition cursor-pointer"
             >
-              <span>🌱 {isBn ? '১০০ টাকার মমতা' : '৳100 Solidarity'}</span>
+              <span>🌱 {isBn ? '১০০ টাকার সাহায্য' : '৳100 Solidarity'}</span>
             </button>
 
             <button
@@ -723,7 +723,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               onclick="switchImpactTab(2)"
               class="impact-tab-btn px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-1.5 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition cursor-pointer"
             >
-              <span>🤝 {isBn ? '২০০ টাকার সহানুভূতি' : '৳200 Compassion'}</span>
+              <span>🤝 {isBn ? '২০০ টাকার সাহায্য' : '৳200 Compassion'}</span>
             </button>
 
             <button
@@ -731,7 +731,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               onclick="switchImpactTab(3)"
               class="impact-tab-btn px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-1.5 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition cursor-pointer"
             >
-              <span>🌸 {isBn ? '৫০০ টাকার আন্তরিকতা' : '৳500 Support'}</span>
+              <span>🌸 {isBn ? '৫০০ টাকার সাহায্য' : '৳500 Support'}</span>
             </button>
 
             <button
@@ -739,7 +739,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               onclick="switchImpactTab(4)"
               class="impact-tab-btn px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-1.5 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition cursor-pointer"
             >
-              <span>💫 {isBn ? '১,০০০ টাকার বলিষ্ঠ ভরসা' : '৳1,000 Major Patronage'}</span>
+              <span>💫 {isBn ? '১,০০০ টাকার সাহায্য' : '৳1,000 Major Patronage'}</span>
             </button>
           </div>
 
@@ -750,15 +750,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
                   <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
-                    {isBn ? 'ধাপ ১: ৫০ টাকার ক্ষুদ্র অনুদান' : 'Tier 1: ৳50 Micro Donation'}
+                    {isBn ? 'ধাপ ১: ৫০ টাকার ক্ষুদ্র সাহায্য' : 'Tier 1: ৳50 Micro Donation'}
                   </span>
                   <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
-                    {isBn ? 'ক্ষুদ্র ক্ষুদ্র উপহারেই রচিত হতে পারে জীবনের বড় অবলম্বন' : 'Small contributions unite into life-saving power'}
+                    {isBn ? 'ছোট ছোট সাহায্যেই আরাফের পাশে দাঁড়ানো সম্ভব' : 'Small contributions unite into life-saving power'}
                   </h3>
                   <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
-                        দৈনন্দিন জীবনের অতি সাধারণ একটি অংশ বাঁচিয়ে মাত্র <strong>৮০,০০০ জন সহৃদয় মানুষ</strong> যদি মাত্র <strong>৫০ টাকা</strong> করে আরাফের তহবিলে এগিয়ে দেন, তবে নিমিষেই পুরো <strong>৪০,০০,০০০ (চল্লিশ লাখ) টাকা</strong> সম্পূর্ণ সংগৃহীত হয়ে যায়। আপনার এই সামান্য সহায়তাই ফিরিয়ে দিতে পারে ১৭ বছরের তরুণ আরাফের স্বপ্নভরা জীবন।
+                        দৈনন্দিন সাধারণ খরচ থেকে বাঁচিয়ে মাত্র <strong>৮০,০০০ জন মানুষ</strong> যদি <strong>৫০ টাকা</strong> করে আরাফকে দেন, তবে সহজেই পুরো <strong>৪০,০০,০০০ (চল্লিশ লাখ) টাকা</strong> উঠে আসে। আপনার এই সামান্য সাহায্যেই বেঁচে যেতে পারে ১৭ বছরের তরুণ আরাফের জীবন।
                       </span>
                     ) : (
                       <span>
@@ -767,15 +767,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                     )}
                   </p>
                   <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
-                    <span>✓ {isBn ? 'প্রয়োজনীয় শুভাকাঙ্ক্ষী: ৮০,০০০ জন' : 'Supporters Needed: 80,000'}</span>
-                    <span>✓ {isBn ? 'একক অনুদান: মাত্র ৫০ টাকা' : 'Individual Amount: ৳50'}</span>
-                    <span>✓ {isBn ? 'ফলাফল: আরাফের প্রাথমিক চিকিৎসার নিশ্চয়তা' : 'Outcome: Primary treatment guaranteed'}</span>
+                    <span>✓ {isBn ? 'মানুষ দরকার: ৮০,০০০ জন' : 'Supporters Needed: 80,000'}</span>
+                    <span>✓ {isBn ? 'জনপ্রতি: মাত্র ৫০ টাকা' : 'Individual Amount: ৳50'}</span>
+                    <span>✓ {isBn ? 'ফলাফল: আরাফের চিকিৎসার প্রাথমিক খরচ নিশ্চিত' : 'Outcome: Primary treatment guaranteed'}</span>
                   </div>
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
                   <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ৫০' : '৳ 50'}</span>
-                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'একটি ক্ষুদ্র উপহারে বাঁচান একটি প্রাণ' : 'Help save a young life'}</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'সামান্য সাহায্যে বাঁচান একটি প্রাণ' : 'Help save a young life'}</span>
                   <a
                     href="#donate-section"
                     class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-xs transition cursor-pointer"
@@ -792,15 +792,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
                   <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
-                    {isBn ? 'ধাপ ২: ১০০ টাকার মমতা' : 'Tier 2: ৳100 Solidarity'}
+                    {isBn ? 'ধাপ ২: ১০০ টাকার সাহায্য' : 'Tier 2: ৳100 Solidarity'}
                   </span>
                   <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
-                    {isBn ? 'দৈনন্দিন সামান্য সঞ্চয়ে নিশ্চিত হোক আরাফের জীবন' : 'Save a young life with a minor daily saving'}
+                    {isBn ? 'প্রতিদিনের সামান্য সঞ্চয়েই বাঁচবে আরাফ' : 'Save a young life with a minor daily saving'}
                   </h3>
                   <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
-                        প্রতিদিনের সাধারণ খরচের মধ্য থেকে মাত্র <strong>১০০ টাকা</strong> এগিয়ে দিয়ে <strong>৪০,০০০ জন মানুষ</strong> যুক্ত হলে মুহূর্তেই নিশ্চিত হবে আরাফের পুরো কেমোথেরাপির ওষুধ ও চিকিৎসা ব্যয়। একা যা অসম্ভব, সবার সম্মিলিত ভালোবাসায় তা একদম সহজ।
+                        প্রতিদিনের হাতখরচ থেকে মাত্র <strong>১০০ টাকা</strong> দিয়ে যদি <strong>৪০,০০০ জন মানুষ</strong> পাশে দাঁড়ান, তবে চোখের পলকেই আরাফের কেমোথেরাপির ওষুধ ও হাসপাতালের খরচ উঠে যায়। একা যা অসম্ভব, সবাই মিলে তা খুব সহজ।
                       </span>
                     ) : (
                       <span>
@@ -809,15 +809,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                     )}
                   </p>
                   <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
-                    <span>✓ {isBn ? 'প্রয়োজনীয় শুভাকাঙ্ক্ষী: ৪০,০০০ জন' : 'Supporters Needed: 40,000'}</span>
-                    <span>✓ {isBn ? 'একক অনুদান: মাত্র ১০০ টাকা' : 'Individual Amount: ৳100'}</span>
-                    <span>✓ {isBn ? 'ফলাফল: কেমোথেরাপি ও জরুরি ঔষধ সরবরাহ' : 'Outcome: Full chemo & medication secured'}</span>
+                    <span>✓ {isBn ? 'মানুষ দরকার: ৪০,০০০ জন' : 'Supporters Needed: 40,000'}</span>
+                    <span>✓ {isBn ? 'জনপ্রতি: মাত্র ১০০ টাকা' : 'Individual Amount: ৳100'}</span>
+                    <span>✓ {isBn ? 'ফলাফল: কেমো ও জরুরি ওষুধের খরচ নিশ্চিত' : 'Outcome: Full chemo & medication secured'}</span>
                   </div>
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
                   <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ১০০' : '৳ 100'}</span>
-                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'সামান্য সাহায্যে পাশে থাকুন' : 'Stand by Araf today'}</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'একটু সাহায্যে পাশে থাকুন' : 'Stand by Araf today'}</span>
                   <a
                     href="#donate-section"
                     class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-xs transition cursor-pointer"
@@ -834,15 +834,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
                   <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
-                    {isBn ? 'ধাপ ৩: ২০০ টাকার সহানুভূতি' : 'Tier 3: ৳200 Compassion'}
+                    {isBn ? 'ধাপ ৩: ২০০ টাকার সাহায্য' : 'Tier 3: ৳200 Compassion'}
                   </span>
                   <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
-                    {isBn ? 'হাজারো শুভাকাঙ্ক্ষীর আন্তরিক সাহচর্যে ফিরুক মুখের হাসি' : 'United support brings hope back to the family'}
+                    {isBn ? 'সবার ভালোবাসায় আবার হাসবে আরাফ' : 'United support brings hope back to the family'}
                   </h3>
                   <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
-                        মাত্র <strong>২০,০০০ জন শুভাকাঙ্ক্ষী</strong> যদি <strong>২০০ টাকা</strong> করে পাঠিয়ে দেন, তবে বিশ হাজার মানুষের সহানুভূতিতে মুহূর্তের মধ্যে <strong>৪০,০০,০০০ টাকা</strong> সংগৃহীত হয়ে যায়। আপনার এই সহানুভূতিই নিঃস্ব পরিবারকে জোগাবে ঘুরে দাঁড়ানোর শক্তি।
+                        মাত্র <strong>২০,০০০ জন মানুষ</strong> যদি <strong>২০০ টাকা</strong> করে পাঠিয়ে দেন, তবে বিশ হাজার মানুষের ভালোবাসায় মুহূর্তেই <strong>৪০,০০,০০০ টাকা</strong> উঠে যাবে। আপনার এই একটু সহযোগিতাই নিঃস্ব পরিবারটিকে ঘুরে দাঁড়ানোর সাহস দেবে।
                       </span>
                     ) : (
                       <span>
@@ -851,15 +851,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                     )}
                   </p>
                   <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
-                    <span>✓ {isBn ? 'প্রয়োজনীয় শুভাকাঙ্ক্ষী: ২০,০০০ জন' : 'Supporters Needed: 20,000'}</span>
-                    <span>✓ {isBn ? 'একক অনুদান: মাত্র ২০০ টাকা' : 'Individual Amount: ৳200'}</span>
-                    <span>✓ {isBn ? 'ফলাফল: জরুরি প্লাটিলেট ও রক্তের নিয়মিত সংস্থান' : 'Outcome: Continuous platelets & blood supply'}</span>
+                    <span>✓ {isBn ? 'মানুষ দরকার: ২০,০০০ জন' : 'Supporters Needed: 20,000'}</span>
+                    <span>✓ {isBn ? 'জনপ্রতি: মাত্র ২০০ টাকা' : 'Individual Amount: ৳200'}</span>
+                    <span>✓ {isBn ? 'ফলাফল: রক্ত ও প্লাটিলেটের নিয়মিত ব্যবস্থা' : 'Outcome: Continuous platelets & blood supply'}</span>
                   </div>
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
                   <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ২০০' : '৳ 200'}</span>
-                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'সহানুভূতির হাত বাড়িয়ে দিন' : 'Extend your empathetic hand'}</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'ভালোবাসার হাত বাড়িয়ে দিন' : 'Extend your empathetic hand'}</span>
                   <a
                     href="#donate-section"
                     class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-xs transition cursor-pointer"
@@ -876,15 +876,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
                   <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
-                    {isBn ? 'ধাপ ৪: ৫০০ টাকার আন্তরিকতা' : 'Tier 4: ৳500 Support'}
+                    {isBn ? 'ধাপ ৪: ৫০০ টাকার সাহায্য' : 'Tier 4: ৳500 Support'}
                   </span>
                   <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
-                    {isBn ? 'একটি পরিবারের মাথার ওপর থেকে নেমে যাক পাহাড়সম বোঝা' : 'Lift an unbearable weight off an impoverished family'}
+                    {isBn ? 'অসহায় পরিবারের কাঁধ থেকে নেমে যাক বড় বোঝা' : 'Lift an unbearable weight off an impoverished family'}
                   </h3>
                   <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
-                        হাসপাতালের কেবিনে যখন বাবা-মা সন্তানের মুখের দিকে তাকিয়ে দিশেহারা, তখন মাত্র <strong>৮,০০০ জন মানুষ</strong> যদি <strong>৫০০ টাকা</strong> করে দেন, তবে এই সুবিশাল <strong>৪০ লাখ টাকার</strong> ব্যয়ভার মুহূর্তেই পূর্ণ হয়ে যায়। আপনার ভালোবাসাই ফিরিয়ে আনবে তরতাজা একটি প্রাণ।
+                        হাসপাতালে সন্তানের কষ্ট দেখে বাবা-মা যখন দিশেহারা, তখন মাত্র <strong>৮,০০০ জন মানুষ</strong> যদি <strong>৫০০ টাকা</strong> করে দেন, তবে <strong>৪০ লাখ টাকার</strong> চিকিৎসা সহজেই সম্ভব হবে। আপনার ভালোবাসাই ফিরিয়ে আনবে তরতাজা একটি প্রাণ।
                       </span>
                     ) : (
                       <span>
@@ -893,15 +893,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                     )}
                   </p>
                   <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
-                    <span>✓ {isBn ? 'প্রয়োজনীয় শুভাকাঙ্ক্ষী: ৮,০০০ জন' : 'Supporters Needed: 8,000'}</span>
-                    <span>✓ {isBn ? 'একক অনুদান: ৫০০ টাকা' : 'Individual Amount: ৳500'}</span>
-                    <span>✓ {isBn ? 'ফলাফল: পূর্ণাঙ্গ চিকিৎসা ও উন্নত থেরাপির সুযোগ' : 'Outcome: Comprehensive therapy & specialized care'}</span>
+                    <span>✓ {isBn ? 'মানুষ দরকার: ৮,০০০ জন' : 'Supporters Needed: 8,000'}</span>
+                    <span>✓ {isBn ? 'জনপ্রতি: ৫০০ টাকা' : 'Individual Amount: ৳500'}</span>
+                    <span>✓ {isBn ? 'ফলাফল: উন্নত চিকিৎসা ও থেরাপির সুযোগ' : 'Outcome: Comprehensive therapy & specialized care'}</span>
                   </div>
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
                   <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ৫০০' : '৳ 500'}</span>
-                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'আরাফের জীবনের জন্য হাত বাড়ান' : 'Help Araf survive'}</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'আরাফের জীবনের জন্য পাশে থাকুন' : 'Help Araf survive'}</span>
                   <a
                     href="#donate-section"
                     class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-xs transition cursor-pointer"
@@ -918,7 +918,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
                   <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
-                    {isBn ? 'ধাপ ৫: ১,০০০ টাকার বলিষ্ঠ ভরসা' : 'Tier 5: ৳1,000 Major Patronage'}
+                    {isBn ? 'ধাপ ৫: ১,০০০ টাকার বিশেষ সাহায্য' : 'Tier 5: ৳1,000 Major Patronage'}
                   </span>
                   <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
                     {isBn ? 'প্রবাসী ও সামর্থ্যবান ভাই-বোনদের বিশেষ সহায়তা' : 'Special appeal to generous donors & expatriates'}
@@ -926,7 +926,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                   <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
-                        দেশে ও প্রবাসে অবস্থানরত মাত্র <strong>৪,০০০ জন সামর্থ্যবান মানুষ</strong> যদি <strong>১,০০০ টাকা</strong> করে আরাফকে বাঁচানোর জন্য এগিয়ে দেন, তবে চোখের পলকেই পুরো <strong>৪০,০০,০০০ টাকার</strong> চিকিৎসা সম্পূর্ণ নিশ্চিত হয়ে যায়। আপনার এই বলিষ্ঠ ভরসায় আরাফ ফিরে পাবে তার রঙিন পৃথিবী।
+                        দেশে ও প্রবাসে থাকা মাত্র <strong>৪,০০০ জন ভাই-বোন</strong> যদি <strong>১,০০০ টাকা</strong> করে আরাফের জন্য এগিয়ে আসেন, তবে মুহূর্তেই ওর <strong>৪০,০০,০০০ টাকার</strong> পুরো চিকিৎসা নিশ্চিত হয়ে যায়। আপনাদের হাত ধরেই আরাফ ফিরে পাবে ওর রঙিন পৃথিবী।
                       </span>
                     ) : (
                       <span>
@@ -935,15 +935,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                     )}
                   </p>
                   <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
-                    <span>✓ {isBn ? 'প্রয়োজনীয় শুভাকাঙ্ক্ষী: ৪,০০০ জন' : 'Supporters Needed: 4,000'}</span>
-                    <span>✓ {isBn ? 'একক অনুদান: ১,০০০ টাকা' : 'Individual Amount: ৳1,000'}</span>
-                    <span>✓ {isBn ? 'ফলাফল: উন্নত চিকিৎসা ও দীর্ঘমেয়াদি সুস্থতা' : 'Outcome: Specialized therapy & long-term recovery'}</span>
+                    <span>✓ {isBn ? 'মানুষ দরকার: ৪,০০০ জন' : 'Supporters Needed: 4,000'}</span>
+                    <span>✓ {isBn ? 'জনপ্রতি: ১,০০০ টাকা' : 'Individual Amount: ৳1,000'}</span>
+                    <span>✓ {isBn ? 'ফলাফল: পুরো চিকিৎসা ও দীর্ঘমেয়াদি সুস্থতা' : 'Outcome: Specialized therapy & long-term recovery'}</span>
                   </div>
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
                   <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ১,০০০' : '৳ 1,000'}</span>
-                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'একটি পরিবারের ভবিষ্যৎ বাঁচিয়ে দিন' : 'Save a family future'}</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'একটি পরিবারের মুখে হাসি ফোটান' : 'Save a family future'}</span>
                   <a
                     href="#donate-section"
                     class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-xs transition cursor-pointer"
@@ -1375,7 +1375,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div class="text-center max-w-3xl mx-auto mb-8 space-y-2">
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-bold uppercase tracking-wider">
                 <i data-lucide="droplets" class="w-4 h-4 fill-rose-600"></i>
-                <span>{isBn ? 'জরুরি রক্তবন্ধু ও প্লাটিলেট সহায়তা প্রয়োজন' : 'Emergency Blood & Platelet Donors Needed'}</span>
+                <span>{isBn ? 'জরুরি রক্ত ও প্লাটিলেট প্রয়োজন' : 'Emergency Blood & Platelet Donors Needed'}</span>
               </div>
               <h3 class="text-2xl sm:text-3xl font-black text-gray-900">
                 {isBn ? (
@@ -1390,7 +1390,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               </h3>
               <p class="text-sm text-gray-600 leading-relaxed">
                 {isBn
-                  ? 'কেমোথেরাপির জটিল প্রভাবে আরাফের শরীরে প্লাটিলেট ও রক্তের সেল দ্রুত বিপজ্জনক মাত্রায় নেমে যাচ্ছে। যেকোনো জরুরি মুহূর্তে ঢাকা মেডিকেলে ৪ থেকে ৫ জন B+ হোল ব্লাড ও সিঙ্গেল ডোনার প্লাটিলেট (SDP) প্রদানকারী সুহৃদের সার্বক্ষণিক ব্যাকআপ থাকা জীবন-মরণের বিষয়।'
+                  ? 'কেমোর কারণে আরাফের রক্তের প্লাটিলেট আশঙ্কাজনকভাবে কমে যাচ্ছে। যেকোনো জরুরি মুহূর্তে ঢাকা মেডিকেলে ৪ থেকে ৫ জন B+ রক্ত ও প্লাটিলেট (SDP) দাতার পাশে থাকা এখন জীবন-মরণের ব্যাপার।'
                   : "Chemotherapy drastically depletes Araf's blood platelets. We urgently need compassionate volunteers with B+ blood to stand by in Dhaka for Whole Blood and Single Donor Platelet (SDP) apheresis."}
               </p>
             </div>
@@ -1401,7 +1401,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 <div class="bg-gray-50/80 p-5 sm:p-6 rounded-2xl border border-gray-200 space-y-3">
                   <h4 class="font-bold text-gray-900 text-base flex items-center gap-2">
                     <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
-                    <span>{isBn ? 'রক্তদান ও প্লাটিলেট সহায়তার নিয়মাবলী:' : 'Eligibility Guidelines:'}</span>
+                    <span>{isBn ? 'রক্ত ও প্লাটিলেট দেওয়ার নিয়ম:' : 'Eligibility Guidelines:'}</span>
                   </h4>
                   <ul class="text-xs sm:text-sm text-gray-700 space-y-2 list-disc list-inside leading-relaxed">
                     <li>{isBn ? 'রক্তের গ্রুপ নিশ্চিতভাবে B+ (বি পজিটিভ) অথবা এক্সচেঞ্জের জন্য অন্য যেকোনো গ্রুপ।' : 'Blood group preferably B+ (Positive) or any group for hospital cross-exchange.'}</li>
@@ -1438,14 +1438,14 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 <div>
                   <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-600 text-white text-xs font-bold mb-2">
                     <i data-lucide="heart" class="w-3.5 h-3.5 fill-white"></i>
-                    <span>{isBn ? 'অনলাইন ডোনার নেটওয়ার্ক' : 'Online Donor Registry'}</span>
+                    <span>{isBn ? 'অনলাইন রক্তদাতা তালিকা' : 'Online Donor Registry'}</span>
                   </div>
                   <h4 class="text-lg sm:text-xl font-black text-gray-900 leading-tight">
-                    {isBn ? 'আমাদের ভেরিফাইড রক্তবন্ধু তালিকায় যুক্ত হোন' : 'Join Our Verified Blood Donor Network'}
+                    {isBn ? 'আমাদের রক্তদাতার তালিকায় যুক্ত হোন' : 'Join Our Verified Blood Donor Network'}
                   </h4>
                   <p class="text-xs sm:text-sm text-gray-600 mt-2 leading-relaxed">
                     {isBn
-                      ? 'আপনি কি ঢাকা বা ফরিদপুর এলাকায় অবস্থান করছেন? আমাদের ডেটাবেজে যুক্ত থাকলে যখনই জরুরি B+ রক্ত বা প্লাটিলেটের সংকট দেখা দেবে, আমাদের টিম সরাসরি আপনার সাথে যোগাযোগ করবে।'
+                      ? 'আপনি কি ঢাকা বা ফরিদপুর এলাকায় আছেন? আমাদের তালিকায় যুক্ত থাকলে যখনই জরুরি B+ রক্ত বা প্লাটিলেট লাগবে, আমরা সাথে সাথে আপনার সাথে যোগাযোগ করব।'
                       : 'Are you based in Dhaka or nearby? Registering into our secure donor database enables our medical team to reach you instantly whenever emergency blood or platelets are requisitioned.'}
                   </p>
                 </div>
@@ -1499,7 +1499,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <p class="font-medium text-gray-900 leading-relaxed">
                 {isBn ? (
                   <span>
-                    আমার আপন সেজ চাচার ছেলে, আমার ছোট ভাই আরাফ। ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির ছাত্র। বয়সটা মাত্র ১৭ বছর! ওর শরীরে যখন Acute Myeloblastic Leukemia (AML—ব্লাড ক্যানসার) ধরা পড়ল, তখন থেকেই সময়টা আমাদের পুরো পরিবারের জন্য কতটা কঠিন ও নারকীয় যাচ্ছে—তা কোনো ভাষায় প্রকাশ করার মতো না।
+                    আমার আপন সেজ চাচার ছেলে, আমার ছোট ভাই আরাফ। ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির ছাত্র। বয়সটা মাত্র ১৭ বছর! ওর শরীরে যখন ব্লাড ক্যানসার (Acute Myeloid Leukemia - AML) ধরা পড়ল, তখন থেকেই আমাদের পুরো পরিবারের ওপর দিয়ে কী ঝড় বয়ে যাচ্ছে—তা ভাষায় প্রকাশ করার মতো না।
                   </span>
                 ) : (
                   <span>
@@ -1510,7 +1510,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <p class="text-sm text-gray-500">
                 {isBn ? (
                   <span>
-                    আরাফের বাড়ি ফরিদপুরের বোয়ালমারী উপজেলার কামারগ্রাম গ্রামে। ওর বাবা, আমার চাচা মো. জাহিদ হাসান বিল্লাল গত মে মাস থেকে সম্পূর্ণ কর্মহীন। সন্তানের এমন মরণব্যাধি দেখে মানুষটা পাথর হয়ে গেছেন।
+                    আরাফের বাড়ি ফরিদপুরের বোয়ালমারী উপজেলার কামারগ্রাম গ্রামে। ওর বাবা, আমার চাচা মো. জাহিদ হাসান বিল্লাল গত মে মাস থেকে বেকার। সন্তানের এমন কঠিন রোগ দেখে মানুষটা পাথর হয়ে গেছেন।
                   </span>
                 ) : (
                   <span>
@@ -1522,7 +1522,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
             <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
               <i data-lucide="activity" class="w-5 h-5 text-rose-600"></i>
-              <span>{isBn ? 'ঢাকা মেডিকেল কেবিন ১১৪/বি-এর বাস্তব চিত্র' : 'Inside DMCH Cabin 114/B'}</span>
+              <span>{isBn ? 'ঢাকা মেডিকেলের কেবিন ১১৪/বি-তে আরাফ' : 'Inside DMCH Cabin 114/B'}</span>
             </h3>
             <p>
               {isBn ? (
@@ -1538,7 +1538,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <p>
               {isBn ? (
                 <span>
-                  শরীরে একটানা ওষুধ ও কেমো দেওয়ার জন্য ওর সেন্ট্রাল ভেনাস লাইন (সিভি লাইন) স্থাপন করা হয়েছে। আজ ওর কেমোথেরাপির জটিল সাইকেল চলছে। কেমোর কারণে ওর প্লাটিলেট আবার মারাত্মকভাবে নেমে যায়, তাই জরুরি ভিত্তিতে প্লাটিলেট ও প্রি-কেমো দিয়ে মূল কেমো চালাতে হচ্ছে।
+                  শরীরে একটানা ওষুধ ও কেমো দেওয়ার জন্য ওর সেন্ট্রাল ভেনাস লাইন (সিভি লাইন) বসানো হয়েছে। এখন ওর কেমোথেরাপির সাইকেল চলছে। কেমোর কারণে ওর প্লাটিলেট খুব দ্রুত নেমে যায়, তাই জরুরি ভিত্তিতে প্লাটিলেট দিয়ে তবেই কেমো চালাতে হচ্ছে।
                 </span>
               ) : (
                 <span>
@@ -1550,7 +1550,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div class="bg-rose-50/70 p-5 rounded-2xl border border-rose-200 text-gray-800">
               <p class="italic text-base">
                 {isBn
-                  ? '“সিভি লাইনের মাধ্যমে একটানা এতগুলো ওষুধ আর কেমো চলায় ১৭ বছরের ছেলেটার শরীর ভীষণ দুর্বল হয়ে পড়েছে। ও বিছানায় চুপচাপ শুয়ে অসহ্য কষ্টগুলো সহ্য করার চেষ্টা করছে, ও আমাদের বুঝতেও দিচ্ছে না কী চলছে ওর ভেতরে। কিন্তু ওর চেহারা একদম ভেতরে চলে গেছে, চোখের দিকে তাকানো যায় না, বুক ভেঙে কান্না আসে।”'
+                  ? '“সিভি লাইনের মাধ্যমে একটানা এতগুলো ওষুধ আর কেমো চলায় ১৭ বছরের ছেলেটার শরীর ভীষণ দুর্বল হয়ে পড়েছে। ও বিছানায় চুপচাপ শুয়ে অসহ্য কষ্টগুলো সহ্য করার চেষ্টা করছে, কাউকে কিছু বুঝতেও দেয় না। কিন্তু ওর চেহারা একদম শুকিয়ে গেছে, চোখের দিকে তাকালে বুক ভেঙে কান্না আসে।”'
                   : '“With relentless IV drugs and chemo flowing through his veins, this 17-year-old boy lies quietly on the hospital bed, bearing unimaginable agony without uttering a complaint. But looking at his sunken eyes breaks our hearts into pieces.”'}
               </p>
             </div>
@@ -1562,7 +1562,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <p>
               {isBn ? (
                 <span>
-                  আপনাদের সবার অকৃত্রিম ভালোবাসা আর সহযোগিতায় এ পর্যন্ত যা জমা হয়েছে, তার জন্য আমাদের পুরো পরিবারের পক্ষ থেকে আজীবন কৃতজ্ঞতা।
+                  আপনাদের সবার ভালোবাসা আর সহযোগিতায় এ পর্যন্ত যা সাহায্য পেয়েছি, তার জন্য আমাদের পুরো পরিবারের পক্ষ থেকে আন্তরিক কৃতজ্ঞতা।
                 </span>
               ) : (
                 <span>
@@ -1573,7 +1573,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <p>
               {isBn ? (
                 <span>
-                  চিকিৎসকদের হিসেব মতে ওর প্রাথমিক চিকিৎসার প্রথম ধাপেই প্রয়োজন প্রায় ২০ লাখ টাকা, আর সুস্থ হয়ে ওঠার পুরো চিকিৎসা শেষ করতে আনুমানিক <strong>৪০ লাখ টাকার মতো</strong> লাগবে। আরাফের বাবা গত মে মাস থেকে কর্মহীন, আর আমাদের যোগাড় করা ৩-৪ লাখ টাকাও ইতোমধ্যে শেষ। সেই জায়গায় দাঁড়িয়ে আপনারা সবাই যদি হাত বাড়িয়ে না দেন, তবে বিশ বা চল্লিশ লাখ টাকার এই দূরত্ব ঘুচিয়ে ছেলেটাকে বাঁচিয়ে আনা সম্ভব নয়।
+                  ডাক্তারদের হিসেব মতে ওর চিকিৎসার প্রথম ধাপেই প্রয়োজন প্রায় ২০ লাখ টাকা, আর সুস্থ হয়ে ওঠার পুরো চিকিৎসা শেষ করতে সব মিলিয়ে আনুমানিক <strong>৪০ লাখ টাকার মতো</strong> লাগবে। আরাফের বাবা গত মে মাস থেকে বেকার, আর আমাদের জমানো ৩-৪ লাখ টাকাও ইতোমধ্যে শেষ। সেই জায়গায় দাঁড়িয়ে আপনারা সবাই যদি হাত বাড়িয়ে না দেন, তবে এত বড় অঙ্কের টাকা জোগাড় করে ছেলেটাকে বাঁচিয়ে আনা আমাদের পক্ষে কোনোভাবেই সম্ভব নয়।
                 </span>
               ) : (
                 <span>
@@ -1801,7 +1801,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             {isBn ? 'সাধারণ জিজ্ঞাসা ও উত্তর' : 'Frequently Asked Questions'}
           </h2>
           <p class="text-sm text-gray-500 mt-1">
-            {isBn ? 'চিকিৎসা ও সহায়তা সংক্রান্ত যেকোনো স্পষ্ট তথ্যের জন্য' : 'Everything you need to know about Araf’s treatment and assistance'}
+            {isBn ? 'আরাফের চিকিৎসা ও সহায়তা সংক্রান্ত প্রয়োজনীয় তথ্য' : 'Everything you need to know about Araf’s treatment and assistance'}
           </p>
         </div>
 
@@ -1813,7 +1813,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
-                ? 'আরাফ বর্তমানে ঢাকা মেডিকেল কলেজ হাসপাতাল (DMCH)-এর হেমাটোলজি ওয়ার্ডের কেবিন নম্বর ১১৪/বি-তে চিকিৎসাধীন। সেখানে সহযোগী অধ্যাপক চিকিৎসক হুমায়রা নাজনীনের সরাসরি তত্ত্বাবধানে ওর কেমোথেরাপি চলছে।'
+                ? 'আরাফ বর্তমানে ঢাকা মেডিকেল কলেজ হাসপাতালের হেমাটোলজি ওয়ার্ডের কেবিন নম্বর ১১৪/বি-তে ভর্তি আছে। সেখানে সহযোগী অধ্যাপক ডা. হুমায়রা নাজনীনের সরাসরি তত্ত্বাবধানে ওর কেমোথেরাপি চলছে।'
                 : 'Araf is admitted to Cabin 114/B, Department of Hematology at Dhaka Medical College Hospital (DMCH). He is undergoing intensive chemotherapy under the direct supervision of Associate Professor Dr. Humayra Nazneen.'}
             </div>
           </details>
@@ -1825,7 +1825,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
-                ? 'আরাফের আপন চাচাতো বড় ভাই শেখ মাহমুদ ইসলাম মিজু সরাসরি এই ফান্ড ব্যবস্থাপনা ও হাসপাতালে সার্বক্ষণিক থাকার দায়িত্ব পালন করছেন। তাঁর সাথে যেকোনো সময় যোগাযোগ করা যাবে মোবাইল: 01515616728।'
+                ? 'আরাফের আপন চাচাতো বড় ভাই শেখ মাহমুদ ইসলাম মিজু সরাসরি এই ফান্ড দেখাশোনা করছেন এবং হাসপাতালে আরাফের সাথে সবসময় আছেন। যেকোনো প্রয়োজনে তাঁর সাথে সরাসরি যোগাযোগ করা যাবে: 01515616728।'
                 : 'Araf’s elder cousin brother, Sheikh Mahmud Islam Mizu, is directly coordinating the funds and staying by his hospital bed 24/7. You can contact him anytime at +8801515616728.'}
             </div>
           </details>
@@ -1837,7 +1837,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
-                ? 'অবশ্যই! আমাদের সংগৃহীত ফান্ডের সিংহভাগই এসেছে এমন ৫০, ১০০, ২০০ টাকার ছোট ছোট অনুদান থেকে। সবার এই ক্ষুদ্র অংশগ্রহণ একত্রিত হয়েই চল্লিশ লাখ টাকার এই দীর্ঘ লড়াইকে সহজ করে তুলতে পারে।'
+                ? 'অবশ্যই! আমাদের ফান্ডের বেশিরভাগ টাকাই এসেছে ৫০, ১০০ বা ২০০ টাকার মতো ছোট ছোট সাহায্য থেকে। সবার একটু একটু অংশগ্রহণ একত্রিত হয়েই চল্লিশ লাখ টাকার এই বড় লড়াইকে সহজ করে তুলতে পারে।'
                 : 'Absolutely! The vast majority of our funds have come from small contributions of ৳50, ৳100, and ৳200. United collective support turns insurmountable targets into reality.'}
             </div>
           </details>
@@ -1849,7 +1849,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
-                ? 'হ্যাঁ, অবশ্যই! হাসপাতালে ভর্তির সময় অন্য যেকোনো গ্রুপের রক্ত দান করলেও হাসপাতাল ব্লাড ব্যাংক থেকে আরাফের জন্য প্রয়োজনীয় B+ রক্ত ও প্লাটিলেট সহজেই ক্রস-এক্সচেঞ্জ (বিনিময়) করা যায়। তাই যেকোনো রক্তের গ্রুপের মানুষ আমাদের ডোনার সিস্টেমে যুক্ত হতে পারেন।'
+                ? 'হ্যাঁ, অবশ্যই! হাসপাতালে অন্য যেকোনো গ্রুপের রক্ত দিলেও ব্লাড ব্যাংক থেকে আরাফের জন্য প্রয়োজনীয় B+ রক্ত ও প্লাটিলেট সহজেই অদল-বদল (এক্সচেঞ্জ) করে নেওয়া যায়। তাই যেকোনো রক্তের গ্রুপের মানুষ আমাদের তালিকায় যুক্ত হতে পারেন।'
                 : 'Yes, absolutely! Donating any blood group allows the DMCH blood bank to cross-exchange units for the vital B+ platelets and blood Araf requires. Donors of all blood groups are warmly welcomed to register.'}
             </div>
           </details>
@@ -1861,7 +1861,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
-                ? 'প্লাটিলেট দান সম্পূর্ণ নিরাপদ ও বৈজ্ঞানিক প্রক্রিয়া। রক্ত থেকে এফেরেসিস মেশিনের সাহায্যে কেবল প্লাটিলেট আলাদা করে বাকি রক্ত পুনরায় দাতার শরীরে ফেরত পাঠানো হয়। মাত্র ১৫ দিন পর পরই নিরাপদে প্লাটিলেট দেওয়া যায় এবং শরীর কয়েক ঘণ্টার মধ্যে নতুন প্লাটিলেট তৈরি করে ফেলে।'
+                ? 'প্লাটিলেট দেওয়া সম্পূর্ণ নিরাপদ ও বৈজ্ঞানিক প্রক্রিয়া। রক্ত থেকে এফেরেসিস মেশিনের সাহায্যে কেবল প্লাটিলেট আলাদা করে বাকি রক্ত পুনরায় আপনার শরীরে ফেরত দেওয়া হয়। প্রতি ১৫ দিন পর পরই নিরাপদে প্লাটিলেট দেওয়া যায় এবং শরীর কয়েক ঘণ্টার মধ্যেই নতুন প্লাটিলেট তৈরি করে ফেলে।'
                 : 'Platelet donation (SDP) is completely safe and scientific. An apheresis machine separates only platelets while returning red cells safely to your body. You can safely donate every 15 days without any bodily weakness.'}
             </div>
           </details>
@@ -1873,7 +1873,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
-                ? 'এই ওয়েবসাইটে প্রতিদিনের পরিস্থিতি ও রক্তের কাউন্ট নিয়মিত আপডেট করা হয়। এছাড়াও সরাসরি বড় ভাই শেখ মাহমুদ ইসলাম মিজুর নম্বরে (01515616728) যোগাযোগ করতে পারেন।'
+                ? 'এই ওয়েবসাইটে প্রতিদিনের পরিস্থিতি ও রক্তের কাউন্ট নিয়মিত আপডেট করা হয়। এছাড়াও যেকোনো তথ্যের জন্য সরাসরি বড় ভাই শেখ মাহমুদ ইসলাম মিজুর নম্বরে (01515616728) যোগাযোগ করতে পারেন।'
                 : 'This website is updated regularly with his latest clinical status and CVC blood counts. You can also reach coordinator Sheikh Mahmud Islam Mizu directly at +8801515616728.'}
             </div>
           </details>
