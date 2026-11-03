@@ -8,24 +8,52 @@ const isBn = lang === 'bn';
 
 import Navbar from '@/components/common/Navbar.astro';
 import Footer from '@/components/common/Footer.astro';
-import campaignData from '@/data/campaign.json';
 
 const isDeleted = Astro.url.searchParams.get('deleted') === 'true';
 const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
 
 // ----------------------------------------------------
-// SSR Clinical & Financial Data Computation
+// Hardcoded Clinical & Financial Campaign Data
 // ----------------------------------------------------
+const chemoDay = 'আজ ৩য় দিনের কেমো চলছে';
+const dailyText =
+  'আজ আরাফের ৩য় দিনের কেমোথেরাপির জটিল চক্র চলছে। সেন্ট্রাল ভেনাস লাইন (সিভি লাইন)-এর মাধ্যমে একটানা উচ্চমাত্রার কেমো এবং ওষুধ চলায় ওর শরীর প্রচণ্ড দুর্বল। রক্তের প্লাটিলেট ও সেল বারবার মারাত্মকভাবে কমে যাচ্ছে। সার্বক্ষণিক B+ হোল ব্লাড ও SDP প্লাটিলেট ডোনার ব্যাকআপে রাখা অত্যন্ত জরুরি।';
+
 const targetGoal = 4000000; // 40,00,000 BDT (40 Lakh BDT)
-const currentRaised = Number(campaignData.fundAmount) || 137841;
-const remainingAmount = Math.max(0, targetGoal - currentRaised);
-const progressPercent = ((currentRaised / targetGoal) * 100).toFixed(2);
-const progressPercentNum = Number(progressPercent);
+const currentRaised = 137841; // 1,37,841 BDT
+const remainingAmount = 3862159; // 38,62,159 BDT
+const progressPercent = '3.45';
+const progressPercentNum = 3.45;
 
 // Circular progress calculations (Radius 42, circumference ~264)
 const circleRadius = 42;
 const circleCircumference = 264;
-const circleOffset = Math.max(0, Math.round(circleCircumference - (circleCircumference * (currentRaised / targetGoal))));
+const circleOffset = 255; // 264 - (264 * 0.0345)
+
+const fundDate = '২ নভেম্বর রাত ১২টা পর্যন্ত হিসাব হালনাগাদ করা হয়েছে';
+const newsUrl = 'https://www.shomoyeralo.com/news/393324';
+const newsTitle = '“বাঁচতে চায় ক্যানসার আক্রান্ত কলেজছাত্র আরাফ”';
+const newsSource = '৩ নভেম্বর ২০২৬ • সময়ের আলো';
+
+// Diagnostic CVC Biomarkers
+const platelets = '৩৬,০০০';
+const wbc = '৩,৪৬০';
+const hb = '৭.৬';
+const blast = '৯০%';
+const creat = '০.২';
+const uric = '৪.৮';
+const alt = '১৪.৮৩';
+const anc = '১,৮০০';
+
+// Semantic image paths in public/campaign/
+const heroHospitalImg = '/campaign/araf-hospital-bed.jpg';
+const cvcReportImg = '/campaign/cvc-blood-report.jpg';
+const dmcAdmissionImg = '/campaign/dmc-hospital-admission.jpg';
+const banglaQrImg = '/campaign/bkash-bangla-qr.jpg';
+const cityTouchQrImg = '/campaign/citytouch-bank-qr.jpg';
+const newsClippingImg = '/campaign/shomoyer-alo-newspaper-report.jpg';
+const campaignLogoImg = '/campaign/save-araf-campaign-logo.jpg';
+const medicalReportsPdf = '/campaign/araf-medical-reports.pdf';
 
 function toBnDigits(val: number | string): string {
   const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
@@ -43,24 +71,6 @@ const raisedDisplay = formatTaka(currentRaised);
 const targetDisplay = formatTaka(targetGoal);
 const remainingDisplay = formatTaka(remainingAmount);
 const percentDisplay = isBn ? `${toBnDigits(progressPercent)}%` : `${progressPercent}%`;
-
-// Clinical Biomarkers
-const platelets = campaignData.platelets || '৩৬,০০০';
-const wbc = campaignData.wbc || '৩,৪৬০';
-const hb = campaignData.hb || '৭.৬';
-const blast = campaignData.blast || '৯০%';
-const creat = campaignData.creat || '০.২';
-const uric = campaignData.uric || '৪.৮';
-const alt = campaignData.alt || '১৪.৮৩';
-const anc = campaignData.anc || '১,৮০০';
-
-const chemoDay = campaignData.chemoDay || 'আজ ৩য় দিনের কেমো চলছে';
-const dailyText = campaignData.dailyText || 'আজ আরাফের ৩য় দিনের কেমোথেরাপির জটিল চক্র চলছে...';
-const fundDate = campaignData.fundDate || '২ নভেম্বর রাত ১২টা পর্যন্ত হিসাব হালনাগাদ করা হয়েছে';
-const newsUrl = campaignData.newsUrl || 'https://www.shomoyeralo.com/news/393324';
-const newsTitle = campaignData.newsTitle || '“বাঁচতে চায় ক্যানসার আক্রান্ত কলেজছাত্র আরাফ”';
-const newsSource = campaignData.newsSource || '৩ নভেম্বর ২০২৬ • সময়ের আলো';
-const cvcImage = campaignData.cvcImage || 'CVC.jpg';
 
 // All 33 report pages for comprehensive document viewer
 const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
@@ -101,13 +111,13 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
         ? 'আরাফের শরীরে প্রাণঘাতী ব্লাড ক্যানসার (AML)। পিতা মে মাস থেকে কর্মহীন। ঢাকা মেডিকেলে চলছে কেমো ও প্লাটিলেট। আপনার সামান্য অনুদান বা দোয়াই পারে ছেলেটাকে বাঁচাতে।'
         : '17-year-old Araf is battling blood cancer (AML) at DMCH. His father is unemployed. Urgent appeal for treatment support.'}
     />
-    <meta property="og:image" content="/campaign/araf_hospital.jpg" />
+    <meta property="og:image" content={heroHospitalImg} />
 
     <!-- Twitter Card -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content={isBn ? 'Save Araf | ১৭ বছরের আরাফের জীবন বাঁচাতে এগিয়ে আসুন' : 'Save Araf | Emergency Medical Appeal for 17-Year-Old Araf'} />
     <meta property="twitter:description" content={isBn ? 'ঢাকা মেডিকেল কলেজ হাসপাতালের ১১৪/বি কেবিনে চলছে কেমো ও প্লাটিলেট। চিকিৎসায় প্রয়োজন প্রায় ৪০ লাখ টাকা।' : 'Undergoing chemotherapy at DMCH Cabin 114/B. Estimated treatment cost 40 Lakh BDT.'} />
-    <meta property="twitter:image" content="/campaign/araf_hospital.jpg" />
+    <meta property="twitter:image" content={heroHospitalImg} />
 
     <!-- Google Fonts: Hind Siliguri & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -121,7 +131,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
     <script is:inline src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Performance Preloads -->
-    <link rel="preload" as="image" href="/campaign/araf_hospital.jpg" fetchpriority="high" />
+    <link rel="preload" as="image" href={heroHospitalImg} fetchpriority="high" />
 
     <style>
       body {
@@ -129,15 +139,6 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
         background-color: #faf8f5;
         color: #1e293b;
         -webkit-tap-highlight-color: transparent;
-      }
-      .card-shadow {
-        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -2px rgba(0, 0, 0, 0.03);
-      }
-      .app-card {
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .app-card:hover {
-        transform: translateY(-3px);
       }
       .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -156,10 +157,10 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
     <!-- ======================================================== -->
     <!-- TOP EMERGENCY ANNOUNCEMENT BAR                           -->
     <!-- ======================================================== -->
-    <aside class="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white text-xs sm:text-sm py-2 px-3 sm:px-4 shadow-sm relative z-40">
+    <aside class="bg-rose-600 text-white text-xs sm:text-sm py-2 px-3 sm:px-4 shadow-2xs relative z-40">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-black bg-white text-red-600 uppercase tracking-wider animate-pulse">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-black bg-white text-rose-600 uppercase tracking-wider animate-pulse">
             {isBn ? 'জরুরি অবস্থা' : 'EMERGENCY'}
           </span>
           <span class="font-medium text-xs sm:text-sm">
@@ -177,7 +178,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
         <div class="flex items-center gap-2 sm:gap-3">
           <a
             href="tel:01515616728"
-            class="inline-flex items-center gap-1 font-bold hover:underline bg-white/10 hover:bg-white/20 px-2.5 py-0.5 rounded transition text-xs"
+            class="inline-flex items-center gap-1 font-bold hover:underline bg-white/15 hover:bg-white/25 px-2.5 py-0.5 rounded transition text-xs"
           >
             <i data-lucide="phone-call" class="w-3.5 h-3.5"></i>
             <span>01515616728</span>
@@ -190,55 +191,80 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
     <Navbar lang={lang} />
 
     <!-- ======================================================== -->
-    <!-- IN-PAGE ANCHOR NAVIGATION BAR (PC QUICK MENU)            -->
+    <!-- REDESIGNED SECONDARY SUB-NAVBAR (MODERN & MOBILE-SCROLL) -->
     <!-- ======================================================== -->
-    <nav class="hidden lg:block bg-white/95 backdrop-blur border-b border-amber-100/80 sticky top-14 z-20 shadow-xs">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between text-xs font-semibold text-slate-600">
-        <div class="flex items-center space-x-6">
-          <a href="#overview" class="hover:text-emerald-700 transition flex items-center gap-1">
-            <i data-lucide="user" class="w-3.5 h-3.5"></i>
-            <span>{isBn ? 'আরাফের অবস্থা' : 'Overview'}</span>
-          </a>
-          <a href="#blood-trajectory" class="hover:text-emerald-700 transition flex items-center gap-1">
-            <i data-lucide="activity" class="w-3.5 h-3.5 text-rose-600"></i>
-            <span>{isBn ? 'রক্তের কাউন্ট গতিপথ' : 'Blood Trajectory'}</span>
-          </a>
-          <a href="#target-strategy" class="hover:text-emerald-700 transition flex items-center gap-1 text-emerald-800 font-bold">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
-            <span>{isBn ? '৪০ লাখ পূরণের সহজ উপায়' : 'How to Reach 40L'}</span>
-          </a>
-          <a href="#media-report" class="hover:text-emerald-700 transition flex items-center gap-1">
-            <i data-lucide="newspaper" class="w-3.5 h-3.5"></i>
-            <span>{isBn ? 'পত্রিকায় সংবাদ' : 'Newspaper Report'}</span>
-          </a>
-          <a href="#budget" class="hover:text-emerald-700 transition flex items-center gap-1">
-            <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
-            <span>{isBn ? 'ফান্ডের হিসাব' : 'Financials'}</span>
-          </a>
-          <a href="#donate-section" class="hover:text-emerald-700 transition flex items-center gap-1">
-            <i data-lucide="heart" class="w-3.5 h-3.5 text-rose-500"></i>
-            <span>{isBn ? 'অনুদানের মাধ্যম' : 'Donate'}</span>
-          </a>
-          <a href={donateBloodUrl} class="hover:text-rose-600 transition flex items-center gap-1">
-            <i data-lucide="droplets" class="w-3.5 h-3.5 text-rose-600"></i>
-            <span>{isBn ? 'রক্তদাতা নিবন্ধন' : 'Blood Donors'}</span>
-          </a>
-          <a href="#story" class="hover:text-emerald-700 transition flex items-center gap-1">
-            <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
-            <span>{isBn ? 'মিজুর জবানিতে' : 'Family Story'}</span>
-          </a>
-          <a href="#reports" class="hover:text-emerald-700 transition flex items-center gap-1">
-            <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
-            <span>{isBn ? 'মেডিকেল পেপার্স' : 'Reports'}</span>
-          </a>
-          <a href="#faq" class="hover:text-emerald-700 transition flex items-center gap-1">
-            <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
-            <span>{isBn ? 'প্রশ্নোত্তর' : 'FAQs'}</span>
-          </a>
-        </div>
-        <div class="text-[11px] text-slate-500 font-normal">
-          <span>{isBn ? 'সহায়তা সমন্বয়ে: শেখ মাহমুদ ইসলাম মিজু' : 'Coordinator: Sheikh Mahmud Islam Mizu'}</span>
-        </div>
+    <nav class="sticky top-0 sm:top-14 z-20 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-2xs">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+        <a
+          href="#overview"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-rose-600 hover:bg-rose-50 border border-gray-200/60 hover:border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="user" class="w-3.5 h-3.5"></i>
+          <span>{isBn ? 'আরাফের অবস্থা' : 'Overview'}</span>
+        </a>
+        <a
+          href="#blood-trajectory"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-rose-600 hover:bg-rose-50 border border-gray-200/60 hover:border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="activity" class="w-3.5 h-3.5 text-rose-600"></i>
+          <span>{isBn ? 'রক্তের গতিপথ' : 'Blood Trajectory'}</span>
+        </a>
+        <a
+          href="#target-strategy"
+          class="px-3 py-1.5 rounded-full text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+          <span>{isBn ? '৪০ লাখের হিসাব' : '40L Target'}</span>
+        </a>
+        <a
+          href="#media-report"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-rose-600 hover:bg-rose-50 border border-gray-200/60 hover:border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="newspaper" class="w-3.5 h-3.5"></i>
+          <span>{isBn ? 'পত্রিকায় সংবাদ' : 'Media Coverage'}</span>
+        </a>
+        <a
+          href="#budget"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-rose-600 hover:bg-rose-50 border border-gray-200/60 hover:border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
+          <span>{isBn ? 'ফান্ডের হিসাব' : 'Financials'}</span>
+        </a>
+        <a
+          href="#donate-section"
+          class="px-3 py-1.5 rounded-full text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-2xs transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="heart" class="w-3.5 h-3.5 fill-white"></i>
+          <span>{isBn ? 'সাহায্য পাঠান' : 'Donate Funds'}</span>
+        </a>
+        <a
+          href={donateBloodUrl}
+          class="px-3 py-1.5 rounded-full text-xs font-bold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="droplets" class="w-3.5 h-3.5 fill-rose-600 text-rose-600"></i>
+          <span>{isBn ? 'রক্তদাতা নেটওয়ার্ক' : 'Blood Donors'}</span>
+        </a>
+        <a
+          href="#story"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-rose-600 hover:bg-rose-50 border border-gray-200/60 hover:border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+          <span>{isBn ? 'মিজুর জবানিতে' : 'Family Plea'}</span>
+        </a>
+        <a
+          href="#reports"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-rose-600 hover:bg-rose-50 border border-gray-200/60 hover:border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
+          <span>{isBn ? 'মেডিকেল রিপোর্ট' : 'Reports'}</span>
+        </a>
+        <a
+          href="#faq"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 hover:text-rose-600 hover:bg-rose-50 border border-gray-200/60 hover:border-rose-200 transition whitespace-nowrap flex items-center gap-1 shrink-0"
+        >
+          <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+          <span>{isBn ? 'প্রশ্নোত্তর' : 'FAQs'}</span>
+        </a>
       </div>
     </nav>
 
@@ -247,7 +273,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <!-- Notification Banner if account was deleted -->
       {isDeleted && (
         <div class="max-w-6xl mx-auto px-4 pt-4">
-          <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center justify-between shadow-xs">
+          <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center justify-between shadow-2xs">
             <div class="flex items-center gap-2.5">
               <span class="text-xl">ℹ️</span>
               <span>
@@ -280,7 +306,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <span>{isBn ? 'ঢাকা মেডিকেল কলেজ হাসপাতাল • হেমাটোলজি বিভাগ • কেবিন ১১৪/বি' : 'Dhaka Medical College Hospital • Hematology Dept • Cabin 114/B'}</span>
             </div>
 
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight">
+            <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
               {isBn ? (
                 <span>
                   বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কলেজছাত্র <span class="text-rose-600 underline decoration-rose-300">আরাফ</span>
@@ -292,7 +318,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               )}
             </h1>
 
-            <p class="text-slate-700 text-base sm:text-lg leading-relaxed">
+            <p class="text-gray-600 text-base sm:text-lg leading-relaxed">
               {isBn ? (
                 <span>
                   ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির ছাত্র মো. আরাফ। মাত্র ১৭ বছর বয়সে দুরারোগ্য ব্লাড ক্যানসার—<strong>Acute Myeloid Leukemia (AML)</strong> ধরা পড়ার পর পরিবার আজ নিঃস্ব ও দিশেহারা। ওর বাবা গত মে মাস থেকে সম্পূর্ণ কর্মহীন। ঢাকা মেডিকেলে চলছে কেমোথেরাপির জটিল সাইকেল। আপনার সামান্য অনুদান বা দোয়াই পারে ছেলেটাকে বাঁচাতে।
@@ -306,28 +332,28 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
             <!-- Current Status Highlights Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 py-1">
-              <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs app-card">
-                <span class="text-[11px] text-slate-500 block">{isBn ? 'বয়স ও শিক্ষা' : 'Age & College'}</span>
-                <span class="text-sm font-bold text-slate-800">{isBn ? '১৭ বছর (পলিটেকনিক)' : '17 yrs (Polytechnic)'}</span>
+              <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
+                <span class="text-[11px] text-gray-500 block">{isBn ? 'বয়স ও শিক্ষা' : 'Age & College'}</span>
+                <span class="text-sm font-bold text-gray-800">{isBn ? '১৭ বছর (পলিটেকনিক)' : '17 yrs (Polytechnic)'}</span>
               </div>
-              <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs app-card">
-                <span class="text-[11px] text-slate-500 block">{isBn ? 'রক্তের গ্রুপ' : 'Blood Group'}</span>
+              <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
+                <span class="text-[11px] text-gray-500 block">{isBn ? 'রক্তের গ্রুপ' : 'Blood Group'}</span>
                 <span class="text-sm font-black text-rose-600">B+ (বি পজিটিভ)</span>
               </div>
-              <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs app-card">
-                <span class="text-[11px] text-slate-500 block">{isBn ? 'চিকিৎসা পর্যায়' : 'Treatment Stage'}</span>
+              <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
+                <span class="text-[11px] text-gray-500 block">{isBn ? 'চিকিৎসা পর্যায়' : 'Treatment Stage'}</span>
                 <span class="text-sm font-bold text-amber-700">{chemoDay}</span>
               </div>
-              <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs app-card">
-                <span class="text-[11px] text-slate-500 block">{isBn ? 'তত্ত্বাবধায়ক চিকিৎসক' : 'Attending Physician'}</span>
-                <span class="text-xs font-bold text-slate-800">{isBn ? 'ডা. হুমায়রা নাজনীন' : 'Dr. Humayra Nazneen'}</span>
+              <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
+                <span class="text-[11px] text-gray-500 block">{isBn ? 'তত্ত্বাবধায়ক চিকিৎসক' : 'Attending Physician'}</span>
+                <span class="text-xs font-bold text-gray-800">{isBn ? 'ডা. হুমায়রা নাজনীন' : 'Dr. Humayra Nazneen'}</span>
               </div>
             </div>
 
-            <!-- Latest Status Update Callout (SSR Rendered) -->
-            <div class="bg-amber-50/80 border-l-4 border-amber-500 p-4 rounded-r-2xl text-slate-700 text-sm space-y-1">
-              <div class="flex items-center gap-2 font-bold text-amber-900 text-xs uppercase tracking-wider">
-                <i data-lucide="clock" class="w-4 h-4 text-amber-600"></i>
+            <!-- Latest Status Update Callout -->
+            <div class="bg-rose-50/60 border-l-4 border-rose-500 p-4 rounded-r-2xl text-gray-700 text-sm space-y-1">
+              <div class="flex items-center gap-2 font-bold text-rose-900 text-xs uppercase tracking-wider">
+                <i data-lucide="clock" class="w-4 h-4 text-rose-600"></i>
                 <span>{isBn ? 'আজকের পরিস্থিতি ও শারীরিক আপডেট' : 'Daily Clinical Update'}</span>
               </div>
               <p class="leading-relaxed">
@@ -336,10 +362,10 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             </div>
 
             <!-- Action CTA Buttons -->
-            <div class="flex flex-wrap gap-3 pt-2">
+            <div class="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-3 pt-2">
               <a
                 href="#donate-section"
-                class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-7 py-3.5 rounded-2xl shadow-lg hover:shadow-rose-500/30 transition text-sm sm:text-base cursor-pointer"
+                class="inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-7 py-3.5 rounded-2xl shadow-md hover:shadow-rose-600/25 transition text-sm sm:text-base cursor-pointer"
               >
                 <i data-lucide="heart" class="w-5 h-5 fill-white"></i>
                 <span>{isBn ? 'এখনই সাহায্য পাঠান' : 'Donate Now'}</span>
@@ -355,16 +381,16 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
               <a
                 href="#target-strategy"
-                class="inline-flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold px-5 py-3.5 rounded-2xl transition text-sm sm:text-base cursor-pointer"
+                class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 font-bold px-5 py-3.5 rounded-2xl transition text-sm sm:text-base cursor-pointer"
               >
-                <i data-lucide="sparkles" class="w-5 h-5 text-emerald-600"></i>
+                <i data-lucide="sparkles" class="w-5 h-5 text-amber-500"></i>
                 <span>{isBn ? 'কীভাবে পূরণ হবে ৪০ লাখ?' : 'See 40L Plan'}</span>
               </a>
 
               <button
                 type="button"
                 onclick="openShareModal()"
-                class="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold px-4 py-3.5 rounded-2xl shadow-xs transition text-sm sm:text-base cursor-pointer"
+                class="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-semibold px-4 py-3.5 rounded-2xl shadow-2xs transition text-sm sm:text-base cursor-pointer"
               >
                 <i data-lucide="share-2" class="w-5 h-5 text-blue-600"></i>
                 <span>{isBn ? 'শেয়ার' : 'Share'}</span>
@@ -374,10 +400,10 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
           <!-- Right: Main Actual Hospital Photo Card -->
           <div class="lg:col-span-5">
-            <div class="bg-white rounded-3xl p-3 sm:p-4 shadow-xl border border-amber-100 relative overflow-hidden">
-              <div class="relative w-full rounded-2xl overflow-hidden bg-slate-900 aspect-9/16 max-h-[540px] flex items-center justify-center">
+            <div class="bg-white rounded-3xl p-3 sm:p-4 shadow-md border border-gray-200 relative overflow-hidden">
+              <div class="relative w-full rounded-2xl overflow-hidden bg-slate-900 aspect-9/16 max-h-[520px] flex items-center justify-center">
                 <img
-                  src="/campaign/araf_hospital.jpg"
+                  src={heroHospitalImg}
                   alt={isBn ? 'ঢাকা মেডিকেলে চিকিৎসাধীন আরাফ' : 'Araf undergoing cancer treatment at DMCH'}
                   class="w-full h-full object-cover object-center"
                   loading="eager"
@@ -400,7 +426,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                   </p>
                 </div>
               </div>
-              <div class="mt-3 px-2 py-1 flex items-center justify-between text-xs text-slate-500">
+              <div class="mt-3 px-2 py-1 flex items-center justify-between text-xs text-gray-500">
                 <span class="flex items-center gap-1 font-medium">
                   <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
                   <span>{isBn ? 'সরাসরি বড় ভাই মিজু দ্বারা পরিচালিত' : 'Directly coordinated by brother Mizu'}</span>
@@ -418,7 +444,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <!-- ======================================================== -->
       <!-- SECTION 2: BLOOD PARAMETER TRAJECTORY (CBC / CVC)        -->
       <!-- ======================================================== -->
-      <section id="blood-trajectory" class="py-12 bg-[#f7f4ed] border-y border-amber-200/80">
+      <section id="blood-trajectory" class="py-12 bg-gray-50/70 border-y border-gray-200/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
             <div>
@@ -428,10 +454,10 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                   {isBn ? 'রিপোর্টের গতিপথ ও লেটেস্ট CVC কাউন্ট' : 'Latest Diagnostic Trajectory & CVC Count'}
                 </span>
               </div>
-              <h2 class="text-2xl sm:text-3xl font-black text-slate-900">
+              <h2 class="text-2xl sm:text-3xl font-black text-gray-900">
                 {isBn ? 'আরাফের রক্তের সংখ্যাগুলো কোনদিকে যাচ্ছে' : "Trajectory of Araf's Critical Blood Parameters"}
               </h2>
-              <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl">
+              <p class="text-xs sm:text-sm text-gray-600 mt-1 max-w-3xl">
                 {isBn
                   ? 'সর্বশেষ কমপ্লিট ব্লাড কাউন্ট (CBC / CVC) ও হেমাটোলজি রিপোর্ট অনুযায়ী আরাফের রক্তের সেল ও প্লাটিলেটের ওঠানামার চিত্র।'
                   : 'Key biomarker trends showing continuous depletion and fluctuation from the latest hematology diagnostic tests.'}
@@ -441,8 +467,8 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div>
               <button
                 type="button"
-                onclick={`openLightbox('/campaign/${cvcImage}', 'সর্বশেষ সিভিসি / সিবিসি প্যাথলজি রিপোর্ট')`}
-                class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
+                onclick={`openLightbox('${cvcReportImg}', 'সর্বশেষ সিভিসি / সিবিসি প্যাথলজি রিপোর্ট')`}
+                class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-bold px-4 py-2.5 rounded-xl shadow-2xs transition cursor-pointer"
               >
                 <i data-lucide="file-text" class="w-4 h-4 text-rose-600"></i>
                 <span>{isBn ? 'মূল CVC রিপোর্টটি দেখুন' : 'View Original CVC Report'}</span>
@@ -451,21 +477,21 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           </div>
 
           <!-- 8 Key Biomarker Trend Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
             <!-- 1: Platelets -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs app-card">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-2xs">
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900">{isBn ? 'প্লাটিলেট (Platelets)' : 'Platelets'}</h3>
-                  <span class="text-[11px] text-slate-400 block">{isBn ? 'স্বাভাবিক: ১,৫০,০০০ - ৪,৫০,০০০' : 'Normal: 150K - 450K'}</span>
+                  <h3 class="text-sm font-bold text-gray-900">{isBn ? 'প্লাটিলেট (Platelets)' : 'Platelets'}</h3>
+                  <span class="text-[11px] text-gray-400 block">{isBn ? 'স্বাভাবিক: ১,৫০,০০০ - ৪,৫০,০০০' : 'Normal: 150K - 450K'}</span>
                 </div>
                 <div class="text-right">
                   <span class="text-2xl font-black text-rose-600 font-mono">{platelets}</span>
-                  <span class="text-[10px] text-slate-400 block">/μL</span>
+                  <span class="text-[10px] text-gray-400 block">/μL</span>
                 </div>
               </div>
-              <div class="h-14 flex items-end">
-                <svg class="w-full h-12" viewBox="0 0 100 40">
+              <div class="h-12 flex items-end">
+                <svg class="w-full h-10" viewBox="0 0 100 40">
                   <polyline fill="none" stroke="#e11d48" stroke-width="2.5" points="0,25 15,28 30,22 45,30 60,20 75,5 90,32 100,28"></polyline>
                   <polygon fill="rgba(225, 29, 72, 0.12)" points="0,25 15,28 30,22 45,30 60,20 75,5 90,32 100,28 100,40 0,40"></polygon>
                 </svg>
@@ -477,43 +503,43 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             </div>
 
             <!-- 2: WBC -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs app-card">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-2xs">
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900">{isBn ? 'শ্বেতকণিকা (WBC)' : 'White Blood Cells (WBC)'}</h3>
-                  <span class="text-[11px] text-slate-400 block">{isBn ? 'স্বাভাবিক: ৪,০০০ - ১১,০০০' : 'Normal: 4,000 - 11,000'}</span>
+                  <h3 class="text-sm font-bold text-gray-900">{isBn ? 'শ্বেতকণিকা (WBC)' : 'White Blood Cells (WBC)'}</h3>
+                  <span class="text-[11px] text-gray-400 block">{isBn ? 'স্বাভাবিক: ৪,০০০ - ১১,০০০' : 'Normal: 4,000 - 11,000'}</span>
                 </div>
                 <div class="text-right">
-                  <span class="text-2xl font-black text-slate-900 font-mono">{wbc}</span>
-                  <span class="text-[10px] text-slate-400 block">/μL</span>
+                  <span class="text-2xl font-black text-gray-900 font-mono">{wbc}</span>
+                  <span class="text-[10px] text-gray-400 block">/μL</span>
                 </div>
               </div>
-              <div class="h-14 flex items-end">
-                <svg class="w-full h-12" viewBox="0 0 100 40">
-                  <polyline fill="none" stroke="#047857" stroke-width="2.5" points="0,10 20,5 40,18 60,12 80,30 100,32"></polyline>
-                  <polygon fill="rgba(4, 120, 87, 0.12)" points="0,10 20,5 40,18 60,12 80,30 100,32 100,40 0,40"></polygon>
+              <div class="h-12 flex items-end">
+                <svg class="w-full h-10" viewBox="0 0 100 40">
+                  <polyline fill="none" stroke="#64748b" stroke-width="2.5" points="0,10 20,5 40,18 60,12 80,30 100,32"></polyline>
+                  <polygon fill="rgba(100, 116, 139, 0.1)" points="0,10 20,5 40,18 60,12 80,30 100,32 100,40 0,40"></polygon>
                 </svg>
               </div>
-              <div class="mt-2 text-xs font-bold text-emerald-700 flex items-center gap-1">
+              <div class="mt-2 text-xs font-semibold text-gray-600 flex items-center gap-1">
                 <i data-lucide="arrow-down-right" class="w-3.5 h-3.5"></i>
                 <span>{isBn ? '▼ ৩১% আগের রিপোর্টের চেয়ে কম' : '▼ 31% drop from previous test'}</span>
               </div>
             </div>
 
             <!-- 3: Hemoglobin -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs app-card">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-2xs">
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900">{isBn ? 'হিমোগ্লোবিন (Hb)' : 'Hemoglobin (Hb)'}</h3>
-                  <span class="text-[11px] text-slate-400 block">{isBn ? 'স্বাভাবিক: ১১ - ১৪ g/dL' : 'Normal: 11 - 14 g/dL'}</span>
+                  <h3 class="text-sm font-bold text-gray-900">{isBn ? 'হিমোগ্লোবিন (Hb)' : 'Hemoglobin (Hb)'}</h3>
+                  <span class="text-[11px] text-gray-400 block">{isBn ? 'স্বাভাবিক: ১১ - ১৪ g/dL' : 'Normal: 11 - 14 g/dL'}</span>
                 </div>
                 <div class="text-right">
                   <span class="text-2xl font-black text-amber-700 font-mono">{hb}</span>
-                  <span class="text-[10px] text-slate-400 block">g/dL</span>
+                  <span class="text-[10px] text-gray-400 block">g/dL</span>
                 </div>
               </div>
-              <div class="h-14 flex items-end">
-                <svg class="w-full h-12" viewBox="0 0 100 40">
+              <div class="h-12 flex items-end">
+                <svg class="w-full h-10" viewBox="0 0 100 40">
                   <polyline fill="none" stroke="#d97706" stroke-width="2.5" points="0,30 20,28 40,10 60,28 80,29 100,28"></polyline>
                   <polygon fill="rgba(217, 119, 6, 0.12)" points="0,30 20,28 40,10 60,28 80,29 100,28 100,40 0,40"></polygon>
                 </svg>
@@ -525,115 +551,115 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             </div>
 
             <!-- 4: Blast Cells -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs app-card">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-2xs">
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900">{isBn ? 'ব্লাস্ট সেল (Blast Cells)' : 'Blast Cells'}</h3>
-                  <span class="text-[11px] text-slate-400 block">{isBn ? 'স্বাভাবিক: ০ - ১%' : 'Normal: 0 - 1%'}</span>
+                  <h3 class="text-sm font-bold text-gray-900">{isBn ? 'ব্লাস্ট সেল (Blast Cells)' : 'Blast Cells'}</h3>
+                  <span class="text-[11px] text-gray-400 block">{isBn ? 'স্বাভাবিক: ০ - ১%' : 'Normal: 0 - 1%'}</span>
                 </div>
                 <div class="text-right">
-                  <span class="text-2xl font-black text-red-600 font-mono">{blast}</span>
-                  <span class="text-[10px] text-slate-400 block">{isBn ? 'AML মার্কার' : 'AML Marker'}</span>
+                  <span class="text-2xl font-black text-rose-600 font-mono">{blast}</span>
+                  <span class="text-[10px] text-gray-400 block">{isBn ? 'AML মার্কার' : 'AML Marker'}</span>
                 </div>
               </div>
-              <div class="h-14 flex items-end">
-                <svg class="w-full h-12" viewBox="0 0 100 40">
-                  <polyline fill="none" stroke="#dc2626" stroke-width="2.5" points="0,35 25,30 50,22 75,12 100,5"></polyline>
-                  <polygon fill="rgba(220, 38, 38, 0.15)" points="0,35 25,30 50,22 75,12 100,5 100,40 0,40"></polygon>
+              <div class="h-12 flex items-end">
+                <svg class="w-full h-10" viewBox="0 0 100 40">
+                  <polyline fill="none" stroke="#e11d48" stroke-width="2.5" points="0,35 25,30 50,22 75,12 100,5"></polyline>
+                  <polygon fill="rgba(225, 29, 72, 0.15)" points="0,35 25,30 50,22 75,12 100,5 100,40 0,40"></polygon>
                 </svg>
               </div>
-              <div class="mt-2 text-xs font-bold text-red-600 flex items-center gap-1">
+              <div class="mt-2 text-xs font-bold text-rose-600 flex items-center gap-1">
                 <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
                 <span>{isBn ? 'তীব্র ব্লাড ক্যানসার নির্দেশক' : 'High acute leukemia proliferation'}</span>
               </div>
             </div>
 
             <!-- 5: Serum Creatinine -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs app-card">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-2xs">
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900">{isBn ? 'সিরাম ক্রিয়েটিনিন (Kidney)' : 'Serum Creatinine (Kidney)'}</h3>
-                  <span class="text-[11px] text-slate-400 block">{isBn ? 'স্বাভাবিক: ০.১২ - ০.৭৮' : 'Normal: 0.12 - 0.78'}</span>
+                  <h3 class="text-sm font-bold text-gray-900">{isBn ? 'সিরাম ক্রিয়েটিনিন (Kidney)' : 'Serum Creatinine (Kidney)'}</h3>
+                  <span class="text-[11px] text-gray-400 block">{isBn ? 'স্বাভাবিক: ০.১২ - ০.৭৮' : 'Normal: 0.12 - 0.78'}</span>
                 </div>
                 <div class="text-right">
-                  <span class="text-2xl font-black text-slate-900 font-mono">{creat}</span>
-                  <span class="text-[10px] text-slate-400 block">mg/dL</span>
+                  <span class="text-2xl font-black text-gray-900 font-mono">{creat}</span>
+                  <span class="text-[10px] text-gray-400 block">mg/dL</span>
                 </div>
               </div>
-              <div class="h-14 flex items-end">
-                <svg class="w-full h-12" viewBox="0 0 100 40">
+              <div class="h-12 flex items-end">
+                <svg class="w-full h-10" viewBox="0 0 100 40">
                   <polyline fill="none" stroke="#64748b" stroke-width="2" points="0,30 25,35 50,15 75,32 100,32"></polyline>
                   <polygon fill="rgba(100, 116, 139, 0.1)" points="0,30 25,35 50,15 75,32 100,32 100,40 0,40"></polygon>
                 </svg>
               </div>
-              <div class="mt-2 text-xs font-semibold text-slate-600 flex items-center gap-1">
+              <div class="mt-2 text-xs font-semibold text-gray-600 flex items-center gap-1">
                 <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
                 <span>{isBn ? 'কিডনি প্যারামিটার নিয়ন্ত্রণে আছে' : 'Kidney parameters stable'}</span>
               </div>
             </div>
 
             <!-- 6: Uric Acid -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs app-card">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-2xs">
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900">{isBn ? 'ইউরিক অ্যাসিড (TLS Risk)' : 'Uric Acid (TLS Risk)'}</h3>
-                  <span class="text-[11px] text-slate-400 block">{isBn ? 'স্বাভাবিক: ২.০ - ৭.৩' : 'Normal: 2.0 - 7.3'}</span>
+                  <h3 class="text-sm font-bold text-gray-900">{isBn ? 'ইউরিক অ্যাসিড (TLS Risk)' : 'Uric Acid (TLS Risk)'}</h3>
+                  <span class="text-[11px] text-gray-400 block">{isBn ? 'স্বাভাবিক: ২.০ - ৭.৩' : 'Normal: 2.0 - 7.3'}</span>
                 </div>
                 <div class="text-right">
-                  <span class="text-2xl font-black text-slate-900 font-mono">{uric}</span>
-                  <span class="text-[10px] text-slate-400 block">mg/dL</span>
+                  <span class="text-2xl font-black text-gray-900 font-mono">{uric}</span>
+                  <span class="text-[10px] text-gray-400 block">mg/dL</span>
                 </div>
               </div>
-              <div class="h-14 flex items-end">
-                <svg class="w-full h-12" viewBox="0 0 100 40">
-                  <polyline fill="none" stroke="#047857" stroke-width="2" points="0,12 30,18 60,25 100,32"></polyline>
-                  <polygon fill="rgba(4, 120, 87, 0.1)" points="0,12 30,18 60,25 100,32 100,40 0,40"></polygon>
+              <div class="h-12 flex items-end">
+                <svg class="w-full h-10" viewBox="0 0 100 40">
+                  <polyline fill="none" stroke="#64748b" stroke-width="2" points="0,12 30,18 60,25 100,32"></polyline>
+                  <polygon fill="rgba(100, 116, 139, 0.1)" points="0,12 30,18 60,25 100,32 100,40 0,40"></polygon>
                 </svg>
               </div>
-              <div class="mt-2 text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              <div class="mt-2 text-xs font-semibold text-gray-600 flex items-center gap-1">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
                 <span>{isBn ? 'টক্সিসিটি মাত্রা নিরাপদ সীমার মধ্যে' : 'Toxicity level within safe bounds'}</span>
               </div>
             </div>
 
             <!-- 7: ALT -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs app-card">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-2xs">
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900">{isBn ? 'ALT (লিভার এনজাইম)' : 'ALT (Liver Enzyme)'}</h3>
-                  <span class="text-[11px] text-slate-400 block">{isBn ? 'লিভার ফাংশন টেস্ট' : 'Liver Function Test'}</span>
+                  <h3 class="text-sm font-bold text-gray-900">{isBn ? 'ALT (লিভার এনজাইম)' : 'ALT (Liver Enzyme)'}</h3>
+                  <span class="text-[11px] text-gray-400 block">{isBn ? 'লিভার ফাংশন টেস্ট' : 'Liver Function Test'}</span>
                 </div>
                 <div class="text-right">
-                  <span class="text-2xl font-black text-slate-900 font-mono">{alt}</span>
-                  <span class="text-[10px] text-slate-400 block">U/L</span>
+                  <span class="text-2xl font-black text-gray-900 font-mono">{alt}</span>
+                  <span class="text-[10px] text-gray-400 block">U/L</span>
                 </div>
               </div>
-              <div class="h-14 flex items-end">
-                <svg class="w-full h-12" viewBox="0 0 100 40">
+              <div class="h-12 flex items-end">
+                <svg class="w-full h-10" viewBox="0 0 100 40">
                   <line x1="0" y1="20" x2="100" y2="20" stroke="#94a3b8" stroke-dasharray="3,3" stroke-width="2"></line>
-                  <circle cx="50" cy="20" r="4" fill="#047857"></circle>
+                  <circle cx="50" cy="20" r="4" fill="#e11d48"></circle>
                 </svg>
               </div>
-              <div class="mt-2 text-xs font-semibold text-slate-600 flex items-center gap-1">
+              <div class="mt-2 text-xs font-semibold text-gray-600 flex items-center gap-1">
                 <i data-lucide="activity" class="w-3.5 h-3.5 text-blue-600"></i>
                 <span>{isBn ? 'কেমোর প্রভাব নিয়মিত পর্যবেক্ষণাধীন' : 'Chemo liver impact monitored'}</span>
               </div>
             </div>
 
             <!-- 8: ANC -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs app-card">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-2xs">
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900">{isBn ? 'ANC (রোগ প্রতিরোধ সেল)' : 'ANC (Absolute Neutrophil)'}</h3>
-                  <span class="text-[11px] text-slate-400 block">{isBn ? 'ইনফেকশন রিস্ক ফ্যাক্টর' : 'Infection Risk Factor'}</span>
+                  <h3 class="text-sm font-bold text-gray-900">{isBn ? 'ANC (রোগ প্রতিরোধ সেল)' : 'ANC (Absolute Neutrophil)'}</h3>
+                  <span class="text-[11px] text-gray-400 block">{isBn ? 'ইনফেকশন রিস্ক ফ্যাক্টর' : 'Infection Risk Factor'}</span>
                 </div>
                 <div class="text-right">
                   <span class="text-2xl font-black text-rose-600 font-mono">{anc}</span>
-                  <span class="text-[10px] text-slate-400 block">/μL</span>
+                  <span class="text-[10px] text-gray-400 block">/μL</span>
                 </div>
               </div>
-              <div class="h-14 flex items-end">
-                <svg class="w-full h-12" viewBox="0 0 100 40">
+              <div class="h-12 flex items-end">
+                <svg class="w-full h-10" viewBox="0 0 100 40">
                   <polyline fill="none" stroke="#e11d48" stroke-width="2" points="0,32 30,28 60,22 100,12"></polyline>
                   <polygon fill="rgba(225, 29, 72, 0.1)" points="0,32 30,28 60,22 100,12 100,40 0,40"></polygon>
                 </svg>
@@ -648,19 +674,19 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       </section>
 
       <!-- ======================================================== -->
-      <!-- SECTION 3: 5-TAB TARGET STRATEGY (HOW TO REACH 40 LAKH)  -->
+      <!-- SECTION 3: 5-TAB TARGET STRATEGY (COHESIVE LIGHT CARD)   -->
       <!-- ======================================================== -->
       <section id="target-strategy" class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div class="bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-900 rounded-3xl p-6 sm:p-10 text-white card-shadow">
+        <div class="bg-white rounded-3xl p-6 sm:p-10 border border-gray-200 shadow-sm">
           <div class="text-center max-w-3xl mx-auto mb-8 space-y-2">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
               <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
               <span>{isBn ? 'একতার শক্তি ও হিসাব' : 'Collective Action Calculator'}</span>
             </span>
-            <h2 class="text-2xl sm:text-4xl font-black text-white">
+            <h2 class="text-2xl sm:text-3xl font-black text-gray-900">
               {isBn ? '৪০ লাখ টাকার পাহাড়সম বোঝা যেভাবে অতি সহজেই দূর হতে পারে' : 'How 4,000,000 BDT Can Be Easily Raised Together'}
             </h2>
-            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
               {isBn
                 ? 'একা একটি পরিবারের পক্ষে ৪০ লাখ টাকা জোগাড় করা অসম্ভব, কিন্তু আমরা সবাই যদি আমাদের দৈনন্দিন অতি ক্ষুদ্র একটি অভ্যাস একদিন আরাফের জীবনের জন্য উৎসর্গ করি—তাহলে মুহূর্তেই এই লক্ষ্য পূরণ সম্ভব।'
                 : "Alone it's impossible, but together through our minor everyday sacrifices, Araf can be saved in no time."}
@@ -672,7 +698,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <button
               type="button"
               onclick="switchImpactTab(0)"
-              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-emerald-600 text-white shadow-lg transition cursor-pointer"
+              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-rose-600 text-white shadow-2xs transition cursor-pointer"
             >
               <span>☕ {isBn ? 'এক কাপ চা/কফি' : 'A Cup of Tea'}</span>
             </button>
@@ -680,7 +706,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <button
               type="button"
               onclick="switchImpactTab(1)"
-              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-white/10 text-slate-300 hover:bg-white/20 transition cursor-pointer"
+              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition cursor-pointer"
             >
               <span>🍔 {isBn ? 'একটি বার্গারের দাম' : 'Cost of a Burger'}</span>
             </button>
@@ -688,7 +714,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <button
               type="button"
               onclick="switchImpactTab(2)"
-              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-white/10 text-slate-300 hover:bg-white/20 transition cursor-pointer"
+              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition cursor-pointer"
             >
               <span>🍗 {isBn ? 'ফ্রাইড চিকেনের খাবার' : 'Fried Chicken Meal'}</span>
             </button>
@@ -696,7 +722,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <button
               type="button"
               onclick="switchImpactTab(3)"
-              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-white/10 text-slate-300 hover:bg-white/20 transition cursor-pointer"
+              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition cursor-pointer"
             >
               <span>👥 {isBn ? 'বন্ধুদের এক বেলার আড্ডা' : "Friends' Hangout"}</span>
             </button>
@@ -704,25 +730,25 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <button
               type="button"
               onclick="switchImpactTab(4)"
-              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-white/10 text-slate-300 hover:bg-white/20 transition cursor-pointer"
+              class="impact-tab-btn px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition cursor-pointer"
             >
               <span>📱 {isBn ? 'মোবাইল রিচার্জ/নেট প্যাক' : 'Monthly Data Recharge'}</span>
             </button>
           </div>
 
           <!-- Dynamic Tab Content Panels -->
-          <div class="bg-white/5 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-md">
+          <div class="bg-gray-50/90 border border-gray-200 rounded-2xl p-6 sm:p-8">
             <!-- Tab 0: Tea (50 BDT) -->
             <div class="impact-content-panel space-y-4" id="panel-0">
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
-                  <span class="text-xs font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-md">
+                  <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
                     {isBn ? 'অপশন ১: এক কাপ চা বা কফির দান' : 'Option 1: One cup of tea/coffee'}
                   </span>
-                  <h3 class="text-xl sm:text-2xl font-bold text-white">
+                  <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
                     {isBn ? 'প্রতিদিন আমরা অনেকেই ৩০ থেকে ৫০ টাকার চা-কফি খাই' : 'Every day many of us spend ৳50 on tea or coffee'}
                   </h3>
-                  <p class="text-sm text-slate-300 leading-relaxed">
+                  <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
                         মাত্র <strong>৮০,০০০ জন সহৃদয় মানুষ</strong> যদি মাত্র <strong>৫০ টাকা</strong> করে আরাফের তহবিলে দান করেন, তাহলে নিমেষেই ৪০,০০,০০০ (চল্লিশ লাখ) টাকা সম্পূর্ণ সংগৃহীত হয়ে যায়। আপনার পকেটের এই ৫০ টাকাই ফিরিয়ে দিতে পারে আরাফের কলেজ জীবন।
@@ -733,21 +759,21 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                       </span>
                     )}
                   </p>
-                  <div class="flex flex-wrap items-center gap-4 text-xs text-amber-300 font-semibold pt-2">
+                  <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
                     <span>✓ {isBn ? 'প্রয়োজন: ৮০ হাজার জন' : 'Needed: 80,000 people'}</span>
                     <span>✓ {isBn ? 'পরিমাণ: মাত্র ৫০ টাকা' : 'Amount: ৳50'}</span>
                     <span>✓ {isBn ? 'ফলাফল: আরাফের শতভাগ চিকিৎসা সম্পন্ন' : 'Impact: Full treatment completed'}</span>
                   </div>
                 </div>
-                <div class="md:col-span-4 text-center bg-slate-900/60 p-5 rounded-2xl border border-white/10">
-                  <span class="text-xs text-slate-400 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-4xl font-black text-amber-400 font-mono">৳ ৫০</span>
-                  <span class="text-[11px] text-slate-300 block mt-1">{isBn ? 'এক কাপ চায়ের টাকা বাঁচিয়ে আরাফকে দিন' : 'Sacrifice one cup of tea'}</span>
+                <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
+                  <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
+                  <span class="text-4xl font-black text-rose-600 font-mono">৳ ৫০</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'এক কাপ চায়ের টাকা বাঁচিয়ে আরাফকে দিন' : 'Sacrifice one cup of tea'}</span>
                   <a
                     href="#donate-section"
-                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer"
+                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer"
                   >
-                    <i data-lucide="heart" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="heart" class="w-3.5 h-3.5 fill-white"></i>
                     <span>{isBn ? '৫০ টাকা ডোনেট করুন' : 'Donate ৳50'}</span>
                   </a>
                 </div>
@@ -758,13 +784,13 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div class="impact-content-panel space-y-4 hidden" id="panel-1">
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
-                  <span class="text-xs font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-md">
+                  <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
                     {isBn ? 'অপশন ২: একটি সাধারণ বার্গারের মূল্য' : 'Option 2: Value of a Burger'}
                   </span>
-                  <h3 class="text-xl sm:text-2xl font-bold text-white">
+                  <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
                     {isBn ? 'বিকেলে রেস্টুরেন্ট বা স্ট্রিট ফুডে একটি বার্গারের দাম ১০০ থেকে ১৫০ টাকা' : 'An afternoon snack burger costs ৳100 to ৳150'}
                   </h3>
-                  <p class="text-sm text-slate-300 leading-relaxed">
+                  <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
                         মাত্র <strong>৪০,০০০ জন মানুষ</strong> যদি একদিন একটি সাধারণ বার্গার খাওয়া এড়িয়ে <strong>১০০ টাকা</strong> আরাফকে বাঁচানোর জন্য এগিয়ে দেন, তবে নিমিষেই ৪০ লাখ টাকার লক্ষ্যমাত্রা পুরোপুরি স্পর্শ করা সম্ভব।
@@ -775,21 +801,21 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                       </span>
                     )}
                   </p>
-                  <div class="flex flex-wrap items-center gap-4 text-xs text-amber-300 font-semibold pt-2">
+                  <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
                     <span>✓ {isBn ? 'প্রয়োজন: মাত্র ৪০ হাজার জন' : 'Needed: 40,000 people'}</span>
                     <span>✓ {isBn ? 'পরিমাণ: মাত্র ১০০ টাকা' : 'Amount: ৳100'}</span>
                     <span>✓ {isBn ? 'ফলাফল: সম্পন্ন হবে পুরো কেমো ও ওষুধের ব্যয়' : 'Impact: Covers chemo & medications'}</span>
                   </div>
                 </div>
-                <div class="md:col-span-4 text-center bg-slate-900/60 p-5 rounded-2xl border border-white/10">
-                  <span class="text-xs text-slate-400 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-4xl font-black text-amber-400 font-mono">৳ ১০০</span>
-                  <span class="text-[11px] text-slate-300 block mt-1">{isBn ? 'একটি বার্গারের টাকা পাঠাতে পারেন' : 'Send cost of a burger'}</span>
+                <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
+                  <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
+                  <span class="text-4xl font-black text-rose-600 font-mono">৳ ১০০</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'একটি বার্গারের টাকা পাঠাতে পারেন' : 'Send cost of a burger'}</span>
                   <a
                     href="#donate-section"
-                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer"
+                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer"
                   >
-                    <i data-lucide="heart" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="heart" class="w-3.5 h-3.5 fill-white"></i>
                     <span>{isBn ? '১০০ টাকা ডোনেট করুন' : 'Donate ৳100'}</span>
                   </a>
                 </div>
@@ -800,13 +826,13 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div class="impact-content-panel space-y-4 hidden" id="panel-2">
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
-                  <span class="text-xs font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-md">
+                  <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
                     {isBn ? 'অপশন ৩: একদিনের ফ্রাইড চিকেন বা ফাস্টফুড মিল' : 'Option 3: One Fried Chicken Meal'}
                   </span>
-                  <h3 class="text-xl sm:text-2xl font-bold text-white">
+                  <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
                     {isBn ? 'বন্ধুদের নিয়ে ফ্রাইড চিকেন খেতে গেলে ২০০ থেকে ৩০০ টাকা খরচ হয়' : 'Fast food dining with friends costs ৳200 - ৳300'}
                   </h3>
-                  <p class="text-sm text-slate-300 leading-relaxed">
+                  <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
                         মাত্র <strong>২০,০০০ জন শুভাকাঙ্ক্ষী</strong> যদি মাত্র <strong>২০০ টাকা</strong> করে পাঠিয়ে দেন, তাহলে বিশ হাজার মানুষের সমন্বয়ে মুহূর্তের মধ্যে ৪০,০০,০০০ টাকা জোগাড় হয়ে যায়।
@@ -817,21 +843,21 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                       </span>
                     )}
                   </p>
-                  <div class="flex flex-wrap items-center gap-4 text-xs text-amber-300 font-semibold pt-2">
+                  <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
                     <span>✓ {isBn ? 'প্রয়োজন: মাত্র ২০ হাজার মানুষ' : 'Needed: 20,000 people'}</span>
                     <span>✓ {isBn ? 'পরিমাণ: মাত্র ২০০ টাকা' : 'Amount: ৳200'}</span>
                     <span>✓ {isBn ? 'ফলাফল: জরুরি প্লাটিলেট ও উন্নত কেমো সম্পূর্ণ নিশ্চিত' : 'Impact: Secures platelets & chemo'}</span>
                   </div>
                 </div>
-                <div class="md:col-span-4 text-center bg-slate-900/60 p-5 rounded-2xl border border-white/10">
-                  <span class="text-xs text-slate-400 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-4xl font-black text-amber-400 font-mono">৳ ২০০</span>
-                  <span class="text-[11px] text-slate-300 block mt-1">{isBn ? 'এক বেলার ফাস্টফুডের টাকা বাঁচান' : 'Save cost of fast food'}</span>
+                <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
+                  <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
+                  <span class="text-4xl font-black text-rose-600 font-mono">৳ ২০০</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'এক বেলার ফাস্টফুডের টাকা বাঁচান' : 'Save cost of fast food'}</span>
                   <a
                     href="#donate-section"
-                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer"
+                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer"
                   >
-                    <i data-lucide="heart" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="heart" class="w-3.5 h-3.5 fill-white"></i>
                     <span>{isBn ? '২০০ টাকা ডোনেট করুন' : 'Donate ৳200'}</span>
                   </a>
                 </div>
@@ -842,13 +868,13 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div class="impact-content-panel space-y-4 hidden" id="panel-3">
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
-                  <span class="text-xs font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-md">
+                  <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
                     {isBn ? 'অপশন ৪: বন্ধুদের এক বেলার আড্ডার খরচ' : "Option 4: Friends' Evening Hangout"}
                   </span>
-                  <h3 class="text-xl sm:text-2xl font-bold text-white">
+                  <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
                     {isBn ? 'বন্ধুরা মিলে একসাথে রেস্তোরাঁয় বসলে ৫০০ টাকার বিল হয় অনায়াসেই' : 'A restaurant gathering with friends easily costs ৳500'}
                   </h3>
-                  <p class="text-sm text-slate-300 leading-relaxed">
+                  <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
                         মাত্র <strong>৮,০০০ জন মানুষ</strong> যদি <strong>৫০০ টাকা</strong> করে আরাফের চিকিৎসার জন্য দেন, তাহলে এই সুবিশাল ৪০ লাখ টাকার বোঝা একদম শূন্যে নেমে আসে। কলেজ শিক্ষার্থী আরাফের জীবন বাঁচানো আপনার এই একটি আড্ডার চেয়েও অনেক বেশি মূল্যবান।
@@ -859,21 +885,21 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                       </span>
                     )}
                   </p>
-                  <div class="flex flex-wrap items-center gap-4 text-xs text-amber-300 font-semibold pt-2">
+                  <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
                     <span>✓ {isBn ? 'প্রয়োজন: মাত্র ৮ হাজার তরুণ/শুভাকাঙ্ক্ষী' : 'Needed: 8,000 people'}</span>
                     <span>✓ {isBn ? 'পরিমাণ: ৫০০ টাকা' : 'Amount: ৳500'}</span>
                     <span>✓ {isBn ? 'ফলাফল: সম্পূর্ণ চিকিৎসা ও দেশের বাইরে রেফারেলের প্রস্তুতি' : 'Impact: Full therapy & overseas referral'}</span>
                   </div>
                 </div>
-                <div class="md:col-span-4 text-center bg-slate-900/60 p-5 rounded-2xl border border-white/10">
-                  <span class="text-xs text-slate-400 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-4xl font-black text-amber-400 font-mono">৳ ৫০০</span>
-                  <span class="text-[11px] text-slate-300 block mt-1">{isBn ? 'আড্ডার টাকা আরাফের জীবনের জন্য দিন' : 'Dedicate one hangout bill'}</span>
+                <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
+                  <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
+                  <span class="text-4xl font-black text-rose-600 font-mono">৳ ৫০০</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'আড্ডার টাকা আরাফের জীবনের জন্য দিন' : 'Dedicate one hangout bill'}</span>
                   <a
                     href="#donate-section"
-                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer"
+                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer"
                   >
-                    <i data-lucide="heart" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="heart" class="w-3.5 h-3.5 fill-white"></i>
                     <span>{isBn ? '৫০০ টাকা ডোনেট করুন' : 'Donate ৳500'}</span>
                   </a>
                 </div>
@@ -884,13 +910,13 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div class="impact-content-panel space-y-4 hidden" id="panel-4">
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 <div class="md:col-span-8 space-y-3">
-                  <span class="text-xs font-bold text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-md">
+                  <span class="text-xs font-bold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-md">
                     {isBn ? 'অপশন ৫: এক মাসের অতিরিক্ত ডেটা প্যাক বা রিচার্জ' : 'Option 5: Monthly Data Recharge'}
                   </span>
-                  <h3 class="text-xl sm:text-2xl font-bold text-white">
+                  <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
                     {isBn ? 'মাসে আমরা অনেকেই মোবাইল ও ইন্টারনেটের পেছনে ১,০০০ টাকা খরচ করি' : 'We frequently spend ৳1,000 per month on internet data and mobile top-ups'}
                   </h3>
-                  <p class="text-sm text-slate-300 leading-relaxed">
+                  <p class="text-sm text-gray-600 leading-relaxed">
                     {isBn ? (
                       <span>
                         প্রবাসী ভাইবোনেরা এবং সামর্থ্যবান মাত্র <strong>৪,০০০ জন মানুষ</strong> যদি <strong>১,০০০ টাকা</strong> করে আরাফকে বাঁচানোর জন্য পাঠিয়ে দেন, তাহলে মাত্র চার হাজার মানুষের ভালোবাসাতেই ৪০ লাখ টাকা পূর্ণাঙ্গ হয়ে যায়।
@@ -901,21 +927,21 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                       </span>
                     )}
                   </p>
-                  <div class="flex flex-wrap items-center gap-4 text-xs text-amber-300 font-semibold pt-2">
+                  <div class="flex flex-wrap items-center gap-4 text-xs text-gray-700 font-semibold pt-1">
                     <span>✓ {isBn ? 'প্রয়োজন: মাত্র ৪ হাজার মহানুভব ব্যক্তি' : 'Needed: 4,000 people'}</span>
                     <span>✓ {isBn ? 'পরিমাণ: ১,০০০ টাকা' : 'Amount: ৳1,000'}</span>
                     <span>✓ {isBn ? 'ফলাফল: আরাফ সুস্থ হয়ে ফিরে পাবে রঙিন পৃথিবী' : 'Impact: Araf gets a second lease on life'}</span>
                   </div>
                 </div>
-                <div class="md:col-span-4 text-center bg-slate-900/60 p-5 rounded-2xl border border-white/10">
-                  <span class="text-xs text-slate-400 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-4xl font-black text-amber-400 font-mono">৳ ১,০০০</span>
-                  <span class="text-[11px] text-slate-300 block mt-1">{isBn ? 'একটি পরিবারের ভবিষ্যৎ বাঁচিয়ে দিন' : 'Save a family future'}</span>
+                <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
+                  <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
+                  <span class="text-4xl font-black text-rose-600 font-mono">৳ ১,০০০</span>
+                  <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'একটি পরিবারের ভবিষ্যৎ বাঁচিয়ে দিন' : 'Save a family future'}</span>
                   <a
                     href="#donate-section"
-                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer"
+                    class="mt-4 inline-flex items-center justify-center gap-1.5 w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-xs transition cursor-pointer"
                   >
-                    <i data-lucide="heart" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="heart" class="w-3.5 h-3.5 fill-white"></i>
                     <span>{isBn ? '১,০০০ টাকা ডোনেট করুন' : 'Donate ৳1,000'}</span>
                   </a>
                 </div>
@@ -929,16 +955,16 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <!-- SECTION 4: NATIONAL MEDIA COVERAGE (SHOMOYER ALO)        -->
       <!-- ======================================================== -->
       <section id="media-report" class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 card-shadow">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
           <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
             <!-- Newspaper Feature Image Preview -->
             <div
               class="md:col-span-5 cursor-pointer group"
-              onclick="openLightbox('/campaign/shomoyer_alo_feature.jpg', 'দৈনিক সময়ের আলো পত্রিকায় প্রকাশিত সংবাদ — ৩ নভেম্বর ২০২৬')"
+              onclick={`openLightbox('${newsClippingImg}', 'দৈনিক সময়ের আলো পত্রিকায় প্রকাশিত সংবাদ — ৩ নভেম্বর ২০২৬')`}
             >
-              <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-md aspect-4/5 max-h-[360px] bg-slate-900">
+              <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-xs aspect-4/5 max-h-[360px] bg-slate-900">
                 <img
-                  src="/campaign/shomoyer_alo_feature.jpg"
+                  src={newsClippingImg}
                   alt={isBn ? 'দৈনিক সময়ের আলো কভারেজ' : 'Shomoyer Alo Newspaper Feature'}
                   class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500"
                   loading="lazy"
@@ -950,7 +976,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                     <span>{isBn ? 'পত্রিকার পাতাটি বড় করে দেখুন' : 'Enlarge Newspaper Clipping'}</span>
                   </span>
                 </div>
-                <span class="absolute top-3 left-3 bg-red-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-xs">
+                <span class="absolute top-3 left-3 bg-rose-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-2xs">
                   {isBn ? 'সময়ের আলো নিউজ' : 'Shomoyer Alo News'}
                 </span>
               </div>
@@ -959,17 +985,17 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <!-- News Details & Story Snippet -->
             <div class="md:col-span-7 space-y-4">
               <div class="flex items-center gap-2">
-                <span class="px-2.5 py-1 rounded text-xs font-bold bg-blue-100 text-blue-800 uppercase tracking-wider">
+                <span class="px-2.5 py-1 rounded text-xs font-bold bg-rose-100 text-rose-800 uppercase tracking-wider">
                   {isBn ? 'জাতীয় দৈনিক মিডিয়া রিপোর্ট' : 'National Daily Media Report'}
                 </span>
-                <span class="text-xs text-slate-500 font-medium">{newsSource}</span>
+                <span class="text-xs text-gray-500 font-medium">{newsSource}</span>
               </div>
 
-              <h2 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+              <h2 class="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">
                 {newsTitle}
               </h2>
 
-              <div class="prose prose-slate text-sm sm:text-base text-slate-700 leading-relaxed space-y-3">
+              <div class="prose prose-slate text-sm sm:text-base text-gray-700 leading-relaxed space-y-3">
                 <p>
                   {isBn ? (
                     <span>
@@ -981,7 +1007,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                     </span>
                   )}
                 </p>
-                <p class="text-xs sm:text-sm text-slate-500">
+                <p class="text-xs sm:text-sm text-gray-500">
                   {isBn ? (
                     <span>
                       আরাফের বাড়ি ফরিদপুরের বোয়ালমারী উপজেলার কামারগ্রাম গ্রামে। বর্তমানে সে ঢাকা মেডিকেল কলেজ হাসপাতালের হেমাটোলজি বিভাগের ১১৪/বি নম্বর কেবিনে সহযোগী অধ্যাপক চিকিৎসক হুমায়রা নাজনীনের অধীনে চিকিৎসাধীন।
@@ -999,13 +1025,13 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                   href={newsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition cursor-pointer"
+                  class="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm shadow-xs transition cursor-pointer"
                 >
-                  <i data-lucide="newspaper" class="w-4 h-4"></i>
+                  <i data-lucide="newspaper" class="w-4 h-4 text-rose-400"></i>
                   <span>{isBn ? 'অনলাইনে মূল সংবাদটি পড়ুন' : 'Read Full Online Article'}</span>
                   <i data-lucide="external-link" class="w-3.5 h-3.5 ml-1"></i>
                 </a>
-                <span class="text-xs text-slate-500 font-medium">
+                <span class="text-xs text-gray-500 font-medium">
                   {isBn ? 'হাসপাতালে সরাসরি যাচাইযোগ্য প্রতিবেদন' : 'Directly verifiable report at hospital'}
                 </span>
               </div>
@@ -1017,22 +1043,22 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <!-- ======================================================== -->
       <!-- SECTION 5: TRANSPARENT FUNDRAISING TRACKER & BUDGET      -->
       <!-- ======================================================== -->
-      <section id="budget" class="py-12 bg-white border-y border-amber-100 shadow-xs">
+      <section id="budget" class="py-12 bg-gray-50/70 border-y border-gray-200/80 shadow-2xs">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center max-w-3xl mx-auto mb-8">
-            <span class="text-emerald-700 font-bold text-xs uppercase tracking-wider bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            <span class="text-rose-700 font-bold text-xs uppercase tracking-wider bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
               {isBn ? 'ফান্ডের স্বচ্ছতা ও হালনাগাদ হিসাব' : 'Financial Transparency & Live Audit'}
             </span>
-            <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+            <h3 class="text-2xl sm:text-3xl font-black text-gray-900 mt-2">
               {isBn ? `সম্পূর্ণ চিকিৎসার লক্ষ্য: ${targetDisplay} (চল্লিশ লাখ) টাকা` : `Total Treatment Goal: ${targetDisplay}`}
             </h3>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+            <p class="text-xs sm:text-sm text-gray-500 mt-1">
               {fundDate}
             </p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            <!-- Circular Gauge (Calculated against 40,00,000 TK) -->
+            <!-- Circular Gauge -->
             <div class="md:col-span-5 flex items-center gap-5 justify-center md:justify-start">
               <div class="relative w-36 h-36 shrink-0 flex items-center justify-center">
                 <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -1041,7 +1067,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                     cx="50"
                     cy="50"
                     r={circleRadius}
-                    stroke="#047857"
+                    stroke="#e11d48"
                     stroke-width="8"
                     stroke-dasharray={circleCircumference}
                     stroke-dashoffset={circleOffset}
@@ -1051,22 +1077,22 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                   ></circle>
                 </svg>
                 <div class="absolute text-center">
-                  <span class="text-2xl font-black text-slate-800">{percentDisplay}</span>
-                  <span class="block text-[10px] text-slate-500 uppercase font-bold">
+                  <span class="text-2xl font-black text-gray-900">{percentDisplay}</span>
+                  <span class="block text-[10px] text-gray-500 uppercase font-bold">
                     {isBn ? 'সংগৃহীত' : 'Raised'}
                   </span>
                 </div>
               </div>
 
               <div class="space-y-1">
-                <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md inline-block">
+                <span class="text-xs font-semibold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-md inline-block">
                   {isBn ? 'সর্বশেষ সংগ্রহ' : 'Latest Total'}
                 </span>
-                <h4 class="text-3xl font-black text-slate-900 tracking-tight font-mono">{raisedDisplay}</h4>
-                <p class="text-xs text-slate-500">
+                <h4 class="text-3xl font-black text-rose-600 tracking-tight font-mono">{raisedDisplay}</h4>
+                <p class="text-xs text-gray-500">
                   {isBn ? '১ম ধাপের খরচ: ৳ ২০,০০,০০০' : 'Phase 1 Target: 20 Lakh BDT'}
                 </p>
-                <p class="text-[11px] text-amber-700 font-bold">
+                <p class="text-[11px] text-gray-700 font-bold">
                   {isBn ? `সম্পূর্ণ লক্ষ্য: ${targetDisplay}` : `Full Goal: ${targetDisplay}`}
                 </p>
               </div>
@@ -1076,23 +1102,23 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div class="md:col-span-7 space-y-4">
               <div>
                 <div class="flex justify-between text-xs sm:text-sm font-semibold mb-1.5">
-                  <span class="text-slate-700">
+                  <span class="text-gray-700">
                     {isBn ? 'মোট সংগৃহীত অনুদান: ' : 'Total Fund Raised: '}
-                    <strong class="text-emerald-700 font-mono text-base">{raisedDisplay}</strong>
+                    <strong class="text-rose-600 font-mono text-base">{raisedDisplay}</strong>
                   </span>
-                  <span class="text-slate-500">
+                  <span class="text-gray-500">
                     {isBn ? `সম্পূর্ণ লক্ষ্যমাত্রা: ${targetDisplay}` : `Target: ${targetDisplay}`}
                   </span>
                 </div>
 
-                <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden p-0.5 border border-slate-200">
+                <div class="w-full bg-gray-200/80 rounded-full h-4 overflow-hidden p-0.5 border border-gray-200">
                   <div
-                    class="bg-gradient-to-r from-emerald-500 to-emerald-700 h-full rounded-full transition-all duration-1000 shadow-xs"
+                    class="bg-gradient-to-r from-rose-500 to-rose-600 h-full rounded-full transition-all duration-1000 shadow-2xs"
                     style={`width: ${Math.min(100, Math.max(3, progressPercentNum))}%`}
                   ></div>
                 </div>
 
-                <div class="flex justify-between items-center text-[11px] text-slate-500 mt-1.5">
+                <div class="flex justify-between items-center text-[11px] text-gray-500 mt-1.5">
                   <span>{isBn ? 'হালনাগাদ সংগ্রহ চলমান' : 'Fundraising active'}</span>
                   <span class="text-rose-600 font-bold">
                     {isBn ? `এখনও বাকি: ${remainingDisplay} টাকা` : `Remaining: ${remainingDisplay}`}
@@ -1103,20 +1129,20 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
               <!-- Cost Cards Breakdown -->
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 app-card">
-                  <span class="text-xs text-amber-900 block font-medium">{isBn ? 'পরিবারের ব্যয় হয়েছে' : 'Family Spent'}</span>
-                  <span class="text-lg font-bold text-amber-900">{isBn ? '৳ ৩,৫০,০০০+' : '৳ 3,50,000+'}</span>
-                  <span class="text-[11px] text-amber-700 block">{isBn ? 'সঞ্চয় শেষ, হাত এখন শূন্য' : 'Savings exhausted'}</span>
+                <div class="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+                  <span class="text-xs text-gray-500 block font-medium">{isBn ? 'পরিবারের ব্যয় হয়েছে' : 'Family Spent'}</span>
+                  <span class="text-lg font-bold text-gray-900">{isBn ? '৳ ৩,৫০,০০০+' : '৳ 3,50,000+'}</span>
+                  <span class="text-[11px] text-rose-600 block">{isBn ? 'সঞ্চয় শেষ, হাত এখন শূন্য' : 'Savings exhausted'}</span>
                 </div>
-                <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 app-card">
-                  <span class="text-xs text-rose-900 block font-medium">{isBn ? 'ডোনার জরুরি' : 'Donors Needed'}</span>
-                  <span class="text-lg font-black text-rose-900">B+ (বি পজিটিভ)</span>
-                  <span class="text-[11px] text-rose-700 block">{isBn ? 'হোল ব্লাড ও SDP প্লাটিলেট' : 'Whole Blood & SDP'}</span>
+                <div class="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+                  <span class="text-xs text-gray-500 block font-medium">{isBn ? 'ডোনার জরুরি' : 'Donors Needed'}</span>
+                  <span class="text-lg font-black text-rose-600">B+ (বি পজিটিভ)</span>
+                  <span class="text-[11px] text-gray-600 block">{isBn ? 'হোল ব্লাড ও SDP প্লাটিলেট' : 'Whole Blood & SDP'}</span>
                 </div>
-                <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 app-card">
-                  <span class="text-xs text-emerald-900 block font-medium">{isBn ? 'বাবার কর্মসংস্থান' : 'Father Employment'}</span>
-                  <span class="text-lg font-bold text-emerald-900">{isBn ? 'সম্পূর্ণ কর্মহীন' : 'Unemployed'}</span>
-                  <span class="text-[11px] text-emerald-700 block">{isBn ? 'গত মে মাস থেকে বেকার' : 'Jobless since May'}</span>
+                <div class="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+                  <span class="text-xs text-gray-500 block font-medium">{isBn ? 'বাবার কর্মসংস্থান' : 'Father Employment'}</span>
+                  <span class="text-lg font-bold text-gray-900">{isBn ? 'সম্পূর্ণ কর্মহীন' : 'Unemployed'}</span>
+                  <span class="text-[11px] text-amber-700 block">{isBn ? 'গত মে মাস থেকে বেকার' : 'Jobless since May'}</span>
                 </div>
               </div>
             </div>
@@ -1128,212 +1154,205 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <!-- SECTION 6: OFFICIAL DONATION CHANNELS (BKASH/NAGAD/BANK) -->
       <!-- ======================================================== -->
       <section id="donate-section" class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl p-6 sm:p-10 text-white shadow-2xl relative overflow-hidden">
-          <div class="absolute -right-20 -top-20 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="text-center max-w-3xl mx-auto mb-10">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 mb-2">
+            {isBn ? 'সরাসরি সাহায্য পাঠানোর মাধ্যম' : 'Official Donation Channels'}
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-black text-gray-900">
+            {isBn ? 'আপনার সামান্য সহায়তা ফিরিয়ে দিতে পারে আরাফের কলেজ জীবন' : 'Your Contribution Can Bring Araf Back to Life'}
+          </h2>
+          <p class="text-gray-600 mt-2 text-sm sm:text-base leading-relaxed">
+            {isBn
+              ? 'বিকাশ/নগদ/রকেট কিউআর কোড স্ক্যান করে বা নাম্বারে Send Money করুন। অথবা ব্যাংক অ্যাকাউন্টে সরাসরি ট্রান্সফার করুন।'
+              : 'Send Money via bKash/Nagad/Rocket by scanning QR or typing number, or transfer directly to City Bank account.'}
+          </p>
+        </div>
 
-          <div class="relative z-10">
-            <div class="text-center max-w-3xl mx-auto mb-10">
-              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-600/30 text-rose-300 border border-rose-500/40 mb-3">
-                {isBn ? 'সরাসরি সাহায্য পাঠানোর মাধ্যম' : 'Official Donation Channels'}
-              </span>
-              <h2 class="text-2xl sm:text-4xl font-black text-white">
-                {isBn ? 'আপনার সামান্য সহায়তা ফিরিয়ে দিতে পারে আরাফের কলেজ জীবন' : 'Your Contribution Can Bring Araf Back to Life'}
-              </h2>
-              <p class="text-slate-300 mt-2 text-sm sm:text-base leading-relaxed">
-                {isBn
-                  ? 'বিকাশ/নগদ/রকেট কিউআর কোড স্ক্যান করে বা নাম্বারে Send Money করুন। অথবা ব্যাংক অ্যাকাউন্টে সরাসরি ট্রান্সফার করুন।'
-                  : 'Send Money via bKash/Nagad/Rocket by scanning QR or typing number, or transfer directly to City Bank account.'}
-              </p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-stretch">
+          <!-- MFS (bKash / Nagad / Rocket) Card -->
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-sm">
+                    MFS
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold text-gray-900">{isBn ? 'বিকাশ / নগদ / রকেট' : 'bKash / Nagad / Rocket'}</h3>
+                    <p class="text-xs text-gray-500">{isBn ? 'পার্সোনাল একাউন্ট (Send Money)' : 'Personal Account (Send Money)'}</p>
+                  </div>
+                </div>
+                <span class="text-xs bg-rose-100 text-rose-800 px-2.5 py-1 rounded font-semibold">Personal</span>
+              </div>
+
+              <!-- Number Display Box -->
+              <div class="bg-gray-50 rounded-2xl p-4 sm:p-5 border border-gray-200 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <span class="text-xs text-gray-500 block">{isBn ? 'মোবাইল একাউন্ট নাম্বার:' : 'Mobile Number:'}</span>
+                  <span class="text-2xl sm:text-3xl font-mono font-black tracking-wider text-rose-600" id="mfs-num">01515616728</span>
+                  <span class="text-xs text-gray-500 block mt-0.5">
+                    {isBn ? 'অ্যাকাউন্ট হোল্ডার: শেখ মাহমুদ ইসলাম মিজু (ভাই)' : 'Account Holder: Sheikh Mahmud Islam Mizu (Brother)'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onclick="copyToClipboard('01515616728', 'mfs-btn')"
+                  id="mfs-btn"
+                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer"
+                >
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                  <span>{isBn ? 'নম্বর কপি করুন' : 'Copy Number'}</span>
+                </button>
+              </div>
+
+              <!-- Bangla QR Code Showcase -->
+              <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4 mb-4">
+                <div
+                  class="w-28 h-28 sm:w-32 sm:h-32 shrink-0 bg-white rounded-lg p-1.5 shadow-2xs border border-gray-200 overflow-hidden cursor-pointer group"
+                  onclick={`openLightbox('${banglaQrImg}', 'বিকাশ / বাংলা কিউআর কোড (স্ক্যান করে অনুদান পাঠান)')`}
+                >
+                  <img src={banglaQrImg} alt="Bangla QR Code" class="w-full h-full object-contain group-hover:scale-105 transition" loading="lazy" decoding="async" />
+                </div>
+                <div class="space-y-1 text-center sm:text-left">
+                  <span class="text-xs font-bold text-gray-900 uppercase tracking-wide block">
+                    {isBn ? 'বাংলা কিউআর (Bangla QR)' : 'Bangla QR Code'}
+                  </span>
+                  <p class="text-xs text-gray-600 leading-relaxed">
+                    {isBn
+                      ? 'বিকাশ বা যেকোনো বাংলা কিউআর সাপোর্টেড অ্যাপ দিয়ে এই কোড স্ক্যান করে সরাসরি নির্ভুলভাবে অনুদান সেন্ড করতে পারবেন। ছবিতে ক্লিক করে বড় করে স্ক্যান করুন।'
+                      : 'Scan this code with bKash or any Bangla QR enabled banking app. Click image to enlarge.'}
+                  </p>
+                </div>
+              </div>
+
+              <div class="space-y-2 text-xs text-gray-700">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+                  <strong>বিকাশ (bKash):</strong> 01515616728 (Send Money - Personal)
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                  <strong>নগদ (Nagad):</strong> 01515616728 (Send Money - Personal)
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                  <strong>রকেট (Rocket):</strong> 01515616728 (Send Money - Personal)
+                </div>
+              </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-              <!-- MFS (bKash / Nagad / Rocket) Card -->
-              <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 flex flex-col justify-between app-card">
-                <div>
-                  <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-300 flex items-center justify-center font-bold">
-                        MFS
-                      </div>
-                      <div>
-                        <h3 class="text-lg font-bold text-white">{isBn ? 'বিকাশ / নগদ / রকেট' : 'bKash / Nagad / Rocket'}</h3>
-                        <p class="text-xs text-slate-300">{isBn ? 'পার্সোনাল একাউন্ট (Send Money)' : 'Personal Account (Send Money)'}</p>
-                      </div>
-                    </div>
-                    <span class="text-xs bg-rose-600 px-2.5 py-1 rounded text-white font-semibold">Personal</span>
-                  </div>
+            <div class="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
+              <span>{isBn ? 'টাকা পাঠানোর পর প্রয়োজনে কনফার্ম করতে কল করুন:' : 'To confirm after donation:'}</span>
+              <a href="tel:01515616728" class="text-rose-600 font-bold hover:underline">01515616728</a>
+            </div>
+          </div>
 
-                  <!-- Number Display Box -->
-                  <div class="bg-slate-900/80 rounded-xl p-4 border border-white/10 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div>
-                      <span class="text-xs text-slate-400 block">{isBn ? 'মোবাইল একাউন্ট নাম্বার:' : 'Mobile Number:'}</span>
-                      <span class="text-2xl sm:text-3xl font-mono font-bold tracking-wider text-amber-400" id="mfs-num">01515616728</span>
-                      <span class="text-xs text-slate-300 block mt-0.5">
-                        {isBn ? 'অ্যাকাউন্ট হোল্ডার: শেখ মাহমুদ ইসলাম মিজু (ভাই)' : 'Account Holder: Sheikh Mahmud Islam Mizu (Brother)'}
-                      </span>
-                    </div>
+          <!-- Bank Account Card: City Bank -->
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <i data-lucide="landmark" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold text-gray-900">The City Bank PLC</h3>
+                    <p class="text-xs text-gray-500">{isBn ? 'ব্যাংক ট্রান্সফার / অনলাইন ডিপোজিট' : 'Direct Wire Transfer / NPSB / BEFTN'}</p>
+                  </div>
+                </div>
+                <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded font-semibold">City Bank</span>
+              </div>
+
+              <div class="space-y-2.5 bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm mb-4">
+                <div class="flex justify-between items-center py-1 border-b border-gray-200/60">
+                  <span class="text-gray-500 text-xs">Bank Name:</span>
+                  <span class="font-bold text-gray-900">The City Bank PLC</span>
+                </div>
+
+                <div class="flex justify-between items-center py-1 border-b border-gray-200/60">
+                  <span class="text-gray-500 text-xs">Account Name:</span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-gray-900 text-xs sm:text-sm">SHEIKH MAHMUD ISLAM MIZU</span>
                     <button
                       type="button"
-                      onclick="copyToClipboard('01515616728', 'mfs-btn')"
-                      id="mfs-btn"
-                      class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition shadow-md cursor-pointer"
+                      onclick="copyToClipboard('SHEIKH MAHMUD ISLAM MIZU', 'bank-name-copy')"
+                      id="bank-name-copy"
+                      class="text-[11px] bg-white hover:bg-gray-100 text-gray-800 px-2 py-0.5 rounded border border-gray-300 inline-flex items-center gap-1 cursor-pointer"
                     >
-                      <i data-lucide="copy" class="w-4 h-4"></i>
-                      <span>{isBn ? 'নম্বর কপি করুন' : 'Copy Number'}</span>
+                      <i data-lucide="copy" class="w-3 h-3"></i> {isBn ? 'কপি' : 'Copy'}
                     </button>
                   </div>
+                </div>
 
-                  <!-- Bangla QR Code Showcase -->
-                  <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4 mb-4">
-                    <div
-                      class="w-28 h-28 sm:w-32 sm:h-32 shrink-0 bg-white rounded-lg p-1.5 shadow-md overflow-hidden cursor-pointer group"
-                      onclick="openLightbox('/campaign/Bangla-QE.jpg', 'বিকাশ / বাংলা কিউআর কোড (স্ক্যান করে অনুদান পাঠান)')"
+                <div class="flex justify-between items-center py-1 border-b border-gray-200/60">
+                  <span class="text-gray-500 text-xs">Account Number:</span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-rose-600 text-base" id="bank-acc">2395230791001</span>
+                    <button
+                      type="button"
+                      onclick="copyToClipboard('2395230791001', 'bank-copy-btn')"
+                      id="bank-copy-btn"
+                      class="p-1 hover:text-gray-900 text-gray-400 cursor-pointer"
+                      aria-label="Copy account number"
                     >
-                      <img src="/campaign/Bangla-QE.jpg" alt="Bangla QR Code" class="w-full h-full object-contain group-hover:scale-105 transition" />
-                    </div>
-                    <div class="space-y-1 text-center sm:text-left">
-                      <span class="text-xs font-bold text-amber-400 uppercase tracking-wide block">
-                        {isBn ? 'বাংলা কিউআর (Bangla QR)' : 'Bangla QR Code'}
-                      </span>
-                      <p class="text-xs text-slate-200 leading-relaxed">
-                        {isBn
-                          ? 'বিকাশ বা যেকোনো বাংলা কিউআর সাপোর্টেড অ্যাপ দিয়ে এই কোড স্ক্যান করে সরাসরি নির্ভুলভাবে অনুদান সেন্ড করতে পারবেন। ছবিতে ক্লিক করে বড় করে স্ক্যান করুন।'
-                          : 'Scan this code with bKash or any Bangla QR enabled banking app. Click image to enlarge.'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="space-y-2 text-xs text-slate-300">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-pink-500"></span>
-                      <strong>বিকাশ (bKash):</strong> 01515616728 (Send Money - Personal)
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                      <strong>নগদ (Nagad):</strong> 01515616728 (Send Money - Personal)
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                      <strong>রকেট (Rocket):</strong> 01515616728 (Send Money - Personal)
-                    </div>
+                      <i data-lucide="copy" class="w-4 h-4"></i>
+                    </button>
                   </div>
                 </div>
 
-                <div class="mt-6 pt-4 border-t border-white/10 text-xs text-slate-400 flex items-center justify-between">
-                  <span>{isBn ? 'টাকা পাঠানোর পর প্রয়োজনে কনফার্ম করতে কল করুন:' : 'To confirm after donation:'}</span>
-                  <a href="tel:01515616728" class="text-amber-400 font-bold hover:underline">01515616728</a>
+                <div class="flex justify-between items-center py-1 border-b border-gray-200/60">
+                  <span class="text-gray-500 text-xs">Branch Name:</span>
+                  <span class="font-medium text-gray-800">VIP ROAD BRANCH (DHAKA)</span>
+                </div>
+
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-gray-500 text-xs">Routing Number:</span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono text-gray-800">225276851</span>
+                    <button
+                      type="button"
+                      onclick="copyToClipboard('225276851', 'rout-copy-btn')"
+                      id="rout-copy-btn"
+                      class="p-1 hover:text-gray-900 text-gray-400 cursor-pointer"
+                      aria-label="Copy routing number"
+                    >
+                      <i data-lucide="copy" class="w-4 h-4"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <!-- Bank Account Card: City Bank -->
-              <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 flex flex-col justify-between app-card">
-                <div>
-                  <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center font-bold">
-                        <i data-lucide="landmark" class="w-5 h-5"></i>
-                      </div>
-                      <div>
-                        <h3 class="text-lg font-bold text-white">The City Bank PLC</h3>
-                        <p class="text-xs text-slate-300">{isBn ? 'ব্যাংক ট্রান্সফার / অনলাইন ডিপোজিট' : 'Direct Wire Transfer / NPSB / BEFTN'}</p>
-                      </div>
-                    </div>
-                    <span class="text-xs bg-blue-600 px-2.5 py-1 rounded text-white font-semibold">City Bank</span>
-                  </div>
-
-                  <div class="space-y-2.5 bg-slate-900/80 p-4 rounded-xl border border-white/10 text-sm mb-4">
-                    <div class="flex justify-between items-center py-1 border-b border-white/5">
-                      <span class="text-slate-400 text-xs">Bank Name:</span>
-                      <span class="font-bold text-white">The City Bank PLC</span>
-                    </div>
-
-                    <div class="flex justify-between items-center py-1 border-b border-white/5">
-                      <span class="text-slate-400 text-xs">Account Name:</span>
-                      <div class="flex items-center gap-2">
-                        <span class="font-bold text-white text-xs sm:text-sm">SHEIKH MAHMUD ISLAM MIZU</span>
-                        <button
-                          type="button"
-                          onclick="copyToClipboard('SHEIKH MAHMUD ISLAM MIZU', 'bank-name-copy')"
-                          id="bank-name-copy"
-                          class="text-[11px] bg-slate-800 hover:bg-slate-700 text-amber-300 px-2 py-0.5 rounded border border-slate-600 inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          <i data-lucide="copy" class="w-3 h-3"></i> {isBn ? 'কপি' : 'Copy'}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div class="flex justify-between items-center py-1 border-b border-white/5">
-                      <span class="text-slate-400 text-xs">Account Number:</span>
-                      <div class="flex items-center gap-2">
-                        <span class="font-mono font-bold text-amber-400 text-base" id="bank-acc">2395230791001</span>
-                        <button
-                          type="button"
-                          onclick="copyToClipboard('2395230791001', 'bank-copy-btn')"
-                          id="bank-copy-btn"
-                          class="p-1 hover:text-white text-slate-400 cursor-pointer"
-                          aria-label="Copy account number"
-                        >
-                          <i data-lucide="copy" class="w-4 h-4"></i>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div class="flex justify-between items-center py-1 border-b border-white/5">
-                      <span class="text-slate-400 text-xs">Branch Name:</span>
-                      <span class="font-medium text-slate-200">VIP ROAD BRANCH (DHAKA)</span>
-                    </div>
-
-                    <div class="flex justify-between items-center py-1">
-                      <span class="text-slate-400 text-xs">Routing Number:</span>
-                      <div class="flex items-center gap-2">
-                        <span class="font-mono text-slate-200">225276851</span>
-                        <button
-                          type="button"
-                          onclick="copyToClipboard('225276851', 'rout-copy-btn')"
-                          id="rout-copy-btn"
-                          class="p-1 hover:text-white text-slate-400 cursor-pointer"
-                          aria-label="Copy routing number"
-                        >
-                          <i data-lucide="copy" class="w-4 h-4"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- CityTouch QR Code Showcase -->
-                  <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4">
-                    <div
-                      class="w-28 h-28 sm:w-32 sm:h-32 shrink-0 bg-white rounded-lg p-1.5 shadow-md overflow-hidden cursor-pointer group"
-                      onclick="openLightbox('/campaign/CityTouch-QR.jpg', 'CityTouch QR Code — সিটি ব্যাংক ট্রান্সফার')"
-                    >
-                      <img src="/campaign/CityTouch-QR.jpg" alt="CityTouch QR Code" class="w-full h-full object-contain group-hover:scale-105 transition" />
-                    </div>
-                    <div class="space-y-1 text-center sm:text-left">
-                      <span class="text-xs font-bold text-blue-400 uppercase tracking-wide block">
-                        {isBn ? 'CityTouch QR কোড' : 'CityTouch QR Code'}
-                      </span>
-                      <p class="text-xs text-slate-200 leading-relaxed">
-                        {isBn
-                          ? 'CityTouch অ্যাপ বা যেকোনো ব্যাংক অ্যাপের মাধ্যমে সরাসরি স্ক্যান করে ইনস্ট্যান্ট ফান্ড ট্রান্সফার করতে পারবেন।'
-                          : 'Scan via CityTouch app or any bank app for instant funds transfer.'}
-                      </p>
-                    </div>
-                  </div>
+              <!-- CityTouch QR Code Showcase -->
+              <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4">
+                <div
+                  class="w-28 h-28 sm:w-32 sm:h-32 shrink-0 bg-white rounded-lg p-1.5 shadow-2xs border border-gray-200 overflow-hidden cursor-pointer group"
+                  onclick={`openLightbox('${cityTouchQrImg}', 'CityTouch QR Code — সিটি ব্যাংক ট্রান্সফার')`}
+                >
+                  <img src={cityTouchQrImg} alt="CityTouch QR Code" class="w-full h-full object-contain group-hover:scale-105 transition" loading="lazy" decoding="async" />
                 </div>
-
-                <div class="mt-6 pt-4 border-t border-white/10 flex flex-wrap gap-2 items-center justify-between text-xs">
-                  <span class="text-slate-300">ব্রাঞ্চ জেলা: DHAKA-SOUTH</span>
-                  <button
-                    type="button"
-                    onclick="copyAllBankDetails()"
-                    class="text-amber-400 hover:text-amber-300 font-bold inline-flex items-center gap-1 cursor-pointer"
-                  >
-                    <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>
-                    <span>{isBn ? 'সম্পূর্ণ ব্যাংক তথ্য কপি করুন' : 'Copy All Bank Details'}</span>
-                  </button>
+                <div class="space-y-1 text-center sm:text-left">
+                  <span class="text-xs font-bold text-gray-900 uppercase tracking-wide block">
+                    {isBn ? 'CityTouch QR কোড' : 'CityTouch QR Code'}
+                  </span>
+                  <p class="text-xs text-gray-600 leading-relaxed">
+                    {isBn
+                      ? 'CityTouch অ্যাপ বা যেকোনো ব্যাংক অ্যাপের মাধ্যমে সরাসরি স্ক্যান করে ইনস্ট্যান্ট ফান্ড ট্রান্সফার করতে পারবেন।'
+                      : 'Scan via CityTouch app or any bank app for instant funds transfer.'}
+                  </p>
                 </div>
               </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-gray-100 flex flex-wrap gap-2 items-center justify-between text-xs">
+              <span class="text-gray-500">ব্রাঞ্চ জেলা: DHAKA-SOUTH</span>
+              <button
+                type="button"
+                onclick="copyAllBankDetails()"
+                class="text-rose-600 hover:text-rose-700 font-bold inline-flex items-center gap-1 cursor-pointer"
+              >
+                <i data-lucide="clipboard-check" class="w-3.5 h-3.5"></i>
+                <span>{isBn ? 'সম্পূর্ণ ব্যাংক তথ্য কপি করুন' : 'Copy All Bank Details'}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1341,17 +1360,16 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
       <!-- ======================================================== -->
       <!-- SECTION 7: URGENT BLOOD & PLATELET DONOR APPEAL          -->
-      <!-- (EXCLUDING inline form; pointing cleanly to /donate-blood)-->
       <!-- ======================================================== -->
-      <section id="blood-needs" class="py-12 bg-rose-50/80 border-y border-rose-200">
+      <section id="blood-needs" class="py-12 bg-rose-50/50 border-y border-rose-100">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-xs border border-rose-200">
+          <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-rose-200">
             <div class="text-center max-w-3xl mx-auto mb-8 space-y-2">
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-bold uppercase tracking-wider">
                 <i data-lucide="droplets" class="w-4 h-4 fill-rose-600"></i>
                 <span>{isBn ? 'জরুরি রক্ত ও প্লাটিলেট ডোনার প্রয়োজন' : 'Emergency Blood & Platelet Donors Needed'}</span>
               </div>
-              <h3 class="text-2xl sm:text-3xl font-black text-slate-900">
+              <h3 class="text-2xl sm:text-3xl font-black text-gray-900">
                 {isBn ? (
                   <span>
                     প্রয়োজন <span class="text-rose-600">B+ (বি পজিটিভ)</span> প্লাটিলেট ও সম্পূর্ণ রক্ত
@@ -1362,7 +1380,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                   </span>
                 )}
               </h3>
-              <p class="text-sm text-slate-600 leading-relaxed">
+              <p class="text-sm text-gray-600 leading-relaxed">
                 {isBn
                   ? 'কেমোথেরাপির কারণে আরাফের শরীরের প্লাটিলেট ও রক্তের সেল দ্রুত বিপজ্জনক মাত্রায় নেমে যাচ্ছে। যেকোনো জরুরি মুহূর্তে ঢাকা মেডিকেলে ৪ থেকে ৫ জন B+ হোল ব্লাড ও সিঙ্গেল ডোনার প্লাটিলেট (SDP) দিতে ইচ্ছুক মানুষের সার্বক্ষণিক ব্যাকআপ থাকা প্রয়োজন।'
                   : "Chemotherapy drastically depletes Araf's blood platelets. We urgently need compassionate volunteers with B+ blood to stand by in Dhaka for Whole Blood and Single Donor Platelet (SDP) apheresis."}
@@ -1372,12 +1390,12 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
               <!-- Left: Guidelines & Eligibility -->
               <div class="lg:col-span-6 space-y-4 flex flex-col justify-between">
-                <div class="bg-[#fcfaf6] p-5 sm:p-6 rounded-2xl border border-amber-200 space-y-3">
-                  <h4 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                <div class="bg-gray-50/80 p-5 sm:p-6 rounded-2xl border border-gray-200 space-y-3">
+                  <h4 class="font-bold text-gray-900 text-base flex items-center gap-2">
                     <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
                     <span>{isBn ? 'রক্তদাতা হওয়ার প্রাথমিক যোগ্যতা:' : 'Eligibility Guidelines:'}</span>
                   </h4>
-                  <ul class="text-xs sm:text-sm text-slate-700 space-y-2 list-disc list-inside leading-relaxed">
+                  <ul class="text-xs sm:text-sm text-gray-700 space-y-2 list-disc list-inside leading-relaxed">
                     <li>{isBn ? 'রক্তের গ্রুপ নিশ্চিতভাবে B+ (বি পজিটিভ) অথবা এক্সচেঞ্জের জন্য অন্য যেকোনো গ্রুপ।' : 'Blood group preferably B+ (Positive) or any group for hospital cross-exchange.'}</li>
                     <li>{isBn ? 'বয়স ১৮ থেকে ৪৫ বছরের মধ্যে এবং শারীরিকভাবে সুস্থ ও ওজন ৫০ কেজির বেশি।' : 'Age between 18 to 45 years, physically healthy, weight 50kg+.'}</li>
                     <li>{isBn ? 'প্লাটিলেট (SDP) নিরাপদ বিরতি: মাত্র ১৫ দিন পর পরই দেওয়া যায়। কোনো দুর্বলতা হয় না।' : 'Platelet (SDP) cooldown is only 15 days without bodily weakness.'}</li>
@@ -1408,23 +1426,23 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               </div>
 
               <!-- Right: Dedicated Blood Donor Registration Hub Card -->
-              <div class="lg:col-span-6 bg-gradient-to-br from-rose-50 to-amber-50 p-6 sm:p-8 rounded-2xl border-2 border-rose-200 flex flex-col justify-between space-y-5">
+              <div class="lg:col-span-6 bg-gradient-to-br from-rose-50/70 to-amber-50/40 p-6 sm:p-8 rounded-2xl border-2 border-rose-200/80 flex flex-col justify-between space-y-5">
                 <div>
                   <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-600 text-white text-xs font-bold mb-3">
                     <i data-lucide="heart" class="w-3.5 h-3.5 fill-white"></i>
                     <span>{isBn ? 'অনলাইন ডোনার নেটওয়ার্ক' : 'Online Donor Registry'}</span>
                   </div>
-                  <h4 class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+                  <h4 class="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
                     {isBn ? 'আমাদের ভেরিফাইড রক্তদাতা ডেটাবেজে যুক্ত হোন' : 'Join Our Verified Blood Donor Network'}
                   </h4>
-                  <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                  <p class="text-xs sm:text-sm text-gray-600 mt-2 leading-relaxed">
                     {isBn
                       ? 'আপনি কি ঢাকা বা ফরিদপুর এলাকায় অবস্থান করছেন? আমাদের সেন্ট্রাল ডোনার সিস্টেমে যুক্ত থাকলে যখনই জরুরি B+ রক্ত বা প্লাটিলেটের সংকট দেখা দেবে, আমাদের টিম সরাসরি আপনার সাথে যোগাযোগ করবে।'
                       : 'Are you based in Dhaka or nearby? Registering into our secure donor database enables our medical team to reach you instantly whenever emergency blood or platelets are requisitioned.'}
                   </p>
                 </div>
 
-                <div class="bg-white/80 backdrop-blur-xs p-4 rounded-xl border border-rose-200 space-y-2 text-xs text-slate-700">
+                <div class="bg-white p-4 rounded-xl border border-rose-200/80 space-y-2 text-xs text-gray-700">
                   <div class="flex items-center gap-2 font-bold text-rose-700">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
                     <span>{isBn ? '১০০% নিরাপদ ও গোপনীয় ডেটাবেজ' : '100% Secure & Confidential'}</span>
@@ -1439,7 +1457,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 <div>
                   <a
                     href={donateBloodUrl}
-                    class="w-full inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-black py-4 px-6 rounded-2xl text-sm sm:text-base transition shadow-md cursor-pointer"
+                    class="w-full inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-black py-4 px-6 rounded-2xl text-sm sm:text-base transition shadow-sm cursor-pointer"
                   >
                     <i data-lucide="user-plus" class="w-5 h-5 text-rose-400"></i>
                     <span>{isBn ? '👉 রক্তদাতা হিসেবে নাম নিবন্ধন করুন' : '👉 Register as a Blood Donor Now'}</span>
@@ -1454,23 +1472,23 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <!-- ======================================================== -->
       <!-- SECTION 8: EMOTIONAL PLEA IN MIZU'S VOICE                -->
       <!-- ======================================================== -->
-      <section id="story" class="py-12 bg-white border-y border-amber-100">
+      <section id="story" class="py-12 bg-white border-b border-gray-200/80">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div class="text-center space-y-2">
             <span class="text-rose-600 font-bold text-xs uppercase tracking-wider bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
               {isBn ? 'বড় ভাইয়ের জবানিতে' : "The Elder Brother's Voice"}
             </span>
-            <h2 class="text-2xl sm:text-3xl font-black text-slate-900">
+            <h2 class="text-2xl sm:text-3xl font-black text-gray-900">
               {isBn
                 ? '“১৭ বছরের ছেলেটার মুখের দিকে তাকানো যায় না, নিজের অজান্তেই কান্না চলে আসে...”'
                 : '“Looking at that 17-year-old boy’s face brings tears uncontrollably...”'}
             </h2>
-            <p class="text-sm text-slate-500">{isBn ? 'শেখ মাহমুদ ইসলাম মিজু (আরাফের চাচাতো ভাই)' : 'Sheikh Mahmud Islam Mizu (Araf’s Cousin)'}</p>
+            <p class="text-sm text-gray-500">{isBn ? 'শেখ মাহমুদ ইসলাম মিজু (আরাফের চাচাতো ভাই)' : 'Sheikh Mahmud Islam Mizu (Araf’s Cousin)'}</p>
           </div>
 
-          <div class="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-6 text-base sm:text-lg">
-            <div class="p-6 rounded-2xl bg-[#faf7f2] border-l-4 border-rose-500 space-y-3">
-              <p class="font-medium text-slate-900 leading-relaxed">
+          <div class="prose prose-slate max-w-none text-gray-700 leading-relaxed space-y-6 text-base sm:text-lg">
+            <div class="p-6 rounded-2xl bg-gray-50/80 border-l-4 border-rose-500 space-y-3">
+              <p class="font-medium text-gray-900 leading-relaxed">
                 {isBn ? (
                   <span>
                     আমার আপন সেজ চাচার ছেলে, আমার ছোট ভাই আরাফ। ফরিদপুর পলিটেকনিক্যাল কলেজের একাদশ শ্রেণির ছাত্র। বয়সটা মাত্র ১৭ বছর! ওর শরীরে যখন Acute Myeloblastic Leukemia (AML—ব্লাড ক্যানসার) ধরা পড়ল, তখন থেকেই সময়টা আমাদের পুরো পরিবারের জন্য কতটা কঠিন ও নারকীয় যাচ্ছে—তা কোনো ভাষায় প্রকাশ করার মতো না।
@@ -1481,7 +1499,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                   </span>
                 )}
               </p>
-              <p class="text-sm text-slate-600">
+              <p class="text-sm text-gray-500">
                 {isBn ? (
                   <span>
                     আরাফের বাড়ি ফরিদপুরের বোয়ালমারী উপজেলার কামারগ্রাম গ্রামে। ওর বাবা, আমার চাচা মো. জাহিদ হাসান বিল্লাল গত মে মাস থেকে সম্পূর্ণ কর্মহীন। সন্তানের এমন মরণব্যাধি দেখে মানুষটা পাথর হয়ে গেছেন।
@@ -1494,7 +1512,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               </p>
             </div>
 
-            <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
               <i data-lucide="activity" class="w-5 h-5 text-rose-600"></i>
               <span>{isBn ? 'ঢাকা মেডিকেল কেবিন ১১৪/বি-এর বাস্তব চিত্র' : 'Inside DMCH Cabin 114/B'}</span>
             </h3>
@@ -1521,7 +1539,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               )}
             </p>
 
-            <div class="bg-rose-50/70 p-5 rounded-2xl border border-rose-200 text-slate-800">
+            <div class="bg-rose-50/70 p-5 rounded-2xl border border-rose-200 text-gray-800">
               <p class="italic text-base">
                 {isBn
                   ? '“সিভি লাইনের মাধ্যমে একটানা এতগুলো ওষুধ আর কেমো চলায় ১৭ বছরের ছেলেটার শরীর ভীষণ দুর্বল হয়ে পড়েছে। ও বিছানায় চুপচাপ শুয়ে অসহ্য কষ্টগুলো সহ্য করার চেষ্টা করছে, ও আমাদের বুঝতেও দিচ্ছে না কী চলছে ওর ভেতরে। কিন্তু ওর চেহারা একদম ভেতরে চলে গেছে, চোখের দিকে তাকানো যায় না, বুক ভেঙে কান্না আসে।”'
@@ -1529,8 +1547,8 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               </p>
             </div>
 
-            <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="heart" class="w-5 h-5 text-emerald-700"></i>
+            <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <i data-lucide="heart" class="w-5 h-5 text-rose-600"></i>
               <span>{isBn ? 'ফান্ডের অগ্রগতি ও আপনাদের সাহায্য' : 'Fundraising Appeal'}</span>
             </h3>
             <p>
@@ -1565,13 +1583,13 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <section id="reports" class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
-            <span class="text-emerald-700 font-bold text-xs uppercase tracking-wider bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            <span class="text-rose-700 font-bold text-xs uppercase tracking-wider bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
               {isBn ? 'প্রামাণ্য ডাক্তারি কাগজপত্র' : 'Medical Documentation'}
             </span>
-            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+            <h2 class="text-2xl sm:text-3xl font-black text-gray-900 mt-2">
               {isBn ? 'মেডিকেল রিপোর্ট ও ডিএমসিএইচ ভর্তির পেপার্স' : 'Medical Reports & DMCH Admission Papers'}
             </h2>
-            <p class="text-sm text-slate-600 mt-1 max-w-3xl">
+            <p class="text-sm text-gray-600 mt-1 max-w-3xl">
               {isBn
                 ? 'ঢাকা মেডিকেল কলেজ হাসপাতালে ভর্তির অফিশিয়াল কাগজপত্র এবং জরুরি মেডিকেল রিপোর্টসমূহ নিচে দেওয়া হলো। যেকোনো ছবিতে ক্লিক করে বড় করে দেখুন।'
                 : 'Official DMCH admission documents and critical pathology reports. Click any image to view in high resolution.'}
@@ -1580,12 +1598,12 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
           <div class="flex items-center gap-3">
             <a
-              href="/campaign/araf.pdf"
+              href={medicalReportsPdf}
               download="Araf_Medical_Reports.pdf"
-              class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-md cursor-pointer"
+              class="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer"
             >
-              <i data-lucide="file-text" class="w-4 h-4 text-rose-400"></i>
-              <span>{isBn ? 'হালনাগাদ সম্পূর্ণ PDF ডাউনলোড (৯.৩ MB)' : 'Download Full 33-Page PDF'}</span>
+              <i data-lucide="file-text" class="w-4 h-4"></i>
+              <span>{isBn ? 'হালনাগাদ সম্পূর্ণ PDF ডাউনলোড (৮.৯ MB)' : 'Download Full 33-Page PDF'}</span>
             </a>
           </div>
         </div>
@@ -1594,12 +1612,12 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           <!-- 1: DMC Admission Ticket -->
           <div
-            class="bg-white rounded-2xl border border-slate-200 overflow-hidden card-shadow group cursor-pointer app-card"
-            onclick="openLightbox('/campaign/DMC%20ADMIT.jpg', 'ঢাকা মেডিকেল কলেজ হাসপাতাল ভর্তি টিকিট')"
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
+            onclick={`openLightbox('${dmcAdmissionImg}', 'ঢাকা মেডিকেল কলেজ হাসপাতাল ভর্তি টিকিট')`}
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
               <img
-                src="/campaign/DMC%20ADMIT.jpg"
+                src={dmcAdmissionImg}
                 alt="DMC ADMIT"
                 class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                 loading="lazy"
@@ -1608,7 +1626,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition flex items-center justify-center text-white">
                 <span class="bg-black/60 p-2 rounded-full"><i data-lucide="zoom-in" class="w-5 h-5"></i></span>
               </div>
-              <span class="absolute top-2 left-2 bg-emerald-700 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-xs">
+              <span class="absolute top-2 left-2 bg-emerald-700 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-2xs">
                 DMCH
               </span>
             </div>
@@ -1616,12 +1634,12 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
           <!-- 2: CVC Report -->
           <div
-            class="bg-white rounded-2xl border border-slate-200 overflow-hidden card-shadow group cursor-pointer app-card"
-            onclick={`openLightbox('/campaign/${cvcImage}', 'সর্বশেষ সিভিসি / সিবিসি প্যাথলজি রিপোর্ট')`}
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
+            onclick={`openLightbox('${cvcReportImg}', 'সর্বশেষ সিভিসি / সিবিসি প্যাথলজি রিপোর্ট')`}
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
               <img
-                src={`/campaign/${cvcImage}`}
+                src={cvcReportImg}
                 alt="CVC Report"
                 class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                 loading="lazy"
@@ -1630,7 +1648,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition flex items-center justify-center text-white">
                 <span class="bg-black/60 p-2 rounded-full"><i data-lucide="zoom-in" class="w-5 h-5"></i></span>
               </div>
-              <span class="absolute top-2 left-2 bg-rose-600 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-xs">
+              <span class="absolute top-2 left-2 bg-rose-600 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-2xs">
                 CVC
               </span>
             </div>
@@ -1638,7 +1656,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
           <!-- 3: Bone Marrow (Page 6) -->
           <div
-            class="bg-white rounded-2xl border border-slate-200 overflow-hidden card-shadow group cursor-pointer app-card"
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
             onclick="openLightbox('/campaign/reports/report_page_6_1.jpg', 'বোন ম্যারো এসপিরেশন রিপোর্ট (AML নিশ্চিতকরণ)')"
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
@@ -1652,7 +1670,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition flex items-center justify-center text-white">
                 <span class="bg-black/60 p-2 rounded-full"><i data-lucide="zoom-in" class="w-5 h-5"></i></span>
               </div>
-              <span class="absolute top-2 left-2 bg-red-600 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-xs">
+              <span class="absolute top-2 left-2 bg-red-600 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-2xs">
                 AML
               </span>
             </div>
@@ -1660,7 +1678,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
           <!-- 4: CBC (Page 1) -->
           <div
-            class="bg-white rounded-2xl border border-slate-200 overflow-hidden card-shadow group cursor-pointer app-card"
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
             onclick="openLightbox('/campaign/reports/report_page_1_1.jpg', 'সিবিসি টেস্ট রিপোর্ট')"
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
@@ -1674,7 +1692,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition flex items-center justify-center text-white">
                 <span class="bg-black/60 p-2 rounded-full"><i data-lucide="zoom-in" class="w-5 h-5"></i></span>
               </div>
-              <span class="absolute top-2 left-2 bg-amber-600 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-xs">
+              <span class="absolute top-2 left-2 bg-amber-600 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-2xs">
                 CBC
               </span>
             </div>
@@ -1682,7 +1700,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
           <!-- 5: CV Line Note (Page 11) -->
           <div
-            class="bg-white rounded-2xl border border-slate-200 overflow-hidden card-shadow group cursor-pointer app-card"
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
             onclick="openLightbox('/campaign/reports/report_page_11_1.jpg', 'সিভি লাইন প্রসিডিউর নোট')"
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
@@ -1696,7 +1714,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition flex items-center justify-center text-white">
                 <span class="bg-black/60 p-2 rounded-full"><i data-lucide="zoom-in" class="w-5 h-5"></i></span>
               </div>
-              <span class="absolute top-2 left-2 bg-blue-600 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-xs">
+              <span class="absolute top-2 left-2 bg-blue-600 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-2xs">
                 Rx
               </span>
             </div>
@@ -1704,7 +1722,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
 
           <!-- 6: Discharge Summary (Page 24) -->
           <div
-            class="bg-white rounded-2xl border border-slate-200 overflow-hidden card-shadow group cursor-pointer app-card"
+            class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
             onclick="openLightbox('/campaign/reports/report_page_24_1.jpg', 'অরোরা হাসপাতাল ডিসচার্জ স্লিপ')"
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
@@ -1718,7 +1736,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition flex items-center justify-center text-white">
                 <span class="bg-black/60 p-2 rounded-full"><i data-lucide="zoom-in" class="w-5 h-5"></i></span>
               </div>
-              <span class="absolute top-2 left-2 bg-slate-800 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-xs">
+              <span class="absolute top-2 left-2 bg-slate-800 text-[10px] text-white px-2 py-0.5 rounded font-bold shadow-2xs">
                 Discharge
               </span>
             </div>
@@ -1730,19 +1748,19 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           <button
             type="button"
             id="toggle-all-reports-btn"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs sm:text-sm font-bold shadow-2xs transition cursor-pointer"
           >
-            <i data-lucide="files" class="w-4 h-4 text-emerald-600"></i>
+            <i data-lucide="files" class="w-4 h-4 text-rose-600"></i>
             <span id="toggle-reports-text">{isBn ? 'সকল ৩৩ পৃষ্ঠার বিস্তারিত মেডিকেল রিপোর্ট দেখুন' : 'Browse All 33 Medical Report Pages'}</span>
             <i data-lucide="chevron-down" id="toggle-reports-icon" class="w-4 h-4 transition-transform"></i>
           </button>
         </div>
 
-        <div id="all-reports-container" class="hidden mt-6 pt-6 border-t border-slate-200">
-          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+        <div id="all-reports-container" class="hidden mt-6 pt-6 border-t border-gray-200">
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3">
             {allReportPages.map((page) => (
               <div
-                class="bg-white rounded-xl border border-slate-200 overflow-hidden card-shadow group cursor-pointer app-card text-center"
+                class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-xs transition text-center"
                 onclick={`openLightbox('/campaign/reports/report_page_${page}_1.jpg', 'মেডিকেল রিপোর্ট পৃষ্ঠা ${isBn ? toBnDigits(page) : page}')`}
               >
                 <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
@@ -1771,81 +1789,81 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <!-- ======================================================== -->
       <section id="faq" class="py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <div class="text-center mb-8">
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">
             {isBn ? 'সাধারণ জিজ্ঞাসা ও উত্তর' : 'Frequently Asked Questions'}
           </h2>
-          <p class="text-sm text-slate-500 mt-1">
+          <p class="text-sm text-gray-500 mt-1">
             {isBn ? 'চিকিৎসা ও সহায়তা সংক্রান্ত যেকোনো স্পষ্ট তথ্যের জন্য' : 'Everything you need to know about Araf’s treatment and assistance'}
           </p>
         </div>
 
         <div class="space-y-3">
-          <details class="group bg-white rounded-xl border border-slate-200 p-4 open:bg-slate-50 transition app-card">
-            <summary class="flex justify-between items-center font-bold text-slate-800 cursor-pointer list-none">
+          <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
+            <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
               <span>{isBn ? 'আরাফ বর্তমানে কোন হাসপাতালে এবং কোন চিকিৎসকের অধীনে আছে?' : 'Which hospital is Araf admitted to and under who?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
-            <div class="text-sm text-slate-600 mt-3 pt-3 border-t border-slate-200 leading-relaxed">
+            <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'আরাফ বর্তমানে ঢাকা মেডিকেল কলেজ হাসপাতাল (DMCH)-এর হেমাটোলজি ওয়ার্ডের কেবিন নম্বর ১১৪/বি-তে চিকিৎসাধীন। সেখানে সহযোগী অধ্যাপক চিকিৎসক হুমায়রা নাজনীনের সরাসরি তত্ত্বাবধানে ওর কেমোথেরাপি চলছে।'
                 : 'Araf is admitted to Cabin 114/B, Dept. of Hematology (Unit-2) at Dhaka Medical College Hospital (DMCH), under Assoc. Prof. Dr. Humayra Nazneen.'}
             </div>
           </details>
 
-          <details class="group bg-white rounded-xl border border-slate-200 p-4 open:bg-slate-50 transition app-card">
-            <summary class="flex justify-between items-center font-bold text-slate-800 cursor-pointer list-none">
+          <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
+            <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
               <span>{isBn ? 'ফান্ডের টাকা কার কাছে জমা হচ্ছে এবং কীভাবে যোগাযোগ করা যাবে?' : 'Who manages the donation funds and how to contact?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
-            <div class="text-sm text-slate-600 mt-3 pt-3 border-t border-slate-200 leading-relaxed">
+            <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'আরাফের আপন চাচাতো বড় ভাই শেখ মাহমুদ ইসলাম মিজু সরাসরি এই ফান্ড ব্যবস্থাপনা ও হাসপাতালে সার্বক্ষণিক থাকার দায়িত্ব পালন করছেন। তাঁর সাথে যেকোনো সময় যোগাযোগ করা যাবে মোবাইল: 01515616728।'
                 : 'Araf’s cousin brother Sheikh Mahmud Islam Mizu is directly in charge of fund stewardship and hospital care coordination. Contact him at 01515616728.'}
             </div>
           </details>
 
-          <details class="group bg-white rounded-xl border border-slate-200 p-4 open:bg-slate-50 transition app-card">
-            <summary class="flex justify-between items-center font-bold text-slate-800 cursor-pointer list-none">
+          <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
+            <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
               <span>{isBn ? 'আমি অল্প টাকা (যেমন ৫০, ১০০ বা ২০০ টাকা) দিতে চাই, এতে কি সত্যি উপকার হবে?' : 'Will a small donation like ৳50 or ৳100 truly make an impact?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
-            <div class="text-sm text-slate-600 mt-3 pt-3 border-t border-slate-200 leading-relaxed">
+            <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'অবশ্যই! আমাদের সংগৃহীত ফান্ডের সিংহভাগই এসেছে এমন ৫০, ১০০, ২০০ টাকার ছোট ছোট অনুদান থেকে। সবার এই ক্ষুদ্র অংশগ্রহণ একত্রিত হয়েই চল্লিশ লাখ টাকার এই দীর্ঘ লড়াইকে সহজ করে তুলতে পারে।'
                 : 'Absolutely! The vast majority of the funds raised originate from small donations of ৳50, ৳100, and ৳200. United collective support turns insurmountable targets into reality.'}
             </div>
           </details>
 
-          <details class="group bg-white rounded-xl border border-slate-200 p-4 open:bg-slate-50 transition app-card">
-            <summary class="flex justify-between items-center font-bold text-slate-800 cursor-pointer list-none">
+          <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
+            <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
               <span>{isBn ? 'রক্তের গ্রুপ B+ ছাড়া অন্য গ্রুপের রক্তদাতারা কি সাহায্য করতে পারেন?' : 'Can donors with non-B+ blood groups still help?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
-            <div class="text-sm text-slate-600 mt-3 pt-3 border-t border-slate-200 leading-relaxed">
+            <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'হ্যাঁ, অবশ্যই! হাসপাতালে ভর্তির সময় অন্য যেকোনো গ্রুপের রক্ত দান করলেও হাসপাতাল ব্লাড ব্যাংক থেকে আরাফের জন্য প্রয়োজনীয় B+ রক্ত ও প্লাটিলেট সহজেই ক্রস-এক্সচেঞ্জ (বিনিময়) করা যায়। তাই যেকোনো রক্তের গ্রুপের মানুষ আমাদের ডোনার সিস্টেমে যুক্ত হতে পারেন।'
                 : 'Yes! Donating any blood group at the hospital allows DMCH blood bank to exchange units for the vital B+ platelets and blood Araf requires. All blood groups are encouraged to register.'}
             </div>
           </details>
 
-          <details class="group bg-white rounded-xl border border-slate-200 p-4 open:bg-slate-50 transition app-card">
-            <summary class="flex justify-between items-center font-bold text-slate-800 cursor-pointer list-none">
+          <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
+            <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
               <span>{isBn ? 'প্লাটিলেট (SDP) দান কি নিরাপদ এবং এতে কি কোনো শারীরিক ক্ষতি হয়?' : 'Is Single Donor Platelet (SDP) apheresis safe?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
-            <div class="text-sm text-slate-600 mt-3 pt-3 border-t border-slate-200 leading-relaxed">
+            <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'প্লাটিলেট দান সম্পূর্ণ নিরাপদ ও বৈজ্ঞানিক প্রক্রিয়া। রক্ত থেকে এফেরেসিস মেশিনের সাহায্যে কেবল প্লাটিলেট আলাদা করে বাকি রক্ত পুনরায় দাতার শরীরে ফেরত পাঠানো হয়। মাত্র ১৫ দিন পর পরই নিরাপদে প্লাটিলেট দেওয়া যায় এবং শরীর কয়েক ঘণ্টার মধ্যে নতুন প্লাটিলেট তৈরি করে ফেলে।'
                 : 'Platelet apheresis (SDP) is 100% safe and scientifically proven. Only platelets are separated, while red cells are safely returned to your body. You can safely donate every 15 days.'}
             </div>
           </details>
 
-          <details class="group bg-white rounded-xl border border-slate-200 p-4 open:bg-slate-50 transition app-card">
-            <summary class="flex justify-between items-center font-bold text-slate-800 cursor-pointer list-none">
+          <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
+            <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
               <span>{isBn ? 'রোগীর সর্বশেষ অবস্থা ও চিকিৎসার অগ্রগতি কীভাবে জানতে পারব?' : 'How can we track Araf’s treatment progress?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
-            <div class="text-sm text-slate-600 mt-3 pt-3 border-t border-slate-200 leading-relaxed">
+            <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'এই ওয়েবসাইটে প্রতিদিনের পরিস্থিতি ও রক্তের কাউন্ট নিয়মিত আপডেট করা হয়। এছাড়াও সরাসরি বড় ভাই শেখ মাহমুদ ইসলাম মিজুর নম্বরে (01515616728) যোগাযোগ করতে পারেন।'
                 : 'This portal is updated regularly with latest CVC blood parameters and chemotherapy stages. You can also reach coordinator Sheikh Mahmud Islam Mizu directly at 01515616728.'}
@@ -1857,51 +1875,24 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <!-- ======================================================== -->
       <!-- SECTION 11: PROMINENT LOGO SHOWCASE BEFORE FOOTER        -->
       <!-- ======================================================== -->
-      <section class="py-12 bg-slate-100/80 border-t border-slate-200">
+      <section class="py-12 bg-white border-t border-gray-200/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <div class="inline-block p-4 sm:p-6 bg-white rounded-3xl shadow-sm border border-slate-200">
+          <div class="inline-block p-4 sm:p-6 bg-gray-50/80 rounded-3xl shadow-2xs border border-gray-200">
             <img
-              src="/campaign/SaveAraf-Logo.jpg"
+              src={campaignLogoImg}
               alt="Save Araf Official Logo"
-              class="h-20 sm:h-28 w-auto mx-auto object-contain"
+              class="h-16 sm:h-24 w-auto mx-auto object-contain"
               loading="lazy"
               decoding="async"
               width="240"
-              height="112"
+              height="80"
             />
           </div>
-          <p class="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto font-medium leading-relaxed">
+          <p class="text-xs sm:text-sm text-gray-600 max-w-xl mx-auto font-medium leading-relaxed">
             {isBn
               ? 'একটি সম্ভাবনাময় তরুণ প্রাণের জীবন ফিরিয়ে দিতে আমরা সবাই প্রতিজ্ঞাবদ্ধ। আপনার সাহায্য ও দোয়ায় আরাফ আবারও সুস্থ হয়ে স্বাভাবিক জীবনে ফিরবে।'
               : 'Together we stand committed to reviving this vibrant young life. Through your kindness and prayers, Araf will return to his college and family.'}
           </p>
-        </div>
-      </section>
-
-      <!-- Campaign Summary Block Before Global Footer -->
-      <section class="bg-slate-900 text-slate-400 py-10 px-4 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
-          <div>
-            <div class="text-white font-black text-xl flex items-center justify-center sm:justify-start gap-2">
-              <span>Save Araf</span> • {isBn ? 'আরাফকে বাঁচাতে এগিয়ে আসুন' : 'Help Save Araf'}
-            </div>
-            <p class="text-xs text-slate-400 mt-1 max-w-md">
-              {isBn
-                ? '১৭ বছর বয়সী AML ব্লাড ক্যানসার আক্রান্ত কলেজ শিক্ষার্থী মো. আরাফের চিকিৎসা ও ফান্ডরেইজিং ক্যাম্পেইন।'
-                : 'Official emergency medical and fundraising campaign for 17-year-old AML blood cancer patient Md. Araf.'}
-            </p>
-          </div>
-
-          <div class="text-xs text-slate-400 space-y-1 sm:text-right">
-            <p>{isBn ? 'সমন্বয়কারী:' : 'Coordinator:'} <strong class="text-white font-bold">শেখ মাহমুদ ইসলাম মিজু</strong> ({isBn ? 'আরাফের ভাই' : 'Brother'})</p>
-            <p>{isBn ? 'মোবাইল / বিকাশ / নগদ / রকেট:' : 'Mobile / bKash / Nagad:'} <strong class="text-white font-mono text-sm">01515616728</strong></p>
-          </div>
-        </div>
-
-        <div class="max-w-7xl mx-auto mt-8 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
-          {isBn
-            ? 'দৈনিক সময়ের আলোসহ সকল মেডিকেল রিপোর্ট হাসপাতালে সরাসরি যাচাইযোগ্য। আরাফের দ্রুত আরোগ্যের জন্য সবার কাছে দোয়া প্রার্থনা করছি।'
-            : 'All medical records including Shomoyer Alo national coverage are verifiable at DMCH. Prayers requested for Araf’s swift recovery.'}
         </div>
       </section>
     </main>
@@ -1912,13 +1903,13 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
     <!-- ======================================================== -->
     <!-- MOBILE BOTTOM APP-LIKE ACTION BAR                        -->
     <!-- ======================================================== -->
-    <div class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-2.5 sm:hidden z-30 flex items-center justify-between gap-2 shadow-2xl">
+    <div class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-2.5 sm:hidden z-30 flex items-center justify-between gap-2 shadow-xl">
       <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600 font-black text-xs">
           B+
         </div>
         <div>
-          <span class="text-[10px] text-slate-500 block">{isBn ? 'বিকাশ/নগদ (মিজু):' : 'bKash/Nagad:'}</span>
+          <span class="text-[10px] text-gray-500 block">{isBn ? 'বিকাশ/নগদ (মিজু):' : 'bKash/Nagad:'}</span>
           <span class="font-mono font-bold text-xs text-rose-600">01515616728</span>
         </div>
       </div>
@@ -1927,7 +1918,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           type="button"
           onclick="copyToClipboard('01515616728', 'm-copy')"
           id="m-copy"
-          class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer"
         >
           {isBn ? 'কপি' : 'Copy'}
         </button>
@@ -1939,7 +1930,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
         </a>
         <a
           href="#donate-section"
-          class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer"
+          class="bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer"
         >
           {isBn ? 'ডোনেট' : 'Donate'}
         </a>
@@ -1964,7 +1955,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
         <i data-lucide="x" class="w-8 h-8"></i>
       </button>
       <div class="max-w-4xl max-h-[85vh] flex flex-col items-center">
-        <img id="lightbox-img" src="" alt="Medical Document" class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl" />
+        <img id="lightbox-img" src="" alt="Medical Document" class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl" loading="lazy" decoding="async" />
         <div id="lightbox-caption" class="text-white text-sm mt-3 font-medium bg-black/60 px-4 py-1.5 rounded-full"></div>
       </div>
     </div>
@@ -1977,18 +1968,18 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
         <button
           type="button"
           onclick="closeShareModal()"
-          class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer"
+          class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer"
           aria-label={isBn ? 'বন্ধ করুন' : 'Close'}
         >
           <i data-lucide="x" class="w-6 h-6"></i>
         </button>
 
         <div class="text-center">
-          <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-2">
+          <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-2">
             <i data-lucide="share-2" class="w-6 h-6"></i>
           </div>
-          <h3 class="text-lg font-bold text-slate-900">{isBn ? 'পোস্টটি ছড়িয়ে দিন' : 'Share Campaign'}</h3>
-          <p class="text-xs text-slate-500">
+          <h3 class="text-lg font-bold text-gray-900">{isBn ? 'পোস্টটি ছড়িয়ে দিন' : 'Share Campaign'}</h3>
+          <p class="text-xs text-gray-500">
             {isBn
               ? 'আপনার একটি শেয়ারে হয়তো কোনো হৃদয়বান মানুষের সাহায্যে আরাফের জীবন বেঁচে যেতে পারে।'
               : 'A single share could connect us with someone capable of saving Araf’s life.'}
@@ -2018,20 +2009,20 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           </a>
         </div>
 
-        <div class="pt-2 border-t border-slate-100">
-          <span class="text-xs text-slate-500 block mb-1">{isBn ? 'ওয়েবসাইটের লিংক কপি করুন:' : 'Copy Website URL:'}</span>
+        <div class="pt-2 border-t border-gray-100">
+          <span class="text-xs text-gray-500 block mb-1">{isBn ? 'ওয়েবসাইটের লিংক কপি করুন:' : 'Copy Website URL:'}</span>
           <div class="flex items-center gap-2">
             <input
               type="text"
               id="share-link-input"
               readonly
-              class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 select-all font-mono"
+              class="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-700 select-all font-mono"
             />
             <button
               type="button"
               onclick="copyShareLink()"
               id="share-link-btn"
-              class="bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              class="bg-gray-900 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer"
             >
               {isBn ? 'কপি' : 'Copy'}
             </button>
@@ -2045,7 +2036,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
     <!-- ======================================================== -->
     <div
       id="toast"
-      class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none"
+      class="fixed bottom-6 right-6 bg-gray-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none"
     >
       <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
       <span id="toast-msg">{isBn ? 'কপি করা হয়েছে!' : 'Copied!'}</span>
@@ -2066,11 +2057,11 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           const tabs = document.querySelectorAll('.impact-tab-btn');
           tabs.forEach((tab, i) => {
             if (i === idx) {
-              tab.classList.remove('bg-white/10', 'text-slate-300');
-              tab.classList.add('bg-emerald-600', 'text-white', 'shadow-lg');
+              tab.classList.remove('bg-gray-100', 'text-gray-700');
+              tab.classList.add('bg-rose-600', 'text-white', 'shadow-2xs');
             } else {
-              tab.classList.remove('bg-emerald-600', 'text-white', 'shadow-lg');
-              tab.classList.add('bg-white/10', 'text-slate-300');
+              tab.classList.remove('bg-rose-600', 'text-white', 'shadow-2xs');
+              tab.classList.add('bg-gray-100', 'text-gray-700');
             }
           });
 
@@ -2146,7 +2137,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             const btn = document.getElementById(btnId);
             if (btn) {
               const originalHTML = btn.innerHTML;
-              btn.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-400">✓ কপি হয়েছে!</span>`;
+              btn.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 font-bold">✓ কপি হয়েছে!</span>`;
               setTimeout(() => {
                 btn.innerHTML = originalHTML;
                 if (typeof lucide !== 'undefined' && lucide.createIcons) {
