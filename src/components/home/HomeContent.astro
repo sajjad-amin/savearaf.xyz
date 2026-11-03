@@ -15,9 +15,10 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
 // ----------------------------------------------------
 // Hardcoded Clinical & Financial Campaign Data
 // ----------------------------------------------------
-const chemoDay = 'আজ ৩য় দিনের কেমো চলছে';
-const dailyText =
-  'আজ আরাফের ৩য় দিনের কেমোথেরাপির জটিল চক্র চলছে। সেন্ট্রাল ভেনাস লাইন (সিভি লাইন)-এর মাধ্যমে একটানা উচ্চমাত্রার কেমো এবং ওষুধ চলায় ওর শরীর প্রচণ্ড দুর্বল। রক্তের প্লাটিলেট ও প্রয়োজনীয় সেল বারবার আশঙ্কাজনকভাবে কমে যাচ্ছে। সার্বক্ষণিক B+ হোল ব্লাড ও সিঙ্গেল ডোনার প্লাটিলেট (SDP) ব্যাকআপে রাখা অত্যন্ত জরুরি।';
+const chemoDay = isBn ? 'আজ ৩য় দিনের কেমো চলছে' : 'Day 3 of Intensive Chemotherapy';
+const dailyText = isBn
+  ? 'আজ আরাফের ৩য় দিনের কেমোথেরাপির জটিল চক্র চলছে। সেন্ট্রাল ভেনাস লাইন (সিভি লাইন)-এর মাধ্যমে একটানা উচ্চমাত্রার কেমো এবং ওষুধ চলায় ওর শরীর প্রচণ্ড দুর্বল। রক্তের প্লাটিলেট ও প্রয়োজনীয় সেল বারবার আশঙ্কাজনকভাবে কমে যাচ্ছে। সার্বক্ষণিক B+ হোল ব্লাড ও সিঙ্গেল ডোনার প্লাটিলেট (SDP) ব্যাকআপে রাখা অত্যন্ত জরুরি।'
+  : 'Araf is currently on Day 3 of his intensive chemotherapy cycle. Continuous high-dose chemo and medications through his Central Venous (CV) line have made him extremely frail. His blood platelets and essential cells are rapidly falling to critical thresholds. Maintaining an immediate standby of B+ Whole Blood and Single Donor Platelets (SDP) is life-critical.';
 
 const targetGoal = 4000000; // 40,00,000 BDT (40 Lakh BDT)
 const currentRaised = 137841; // 1,37,841 BDT
@@ -30,20 +31,26 @@ const circleRadius = 42;
 const circleCircumference = 264;
 const circleOffset = 255; // 264 - (264 * 0.0345)
 
-const fundDate = '২ নভেম্বর রাত ১২টা পর্যন্ত হিসাব হালনাগাদ করা হয়েছে';
+const fundDate = isBn
+  ? '২ নভেম্বর রাত ১২টা পর্যন্ত হিসাব হালনাগাদ করা হয়েছে'
+  : 'Audited and updated as of November 2, 12:00 AM';
 const newsUrl = 'https://www.shomoyeralo.com/news/393324';
-const newsTitle = '“বাঁচতে চায় ক্যানসার আক্রান্ত কলেজছাত্র আরাফ”';
-const newsSource = '৩ নভেম্বর ২০২৬ • সময়ের আলো';
+const newsTitle = isBn
+  ? '“বাঁচতে চায় ক্যানসার আক্রান্ত কলেজছাত্র আরাফ”'
+  : '“College Student Araf Fights Cancer to Survive”';
+const newsSource = isBn
+  ? '৩ নভেম্বর ২০২৬ • সময়ের আলো'
+  : 'November 3, 2026 • Daily Shomoyer Alo';
 
-// Diagnostic CVC Biomarkers
-const platelets = '৩৬,০০০';
-const wbc = '৩,৪৬০';
-const hb = '৭.৬';
-const blast = '৯০%';
-const creat = '০.২';
-const uric = '৪.৮';
-const alt = '১৪.৮৩';
-const anc = '১,৮০০';
+// Diagnostic CVC Biomarkers (Localized digits)
+const platelets = isBn ? '৩৬,০০০' : '36,000';
+const wbc = isBn ? '৩,৪৬০' : '3,460';
+const hb = isBn ? '৭.৬' : '7.6';
+const blast = isBn ? '৯০%' : '90%';
+const creat = isBn ? '০.২' : '0.2';
+const uric = isBn ? '৪.৮' : '4.8';
+const alt = isBn ? '১৪.৮৩' : '14.83';
+const anc = isBn ? '১,৮০০' : '1,800';
 
 // Semantic image paths in public/campaign/
 const heroHospitalImg = '/campaign/araf-hospital-bed.jpg';
@@ -338,7 +345,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               </div>
               <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
                 <span class="text-[11px] text-gray-500 block">{isBn ? 'রক্তের গ্রুপ' : 'Blood Group'}</span>
-                <span class="text-sm font-black text-rose-600">B+ (বি পজিটিভ)</span>
+                <span class="text-sm font-black text-rose-600">{isBn ? 'B+ (বি পজিটিভ)' : 'B+ (Positive)'}</span>
               </div>
               <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
                 <span class="text-[11px] text-gray-500 block">{isBn ? 'চিকিৎসা পর্যায়' : 'Treatment Stage'}</span>
@@ -467,7 +474,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <div>
               <button
                 type="button"
-                onclick={`openLightbox('${cvcReportImg}', 'সর্বশেষ সিভিসি / সিবিসি প্যাথলজি রিপোর্ট')`}
+                onclick={`openLightbox('${cvcReportImg}', '${isBn ? 'সর্বশেষ সিভিসি / সিবিসি প্যাথলজি রিপোর্ট' : 'Latest CVC / CBC Pathology Report'}')`}
                 class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 text-xs font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition cursor-pointer"
               >
                 <i data-lucide="file-text" class="w-4 h-4 text-rose-600"></i>
@@ -483,7 +490,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="flex justify-between items-start mb-2">
                 <div>
                   <h3 class="text-sm font-bold text-gray-900">{isBn ? 'প্লাটিলেট (Platelets)' : 'Platelets'}</h3>
-                  <span class="text-[11px] text-gray-400 block">{isBn ? 'স্বাভাবিক: ১,৫০,০০০ - ৪,৫০,০০০' : 'Normal: 150K - 450K'}</span>
+                  <span class="text-[11px] text-gray-400 block">{isBn ? 'স্বাভাবিক: ১,৫০,০০০ - ৪,৫০,০০০' : 'Normal: 150,000 - 450,000'}</span>
                 </div>
                 <div class="text-right">
                   <span class="text-2xl font-black text-rose-600 font-mono">{platelets}</span>
@@ -700,7 +707,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               onclick="switchImpactTab(0)"
               class="impact-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 whitespace-nowrap bg-rose-600 text-white shadow-2xs transition cursor-pointer"
             >
-              <span>☕ {isBn ? '৫০ টাকার ক্ষুদ্র অনুদান' : '৳50 Micro Contribution'}</span>
+              <span>☕ {isBn ? '৫০ টাকার ক্ষুদ্র অনুদান' : '৳50 Micro-Donation'}</span>
             </button>
 
             <button
@@ -767,7 +774,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">৳ ৫০</span>
+                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ৫০' : '৳ 50'}</span>
                   <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'একটি ক্ষুদ্র উপহারে বাঁচান একটি প্রাণ' : 'Help save a young life'}</span>
                   <a
                     href="#donate-section"
@@ -809,7 +816,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">৳ ১০০</span>
+                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ১০০' : '৳ 100'}</span>
                   <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'সামান্য সাহায্যে পাশে থাকুন' : 'Stand by Araf today'}</span>
                   <a
                     href="#donate-section"
@@ -851,7 +858,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">৳ ২০০</span>
+                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ২০০' : '৳ 200'}</span>
                   <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'সহানুভূতির হাত বাড়িয়ে দিন' : 'Extend your empathetic hand'}</span>
                   <a
                     href="#donate-section"
@@ -893,7 +900,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">৳ ৫০০</span>
+                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ৫০০' : '৳ 500'}</span>
                   <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'আরাফের জীবনের জন্য হাত বাড়ান' : 'Help Araf survive'}</span>
                   <a
                     href="#donate-section"
@@ -935,7 +942,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 </div>
                 <div class="md:col-span-4 text-center bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block mb-1">{isBn ? 'আপনার ভূমিকা' : 'Your Contribution'}</span>
-                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">৳ ১,০০০</span>
+                  <span class="text-3xl sm:text-4xl font-black text-rose-600 font-mono">{isBn ? '৳ ১,০০০' : '৳ 1,000'}</span>
                   <span class="text-[11px] text-gray-500 block mt-1">{isBn ? 'একটি পরিবারের ভবিষ্যৎ বাঁচিয়ে দিন' : 'Save a family future'}</span>
                   <a
                     href="#donate-section"
@@ -960,7 +967,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             <!-- Newspaper Feature Image Preview -->
             <div
               class="md:col-span-5 cursor-pointer group"
-              onclick={`openLightbox('${newsClippingImg}', 'দৈনিক সময়ের আলো পত্রিকায় প্রকাশিত সংবাদ — ৩ নভেম্বর ২০২৬')`}
+              onclick={`openLightbox('${newsClippingImg}', '${isBn ? 'দৈনিক সময়ের আলো পত্রিকায় প্রকাশিত সংবাদ — ৩ নভেম্বর ২০২৬' : 'Daily Shomoyer Alo Newspaper Article — November 3, 2026'}')`}
             >
               <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-xs aspect-4/5 max-h-[360px] bg-slate-900">
                 <img
@@ -1050,7 +1057,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               {isBn ? 'ফান্ডের স্বচ্ছতা ও হালনাগাদ হিসাব' : 'Financial Transparency & Live Audit'}
             </span>
             <h3 class="text-2xl sm:text-3xl font-black text-gray-900 mt-2">
-              {isBn ? `সম্পূর্ণ চিকিৎসার লক্ষ্য: ${targetDisplay} (চল্লিশ লাখ) টাকা` : `Total Treatment Goal: ${targetDisplay}`}
+              {isBn ? `সম্পূর্ণ চিকিৎসার লক্ষ্য: ${targetDisplay} (চল্লিশ লাখ) টাকা` : `Total Treatment Goal: ${targetDisplay} (40 Lakh BDT)`}
             </h3>
             <p class="text-xs sm:text-sm text-gray-500 mt-1">
               {fundDate}
@@ -1090,7 +1097,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 </span>
                 <h4 class="text-3xl font-black text-rose-600 tracking-tight font-mono">{raisedDisplay}</h4>
                 <p class="text-xs text-gray-500">
-                  {isBn ? '১ম ধাপের খরচ: ৳ ২০,০০,০০০' : 'Phase 1 Target: 20 Lakh BDT'}
+                  {isBn ? '১ম ধাপের খরচ: ৳ ২০,০০,০০০' : 'Phase 1 Target: ৳ 2,000,000 (20 Lakh)'}
                 </p>
                 <p class="text-[11px] text-gray-700 font-bold">
                   {isBn ? `সম্পূর্ণ লক্ষ্য: ${targetDisplay}` : `Full Goal: ${targetDisplay}`}
@@ -1131,12 +1138,12 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                 <div class="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block font-medium">{isBn ? 'পরিবারের ব্যয় হয়েছে' : 'Family Spent'}</span>
-                  <span class="text-lg font-bold text-gray-900">{isBn ? '৳ ৩,৫০,০০০+' : '৳ 3,50,000+'}</span>
+                  <span class="text-lg font-bold text-gray-900">{isBn ? '৳ ৩,৫০,০০০+' : '৳ 350,000+'}</span>
                   <span class="text-[11px] text-rose-600 block">{isBn ? 'সঞ্চয় শেষ, হাত এখন শূন্য' : 'Savings exhausted'}</span>
                 </div>
                 <div class="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
                   <span class="text-xs text-gray-500 block font-medium">{isBn ? 'ডোনার জরুরি' : 'Donors Needed'}</span>
-                  <span class="text-lg font-black text-rose-600">B+ (বি পজিটিভ)</span>
+                  <span class="text-lg font-black text-rose-600">{isBn ? 'B+ (বি পজিটিভ)' : 'B+ (Positive)'}</span>
                   <span class="text-[11px] text-gray-600 block">{isBn ? 'হোল ব্লাড ও SDP প্লাটিলেট' : 'Whole Blood & SDP'}</span>
                 </div>
                 <div class="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
@@ -1209,7 +1216,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="bg-gray-50 border border-gray-200 rounded-xl p-3.5 flex flex-col sm:flex-row items-center gap-3.5 mb-4">
                 <div
                   class="w-24 h-24 sm:w-28 sm:h-28 shrink-0 bg-white rounded-lg p-1.5 shadow-2xs border border-gray-200 overflow-hidden cursor-pointer group"
-                  onclick={`openLightbox('${banglaQrImg}', 'বিকাশ / বাংলা কিউআর কোড (স্ক্যান করে অনুদান পাঠান)')`}
+                  onclick={`openLightbox('${banglaQrImg}', '${isBn ? 'বিকাশ / বাংলা কিউআর কোড (স্ক্যান করে অনুদান পাঠান)' : 'bKash / Bangla QR Code (Scan to send donation)'}')`}
                 >
                   <img src={banglaQrImg} alt="Bangla QR Code" class="w-full h-full object-contain group-hover:scale-105 transition" loading="lazy" decoding="async" />
                 </div>
@@ -1228,15 +1235,15 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="space-y-1.5 text-xs text-gray-700">
                 <div class="flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-pink-500"></span>
-                  <strong>বিকাশ (bKash):</strong> 01515616728 (Send Money)
+                  <strong>{isBn ? 'বিকাশ (bKash):' : 'bKash:'}</strong> 01515616728 (Send Money)
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                  <strong>নগদ (Nagad):</strong> 01515616728 (Send Money)
+                  <strong>{isBn ? 'নগদ (Nagad):' : 'Nagad:'}</strong> 01515616728 (Send Money)
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                  <strong>রকেট (Rocket):</strong> 01515616728 (Send Money)
+                  <strong>{isBn ? 'রকেট (Rocket):' : 'Rocket:'}</strong> 01515616728 (Send Money)
                 </div>
               </div>
             </div>
@@ -1327,7 +1334,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               <div class="bg-gray-50 border border-gray-200 rounded-xl p-3.5 flex flex-col sm:flex-row items-center gap-3.5">
                 <div
                   class="w-24 h-24 sm:w-28 sm:h-28 shrink-0 bg-white rounded-lg p-1.5 shadow-2xs border border-gray-200 overflow-hidden cursor-pointer group"
-                  onclick={`openLightbox('${cityTouchQrImg}', 'CityTouch QR Code — সিটি ব্যাংক ট্রান্সফার')`}
+                  onclick={`openLightbox('${cityTouchQrImg}', '${isBn ? 'CityTouch QR কোড — সিটি ব্যাংক ট্রান্সফার' : 'CityTouch QR Code — City Bank Direct Transfer'}')`}
                 >
                   <img src={cityTouchQrImg} alt="CityTouch QR Code" class="w-full h-full object-contain group-hover:scale-105 transition" loading="lazy" decoding="async" />
                 </div>
@@ -1412,10 +1419,10 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                     class="flex-1 inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-xs text-xs sm:text-sm cursor-pointer"
                   >
                     <i data-lucide="phone-call" class="w-4 h-4"></i>
-                    <span>{isBn ? 'সরাসরি কল করুন (মিজু)' : 'Call Coordinator'}</span>
+                    <span>{isBn ? 'সরাসরি কল করুন (মিজু)' : 'Call Coordinator (Mizu)'}</span>
                   </a>
                   <a
-                    href="https://wa.me/8801515616728?text=আমি%20আরাফের%20জন্য%20B+%20রক্ত/প্লাটিলেট%20দিতে%20ইচ্ছুক।"
+                    href={isBn ? "https://wa.me/8801515616728?text=আমি%20আরাফের%20জন্য%20B+%20রক্ত/প্লাটিলেট%20দিতে%20ইচ্ছুক।" : "https://wa.me/8801515616728?text=I%20want%20to%20volunteer%20blood%20or%20platelets%20for%20Araf."}
                     target="_blank"
                     rel="noopener noreferrer"
                     class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-xs text-xs sm:text-sm cursor-pointer"
@@ -1604,7 +1611,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               class="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
             >
               <i data-lucide="file-text" class="w-4 h-4"></i>
-              <span>{isBn ? 'হালনাগাদ সম্পূর্ণ PDF ডাউনলোড (৮.৯ MB)' : 'Download Full 33-Page PDF'}</span>
+              <span>{isBn ? 'হালনাগাদ সম্পূর্ণ PDF ডাউনলোড (৮.৯ MB)' : 'Download Full 33-Page PDF (8.9 MB)'}</span>
             </a>
           </div>
         </div>
@@ -1614,7 +1621,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           <!-- 1: DMC Admission Ticket -->
           <div
             class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
-            onclick={`openLightbox('${dmcAdmissionImg}', 'ঢাকা মেডিকেল কলেজ হাসপাতাল ভর্তি টিকিট')`}
+            onclick={`openLightbox('${dmcAdmissionImg}', '${isBn ? 'ঢাকা মেডিকেল কলেজ হাসপাতাল ভর্তি টিকিট' : 'Dhaka Medical College Hospital Admission Ticket'}')`}
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
               <img
@@ -1636,7 +1643,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           <!-- 2: CVC Report -->
           <div
             class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
-            onclick={`openLightbox('${cvcReportImg}', 'সর্বশেষ সিভিসি / সিবিসি প্যাথলজি রিপোর্ট')`}
+            onclick={`openLightbox('${cvcReportImg}', '${isBn ? 'সর্বশেষ সিভিসি / সিবিসি প্যাথলজি রিপোর্ট' : 'Latest CVC / CBC Pathology Report'}')`}
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
               <img
@@ -1658,7 +1665,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           <!-- 3: Bone Marrow (Page 6) -->
           <div
             class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
-            onclick="openLightbox('/campaign/reports/report_page_6_1.jpg', 'বোন ম্যারো এসপিরেশন রিপোর্ট (AML নিশ্চিতকরণ)')"
+            onclick={`openLightbox('/campaign/reports/report_page_6_1.jpg', '${isBn ? 'বোন ম্যারো এসপিরেশন রিপোর্ট (AML নিশ্চিতকরণ)' : 'Bone Marrow Aspiration Report (AML Confirmation)'}')`}
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
               <img
@@ -1680,7 +1687,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           <!-- 4: CBC (Page 1) -->
           <div
             class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
-            onclick="openLightbox('/campaign/reports/report_page_1_1.jpg', 'সিবিসি টেস্ট রিপোর্ট')"
+            onclick={`openLightbox('/campaign/reports/report_page_1_1.jpg', '${isBn ? 'সিবিসি টেস্ট রিপোর্ট' : 'Complete Blood Count (CBC) Report'}')`}
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
               <img
@@ -1702,7 +1709,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           <!-- 5: CV Line Note (Page 11) -->
           <div
             class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
-            onclick="openLightbox('/campaign/reports/report_page_11_1.jpg', 'সিভি লাইন প্রসিডিউর নোট')"
+            onclick={`openLightbox('/campaign/reports/report_page_11_1.jpg', '${isBn ? 'সিভি লাইন প্রসিডিউর নোট' : 'Central Venous (CV) Line Procedure Note'}')`}
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
               <img
@@ -1724,7 +1731,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           <!-- 6: Discharge Summary (Page 24) -->
           <div
             class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-md transition"
-            onclick="openLightbox('/campaign/reports/report_page_24_1.jpg', 'অরোরা হাসপাতাল ডিসচার্জ স্লিপ')"
+            onclick={`openLightbox('/campaign/reports/report_page_24_1.jpg', '${isBn ? 'অরোরা হাসপাতাল ডিসচার্জ স্লিপ' : 'Aurora Hospital Discharge Summary'}')`}
           >
             <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
               <img
@@ -1762,7 +1769,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             {allReportPages.map((page) => (
               <div
                 class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs group cursor-pointer hover:shadow-xs transition text-center"
-                onclick={`openLightbox('/campaign/reports/report_page_${page}_1.jpg', 'মেডিকেল রিপোর্ট পৃষ্ঠা ${isBn ? toBnDigits(page) : page}')`}
+                onclick={`openLightbox('/campaign/reports/report_page_${page}_1.jpg', '${isBn ? `মেডিকেল রিপোর্ট পৃষ্ঠা ${toBnDigits(page)}` : `Medical Report Page ${page}`}')`}
               >
                 <div class="relative aspect-3/4 bg-slate-100 overflow-hidden">
                   <img
@@ -1801,73 +1808,73 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
         <div class="space-y-3">
           <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
             <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
-              <span>{isBn ? 'আরাফ বর্তমানে কোন হাসপাতালে এবং কোন চিকিৎসকের অধীনে আছে?' : 'Which hospital is Araf admitted to and under who?'}</span>
+              <span>{isBn ? 'আরাফ বর্তমানে কোন হাসপাতালে এবং কোন চিকিৎসকের অধীনে আছে?' : 'Which hospital is Araf admitted to and under whose care?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'আরাফ বর্তমানে ঢাকা মেডিকেল কলেজ হাসপাতাল (DMCH)-এর হেমাটোলজি ওয়ার্ডের কেবিন নম্বর ১১৪/বি-তে চিকিৎসাধীন। সেখানে সহযোগী অধ্যাপক চিকিৎসক হুমায়রা নাজনীনের সরাসরি তত্ত্বাবধানে ওর কেমোথেরাপি চলছে।'
-                : 'Araf is admitted to Cabin 114/B, Dept. of Hematology (Unit-2) at Dhaka Medical College Hospital (DMCH), under Assoc. Prof. Dr. Humayra Nazneen.'}
+                : 'Araf is admitted to Cabin 114/B, Department of Hematology at Dhaka Medical College Hospital (DMCH). He is undergoing intensive chemotherapy under the direct supervision of Associate Professor Dr. Humayra Nazneen.'}
             </div>
           </details>
 
           <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
             <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
-              <span>{isBn ? 'ফান্ডের টাকা কার কাছে জমা হচ্ছে এবং কীভাবে যোগাযোগ করা যাবে?' : 'Who manages the donation funds and how to contact?'}</span>
+              <span>{isBn ? 'ফান্ডের টাকা কার কাছে জমা হচ্ছে এবং কীভাবে যোগাযোগ করা যাবে?' : 'Who manages the donation funds and how can we contact them?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'আরাফের আপন চাচাতো বড় ভাই শেখ মাহমুদ ইসলাম মিজু সরাসরি এই ফান্ড ব্যবস্থাপনা ও হাসপাতালে সার্বক্ষণিক থাকার দায়িত্ব পালন করছেন। তাঁর সাথে যেকোনো সময় যোগাযোগ করা যাবে মোবাইল: 01515616728।'
-                : 'Araf’s cousin brother Sheikh Mahmud Islam Mizu is directly in charge of fund stewardship and hospital care coordination. Contact him at 01515616728.'}
+                : 'Araf’s elder cousin brother, Sheikh Mahmud Islam Mizu, is directly coordinating the funds and staying by his hospital bed 24/7. You can contact him anytime at +8801515616728.'}
             </div>
           </details>
 
           <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
             <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
-              <span>{isBn ? 'আমি অল্প টাকা (যেমন ৫০, ১০০ বা ২০০ টাকা) দিতে চাই, এতে কি সত্যি উপকার হবে?' : 'Will a small donation like ৳50 or ৳100 truly make an impact?'}</span>
+              <span>{isBn ? 'আমি অল্প টাকা (যেমন ৫০, ১০০ বা ২০০ টাকা) দিতে চাই, এতে কি সত্যি উপকার হবে?' : 'Will a small donation like ৳50 or ৳100 truly make a difference?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'অবশ্যই! আমাদের সংগৃহীত ফান্ডের সিংহভাগই এসেছে এমন ৫০, ১০০, ২০০ টাকার ছোট ছোট অনুদান থেকে। সবার এই ক্ষুদ্র অংশগ্রহণ একত্রিত হয়েই চল্লিশ লাখ টাকার এই দীর্ঘ লড়াইকে সহজ করে তুলতে পারে।'
-                : 'Absolutely! The vast majority of the funds raised originate from small donations of ৳50, ৳100, and ৳200. United collective support turns insurmountable targets into reality.'}
+                : 'Absolutely! The vast majority of our funds have come from small contributions of ৳50, ৳100, and ৳200. United collective support turns insurmountable targets into reality.'}
             </div>
           </details>
 
           <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
             <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
-              <span>{isBn ? 'রক্তের গ্রুপ B+ ছাড়া অন্য গ্রুপের রক্তদাতারা কি সাহায্য করতে পারেন?' : 'Can donors with non-B+ blood groups still help?'}</span>
+              <span>{isBn ? 'রক্তের গ্রুপ B+ ছাড়া অন্য গ্রুপের রক্তদাতারা কি সাহায্য করতে পারেন?' : 'Can donors with blood groups other than B+ still help?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'হ্যাঁ, অবশ্যই! হাসপাতালে ভর্তির সময় অন্য যেকোনো গ্রুপের রক্ত দান করলেও হাসপাতাল ব্লাড ব্যাংক থেকে আরাফের জন্য প্রয়োজনীয় B+ রক্ত ও প্লাটিলেট সহজেই ক্রস-এক্সচেঞ্জ (বিনিময়) করা যায়। তাই যেকোনো রক্তের গ্রুপের মানুষ আমাদের ডোনার সিস্টেমে যুক্ত হতে পারেন।'
-                : 'Yes! Donating any blood group at the hospital allows DMCH blood bank to exchange units for the vital B+ platelets and blood Araf requires. All blood groups are encouraged to register.'}
+                : 'Yes, absolutely! Donating any blood group allows the DMCH blood bank to cross-exchange units for the vital B+ platelets and blood Araf requires. Donors of all blood groups are warmly welcomed to register.'}
             </div>
           </details>
 
           <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
             <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
-              <span>{isBn ? 'প্লাটিলেট (SDP) দান কি নিরাপদ এবং এতে কি কোনো শারীরিক ক্ষতি হয়?' : 'Is Single Donor Platelet (SDP) apheresis safe?'}</span>
+              <span>{isBn ? 'প্লাটিলেট (SDP) দান কি নিরাপদ এবং এতে কি কোনো শারীরিক ক্ষতি হয়?' : 'Is Single Donor Platelet (SDP) donation safe, and does it cause weakness?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'প্লাটিলেট দান সম্পূর্ণ নিরাপদ ও বৈজ্ঞানিক প্রক্রিয়া। রক্ত থেকে এফেরেসিস মেশিনের সাহায্যে কেবল প্লাটিলেট আলাদা করে বাকি রক্ত পুনরায় দাতার শরীরে ফেরত পাঠানো হয়। মাত্র ১৫ দিন পর পরই নিরাপদে প্লাটিলেট দেওয়া যায় এবং শরীর কয়েক ঘণ্টার মধ্যে নতুন প্লাটিলেট তৈরি করে ফেলে।'
-                : 'Platelet apheresis (SDP) is 100% safe and scientifically proven. Only platelets are separated, while red cells are safely returned to your body. You can safely donate every 15 days.'}
+                : 'Platelet donation (SDP) is completely safe and scientific. An apheresis machine separates only platelets while returning red cells safely to your body. You can safely donate every 15 days without any bodily weakness.'}
             </div>
           </details>
 
           <details class="group bg-white rounded-xl border border-gray-200 p-4 open:bg-gray-50/70 transition shadow-2xs">
             <summary class="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
-              <span>{isBn ? 'রোগীর সর্বশেষ অবস্থা ও চিকিৎসার অগ্রগতি কীভাবে জানতে পারব?' : 'How can we track Araf’s treatment progress?'}</span>
+              <span>{isBn ? 'রোগীর সর্বশেষ অবস্থা ও চিকিৎসার অগ্রগতি কীভাবে জানতে পারব?' : 'How can we stay updated on Araf’s condition and treatment progress?'}</span>
               <span class="transition group-open:rotate-180"><i data-lucide="chevron-down" class="w-4 h-4"></i></span>
             </summary>
             <div class="text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
               {isBn
                 ? 'এই ওয়েবসাইটে প্রতিদিনের পরিস্থিতি ও রক্তের কাউন্ট নিয়মিত আপডেট করা হয়। এছাড়াও সরাসরি বড় ভাই শেখ মাহমুদ ইসলাম মিজুর নম্বরে (01515616728) যোগাযোগ করতে পারেন।'
-                : 'This portal is updated regularly with latest CVC blood parameters and chemotherapy stages. You can also reach coordinator Sheikh Mahmud Islam Mizu directly at 01515616728.'}
+                : 'This website is updated regularly with his latest clinical status and CVC blood counts. You can also reach coordinator Sheikh Mahmud Islam Mizu directly at +8801515616728.'}
             </div>
           </details>
         </div>
@@ -2009,7 +2016,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
     <!-- ======================================================== -->
     <!-- CLIENT INTERACTIVE SCRIPTS                               -->
     <!-- ======================================================== -->
-    <script is:inline>
+    <script is:inline define:vars={{ isBn }}>
       (() => {
         // 1. Initialize Lucide Icons
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -2097,11 +2104,11 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           if (!text) return;
 
           const executeCopy = () => {
-            window.showToast(`কপি করা হয়েছে: ${text}`);
+            window.showToast(isBn ? `কপি করা হয়েছে: ${text}` : `Copied to clipboard: ${text}`);
             const btn = document.getElementById(btnId);
             if (btn) {
               const originalHTML = btn.innerHTML;
-              btn.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 font-bold">✓ কপি হয়েছে!</span>`;
+              btn.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 font-bold">✓ ${isBn ? 'কপি হয়েছে!' : 'Copied!'}</span>`;
               setTimeout(() => {
                 btn.innerHTML = originalHTML;
                 if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -2142,14 +2149,14 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           const details = `Bank Name: The City Bank PLC\nAccount Name: SHEIKH MAHMUD ISLAM MIZU\nAccount Number: 2395230791001\nBranch District: DHAKA-SOUTH\nBranch Name: VIP ROAD BRANCH (DHAKA)\nRouting Number: 225276851\nMobile/Emergency: 01515616728`;
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(details).then(() => {
-              window.showToast('সম্পূর্ণ ব্যাংক তথ্য কপি করা হয়েছে!');
+              window.showToast(isBn ? 'সম্পূর্ণ ব্যাংক তথ্য কপি করা হয়েছে!' : 'Full bank details copied to clipboard!');
             }).catch(() => {
               fallbackCopy(details);
-              window.showToast('সম্পূর্ণ ব্যাংক তথ্য কপি করা হয়েছে!');
+              window.showToast(isBn ? 'সম্পূর্ণ ব্যাংক তথ্য কপি করা হয়েছে!' : 'Full bank details copied to clipboard!');
             });
           } else {
             fallbackCopy(details);
-            window.showToast('সম্পূর্ণ ব্যাংক তথ্য কপি করা হয়েছে!');
+            window.showToast(isBn ? 'সম্পূর্ণ ব্যাংক তথ্য কপি করা হয়েছে!' : 'Full bank details copied to clipboard!');
           }
         };
 
@@ -2161,7 +2168,9 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           if (shareInput) shareInput.value = currentUrl;
 
           const shareText = encodeURIComponent(
-            'বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কলেজছাত্র আরাফ। ঢাকা মেডিকেলের ১১৪/বি কেবিনে কেমো চলছে। দয়া করে পোস্টটি শেয়ার করুন বা যার যতটুকু সামর্থ্য আছে এগিয়ে আসুন।'
+            isBn
+              ? 'বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের কলেজছাত্র আরাফ। ঢাকা মেডিকেলের ১১৪/বি কেবিনে কেমো চলছে। দয়া করে পোস্টটি শেয়ার করুন বা যার যতটুকু সামর্থ্য আছে এগিয়ে আসুন।'
+              : 'Help 17-year-old college student Araf fight blood cancer (AML). Undergoing intensive chemotherapy at DMCH Cabin 114/B. Please donate or share this appeal.'
           );
           const shareUrl = encodeURIComponent(currentUrl);
 
@@ -2212,11 +2221,11 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
             const isHidden = allReportsContainer.classList.contains('hidden');
             if (isHidden) {
               allReportsContainer.classList.remove('hidden');
-              if (toggleReportsText) toggleReportsText.innerText = 'সকল রিপোর্ট আড়াল করুন';
+              if (toggleReportsText) toggleReportsText.innerText = isBn ? 'সকল রিপোর্ট আড়াল করুন' : 'Hide All Reports';
               if (toggleReportsIcon) toggleReportsIcon.classList.add('rotate-180');
             } else {
               allReportsContainer.classList.add('hidden');
-              if (toggleReportsText) toggleReportsText.innerText = 'সকল ৩৩ পৃষ্ঠার বিস্তারিত রিপোর্ট দেখুন';
+              if (toggleReportsText) toggleReportsText.innerText = isBn ? 'সকল ৩৩ পৃষ্ঠার বিস্তারিত রিপোর্ট দেখুন' : 'Browse All 33 Report Pages';
               if (toggleReportsIcon) toggleReportsIcon.classList.remove('rotate-180');
             }
             if (typeof lucide !== 'undefined' && lucide.createIcons) {

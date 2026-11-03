@@ -38,8 +38,8 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
 <header class="border-b border-gray-200 bg-white sticky top-0 z-30 shadow-xs">
   <div class="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between">
     <!-- Left: Brand Logo -->
-    <a href={homeUrl} class="flex items-center transition shrink-0" aria-label="Save Araf Home">
-      <img src="/logo.png" alt="Save Araf Logo" class="h-7 sm:h-8 w-auto object-contain rounded-sm" width="80" height="32" loading="eager" decoding="async" />
+    <a href={homeUrl} class="flex items-center transition shrink-0" aria-label={isBn ? 'সেভ আরাফ হোমপেজ' : 'Save Araf Home'}>
+      <img src="/logo.png" alt={isBn ? 'সেভ আরাফ লোগো' : 'Save Araf Logo'} class="h-7 sm:h-8 w-auto object-contain rounded-sm" width="80" height="32" loading="eager" decoding="async" />
     </a>
 
     <!-- Right: Actions, User Dropdown & Compact Language Switcher -->
@@ -93,7 +93,7 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
               <p class="text-[11px] text-gray-500 truncate">{user.email}</p>
               {user.role === 'admin' && (
                 <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] bg-rose-100 text-rose-700 font-bold">
-                  Admin
+                  {isBn ? 'অ্যাডমিন' : 'Admin'}
                 </span>
               )}
             </div>
