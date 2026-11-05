@@ -8,28 +8,81 @@ const isBn = lang === 'bn';
 
 import Navbar from '@/components/common/Navbar.astro';
 import Footer from '@/components/common/Footer.astro';
+import { db } from '@/db';
+import { campaignSettings } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 const isDeleted = Astro.url.searchParams.get('deleted') === 'true';
 const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
 
 // ----------------------------------------------------
-// Hardcoded Clinical & Financial Campaign Data
+// Dynamic Campaign & Clinical Settings (SSR with fallback)
 // ----------------------------------------------------
-const chemoDay = isBn ? 'আজ ৩য় দিনের কেমো চলছে' : 'Day 3 of Intensive Chemotherapy';
-const dailyText = isBn
-  ? 'আজ আরাফের ৩য় দিনের কেমোথেরাপির জটিল চক্র চলছে। সেন্ট্রাল ভেনাস লাইন (সিভি লাইন)-এর মাধ্যমে একটানা উচ্চমাত্রার কেমো এবং ওষুধ চলায় ওর শরীর প্রচণ্ড দুর্বল। রক্তের প্লাটিলেট ও প্রয়োজনীয় সেল বারবার আশঙ্কাজনকভাবে কমে যাচ্ছে। সার্বক্ষণিক B+ হোল ব্লাড ও সিঙ্গেল ডোনার প্লাটিলেট (SDP) ব্যাকআপে রাখা অত্যন্ত জরুরি।'
-  : 'Araf is currently on Day 3 of his intensive chemotherapy cycle. Continuous high-dose chemo and medications through his Central Venous (CV) line have made him extremely frail. His blood platelets and essential cells are rapidly falling to critical thresholds. Maintaining an immediate standby of B+ Whole Blood and Single Donor Platelets (SDP) is life-critical.';
+let settings: typeof campaignSettings.$inferSelect | null = null;
+try {
+  const [row] = await db
+    .select()
+    .from(campaignSettings)
+    .where(eq(campaignSettings.id, 1))
+    .limit(1);
+  settings = row || null;
+} catch (err) {
+  console.error('Failed to load campaign settings from DB in SSR:', err);
+}
 
-const targetGoal = 4000000; // 40,00,000 BDT (40 Lakh BDT)
-const currentRaised = 137841; // 1,37,841 BDT
-const remainingAmount = 3862159; // 38,62,159 BDT
-const progressPercent = '3.45';
-const progressPercentNum = 3.45;
+function toBnDigits(val: number | string): string {
+  const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  return val.toString().replace(/\d/g, (d) => bnDigits[Number(d)]);
+}
+
+function toEnDigits(val: string): string {
+  const bnToEnMap: Record<string, string> = {
+    '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
+    '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9',
+  };
+  return val.replace(/[০-৯]/g, (d) => bnToEnMap[d] || d);
+}
+
+const chemoDay =
+  (isBn ? settings?.treatmentPhaseBn : settings?.treatmentPhaseEn) ||
+  (isBn ? 'আজ ৩য় দিনের কেমো চলছে' : 'Day 3 of Intensive Chemotherapy');
+
+const dailyText =
+  (isBn ? settings?.dailyUpdateTextBn : settings?.dailyUpdateTextEn) ||
+  (isBn
+    ? 'আজ আরাফের ৩য় দিনের কেমোথেরাপির জটিল চক্র চলছে। সেন্ট্রাল ভেনাস লাইন (সিভি লাইন)-এর মাধ্যমে একটানা উচ্চমাত্রার কেমো এবং ওষুধ চলায় ওর শরীর প্রচণ্ড দুর্বল। রক্তের প্লাটিলেট ও প্রয়োজনীয় সেল বারবার আশঙ্কাজনকভাবে কমে যাচ্ছে। সার্বক্ষণিক B+ হোল ব্লাড ও সিঙ্গেল ডোনার প্লাটিলেট (SDP) ব্যাকআপে রাখা অত্যন্ত জরুরি।'
+    : 'Araf is currently on Day 3 of his intensive chemotherapy cycle. Continuous high-dose chemo and medications through his Central Venous (CV) line have made him extremely frail. His blood platelets and essential cells are rapidly falling to critical thresholds. Maintaining an immediate standby of B+ Whole Blood and Single Donor Platelets (SDP) is life-critical.');
+
+const hospitalCabin =
+  (isBn ? settings?.hospitalCabinBn : settings?.hospitalCabinEn) ||
+  (isBn ? 'ডিএমসিএইচ ১১৪/বি' : 'DMCH Cabin 114/B');
+
+const doctorName =
+  (isBn ? settings?.doctorNameBn : settings?.doctorNameEn) ||
+  (isBn ? 'ডা. হুমায়রা নাজনীন' : 'Dr. Humayra Nazneen');
+
+const defaultEmergencyBn =
+  'হাসপাতাল কেবিন: ডিএমসিএইচ ১১৪/বি • আজ ৩য় দিনের কেমো চলছে • রক্তের গ্রুপ: B+ (বি পজিটিভ) • জরুরি B+ রক্ত ও প্লাটিলেট (SDP) প্রয়োজন';
+const defaultEmergencyEn =
+  'DMCH Cabin 114/B • Day 3 of Intensive Chemotherapy • Blood Group: B+ (Positive) • Urgent need for B+ Blood & SDP Platelets';
+
+const emergencyText =
+  (isBn ? settings?.emergencyTextBn : settings?.emergencyTextEn) ||
+  (isBn ? defaultEmergencyBn : defaultEmergencyEn);
+
+const enableScrolling = settings?.enableScrolling ?? false;
+const scrollSpeed = settings?.scrollSpeed || 20;
+
+const targetGoal = settings?.fundTarget ? Number(settings.fundTarget) : 4000000; // 40,00,000 BDT
+const currentRaised = settings?.fundRaised !== null && settings?.fundRaised !== undefined ? Number(settings.fundRaised) : 137841;
+const remainingAmount = Math.max(0, targetGoal - currentRaised);
+const progressPercentNum = targetGoal > 0 ? Number(((currentRaised / targetGoal) * 100).toFixed(2)) : 0;
+const progressPercent = progressPercentNum.toString();
 
 // Circular progress calculations (Radius 42, circumference ~264)
 const circleRadius = 42;
 const circleCircumference = 264;
-const circleOffset = 255; // 264 - (264 * 0.0345)
+const circleOffset = Math.max(0, circleCircumference - (circleCircumference * (progressPercentNum / 100)));
 
 const fundDate = isBn
   ? '২ নভেম্বর রাত ১২টা পর্যন্ত হিসাব হালনাগাদ করা হয়েছে'
@@ -42,15 +95,20 @@ const newsSource = isBn
   ? '৩ নভেম্বর ২০২৬ • সময়ের আলো'
   : 'November 3, 2026 • Daily Shomoyer Alo';
 
-// Diagnostic CVC Biomarkers (Localized digits)
-const platelets = isBn ? '৩৬,০০০' : '36,000';
-const wbc = isBn ? '৩,৪৬০' : '3,460';
-const hb = isBn ? '৭.৬' : '7.6';
-const blast = isBn ? '৯০%' : '90%';
-const creat = isBn ? '০.২' : '0.2';
-const uric = isBn ? '৪.৮' : '4.8';
-const alt = isBn ? '১৪.৮৩' : '14.83';
-const anc = isBn ? '১,৮০০' : '1,800';
+// Diagnostic CVC Biomarkers (Localized digits based on active language)
+const formatBiomarker = (val: string | null | undefined, fallback: string) => {
+  const raw = val || fallback;
+  return isBn ? toBnDigits(raw) : toEnDigits(raw);
+};
+
+const platelets = formatBiomarker(settings?.platelets, '36,000');
+const wbc = formatBiomarker(settings?.wbc, '3,460');
+const hb = formatBiomarker(settings?.hb, '7.6');
+const blast = formatBiomarker(settings?.blast, '90%');
+const creat = formatBiomarker(settings?.creatinine, '0.2');
+const uric = formatBiomarker(settings?.uricAcid, '4.8');
+const alt = formatBiomarker(settings?.alt, '14.83');
+const anc = formatBiomarker(settings?.anc, '1,800');
 
 // Semantic image paths in public/campaign/
 const heroHospitalImg = '/campaign/araf-hospital-bed.jpg';
@@ -61,11 +119,6 @@ const cityTouchQrImg = '/campaign/citytouch-bank-qr.jpg';
 const newsClippingImg = '/campaign/shomoyer-alo-newspaper-report.jpg';
 const campaignLogoImg = '/campaign/save-araf-campaign-logo.jpg';
 const medicalReportsPdf = '/campaign/araf-medical-reports.pdf';
-
-function toBnDigits(val: number | string): string {
-  const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-  return val.toString().replace(/\d/g, (d) => bnDigits[Number(d)]);
-}
 
 function formatTaka(amount: number): string {
   if (isBn) {
@@ -157,6 +210,19 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       .modal-active {
         overflow: hidden;
       }
+      @keyframes marquee {
+        0% {
+          transform: translateX(0%);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      .animate-marquee {
+        display: inline-block;
+        white-space: nowrap;
+        animation: marquee linear infinite;
+      }
     </style>
   </head>
 
@@ -164,28 +230,39 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
     <!-- ======================================================== -->
     <!-- TOP EMERGENCY ANNOUNCEMENT BAR                           -->
     <!-- ======================================================== -->
-    <aside class="bg-rose-600 text-white text-xs sm:text-sm py-2 px-3 sm:px-4 shadow-2xs relative z-40">
-      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-black bg-white text-rose-600 uppercase tracking-wider animate-pulse">
+    <aside class="bg-rose-600 text-white text-xs sm:text-sm py-2 px-3 sm:px-4 shadow-2xs relative z-40 overflow-hidden">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        <!-- Emergency Badge (Left) -->
+        <div class="flex items-center gap-2 shrink-0 z-10 bg-rose-600 pr-1">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-black bg-white text-rose-600 uppercase tracking-wider animate-pulse shadow-2xs">
             {isBn ? 'জরুরি অবস্থা' : 'EMERGENCY'}
           </span>
-          <span class="font-medium text-xs sm:text-sm">
-            {isBn ? (
-              <span>
-                ডিএমসিএইচ কেবিন ১১৪/বি • <strong>{chemoDay}</strong> • রক্তের গ্রুপ: <strong>B+ (বি পজিটিভ)</strong>
-              </span>
-            ) : (
-              <span>
-                DMCH Cabin 114/B • <strong>{chemoDay}</strong> • Blood Group: <strong>B+ (Positive)</strong>
-              </span>
-            )}
-          </span>
         </div>
-        <div class="flex items-center gap-2 sm:gap-3">
+
+        <!-- Emergency Announcement Text (Center) -->
+        {enableScrolling ? (
+          <div class="overflow-hidden flex-1 relative whitespace-nowrap min-w-0" title={emergencyText}>
+            <div
+              class="inline-block animate-marquee hover:[animation-play-state:paused] font-medium text-xs sm:text-sm cursor-default"
+              style={`animation-duration: ${scrollSpeed}s;`}
+            >
+              <span class="inline-block mr-16">{emergencyText}</span>
+              <span class="inline-block mr-16" aria-hidden="true">{emergencyText}</span>
+            </div>
+          </div>
+        ) : (
+          <div class="flex-1 overflow-hidden min-w-0">
+            <p class="font-medium text-xs sm:text-sm truncate sm:whitespace-normal">
+              {emergencyText}
+            </p>
+          </div>
+        )}
+
+        <!-- Emergency Dial Button (Right) -->
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0 z-10 bg-rose-600 pl-1">
           <a
             href="tel:01515616728"
-            class="inline-flex items-center gap-1 font-bold hover:underline bg-white/15 hover:bg-white/25 px-2.5 py-0.5 rounded transition text-xs"
+            class="inline-flex items-center gap-1 font-bold hover:underline bg-white/15 hover:bg-white/25 px-2.5 py-0.5 rounded transition text-xs whitespace-nowrap"
           >
             <i data-lucide="phone-call" class="w-3.5 h-3.5"></i>
             <span>01515616728</span>
@@ -200,7 +277,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
     <!-- ======================================================== -->
     <!-- REDESIGNED SECONDARY SUB-NAVBAR (MODERN & MOBILE-SCROLL) -->
     <!-- ======================================================== -->
-    <nav class="sticky top-0 sm:top-14 z-20 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-2xs">
+    <nav class="sticky top-[56px] sm:top-[72px] z-20 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-2xs">
       <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth">
         <a
           href="#overview"
@@ -345,7 +422,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               </div>
               <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
                 <span class="text-[11px] text-gray-500 block">{isBn ? 'হাসপাতাল কেবিন' : 'Hospital Cabin'}</span>
-                <span class="text-sm font-bold text-gray-800">{isBn ? 'ডিএমসিএইচ ১১৪/বি' : 'DMCH Cabin 114/B'}</span>
+                <span class="text-sm font-bold text-gray-800">{hospitalCabin}</span>
               </div>
               <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
                 <span class="text-[11px] text-gray-500 block">{isBn ? 'চিকিৎসা পর্যায়' : 'Treatment Stage'}</span>
@@ -353,7 +430,7 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               </div>
               <div class="bg-white p-3 rounded-2xl border border-gray-200 shadow-2xs">
                 <span class="text-[11px] text-gray-500 block">{isBn ? 'তত্ত্বাবধায়ক চিকিৎসক' : 'Attending Physician'}</span>
-                <span class="text-xs font-bold text-gray-800">{isBn ? 'ডা. হুমায়রা নাজনীন' : 'Dr. Humayra Nazneen'}</span>
+                <span class="text-xs font-bold text-gray-800">{doctorName}</span>
               </div>
             </div>
 
@@ -969,16 +1046,18 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
               class="md:col-span-5 cursor-pointer group"
               onclick={`openLightbox('${newsClippingImg}', '${isBn ? 'দৈনিক সময়ের আলো পত্রিকায় প্রকাশিত সংবাদ — ৩ নভেম্বর ২০২৬' : 'Daily Shomoyer Alo Newspaper Article — November 3, 2026'}')`}
             >
-              <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-xs aspect-4/5 max-h-[360px] bg-slate-900">
+              <div class="relative rounded-2xl overflow-hidden border border-gray-200 shadow-xs bg-gray-50 flex items-center justify-center">
                 <img
                   src={newsClippingImg}
                   alt={isBn ? 'দৈনিক সময়ের আলো কভারেজ' : 'Shomoyer Alo Newspaper Feature'}
-                  class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500"
+                  class="w-full h-auto object-contain group-hover:scale-[1.02] transition duration-300 block"
                   loading="lazy"
                   decoding="async"
+                  width="819"
+                  height="1024"
                 />
-                <div class="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition flex items-center justify-center text-white">
-                  <span class="bg-black/70 px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2">
+                <div class="absolute inset-0 bg-slate-950/10 group-hover:bg-slate-950/30 transition flex items-center justify-center text-white">
+                  <span class="bg-black/70 backdrop-blur-xs px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 shadow-sm">
                     <i data-lucide="zoom-in" class="w-4 h-4 text-amber-400"></i>
                     <span>{isBn ? 'পত্রিকার পাতাটি বড় করে দেখুন' : 'Enlarge Newspaper Clipping'}</span>
                   </span>
@@ -1883,17 +1962,17 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
       <!-- ======================================================== -->
       <!-- SECTION 11: PROMINENT LOGO SHOWCASE BEFORE FOOTER        -->
       <!-- ======================================================== -->
-      <section class="py-12 bg-white border-t border-gray-200/80">
+      <section class="py-10 sm:py-14 bg-gradient-to-b from-gray-50/60 to-white border-t border-gray-200/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <div class="inline-block p-4 sm:p-6 bg-gray-50/80 rounded-3xl shadow-2xs border border-gray-200">
+          <div class="inline-block overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl hover:shadow-2xl border border-gray-200/90 bg-white leading-none transition-shadow duration-300">
             <img
               src={campaignLogoImg}
               alt="Save Araf Official Logo"
-              class="h-16 sm:h-24 w-auto mx-auto object-contain"
+              class="h-28 sm:h-40 md:h-48 w-auto mx-auto object-contain block drop-shadow-md"
               loading="lazy"
               decoding="async"
-              width="240"
-              height="80"
+              width="420"
+              height="140"
             />
           </div>
           <p class="text-xs sm:text-sm text-gray-600 max-w-xl mx-auto font-medium leading-relaxed">

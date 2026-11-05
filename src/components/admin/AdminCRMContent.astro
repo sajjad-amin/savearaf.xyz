@@ -192,6 +192,13 @@ const errorParam = Astro.url.searchParams.get('error');
           <span>👥</span>
           <span>{isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management'}</span>
         </a>
+        <a
+          href={isBn ? '/admin/update' : '/en/admin/update'}
+          class="py-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-800 flex items-center gap-1.5"
+        >
+          <span>⚙️</span>
+          <span>{isBn ? 'ওয়েবসাইট আপডেট' : 'Update Landing'}</span>
+        </a>
       </div>
 
       <!-- Success / Error Feedback Alerts -->

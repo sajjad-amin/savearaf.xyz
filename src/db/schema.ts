@@ -192,6 +192,36 @@ export const updates = mysqlTable('updates', {
 });
 
 // ==========================================
+// 7. Campaign Settings Table (Dynamic Landing Page)
+// ==========================================
+export const campaignSettings = mysqlTable('campaign_settings', {
+  id: int('id').primaryKey(),
+  hospitalCabinBn: varchar('hospital_cabin_bn', { length: 255 }),
+  hospitalCabinEn: varchar('hospital_cabin_en', { length: 255 }),
+  treatmentPhaseBn: varchar('treatment_phase_bn', { length: 255 }),
+  treatmentPhaseEn: varchar('treatment_phase_en', { length: 255 }),
+  doctorNameBn: varchar('doctor_name_bn', { length: 255 }),
+  doctorNameEn: varchar('doctor_name_en', { length: 255 }),
+  dailyUpdateTextBn: text('daily_update_text_bn'),
+  dailyUpdateTextEn: text('daily_update_text_en'),
+  platelets: varchar('platelets', { length: 100 }),
+  wbc: varchar('wbc', { length: 100 }),
+  hb: varchar('hb', { length: 100 }),
+  blast: varchar('blast', { length: 100 }),
+  creatinine: varchar('creatinine', { length: 100 }),
+  uricAcid: varchar('uric_acid', { length: 100 }),
+  alt: varchar('alt', { length: 100 }),
+  anc: varchar('anc', { length: 100 }),
+  fundTarget: int('fund_target'),
+  fundRaised: int('fund_raised'),
+  emergencyTextBn: varchar('emergency_text_bn', { length: 500 }),
+  emergencyTextEn: varchar('emergency_text_en', { length: 500 }),
+  enableScrolling: boolean('enable_scrolling').default(false).notNull(),
+  scrollSpeed: int('scroll_speed').default(20).notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+// ==========================================
 // Relational Mappings
 // ==========================================
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -248,3 +278,6 @@ export type NewBankAccount = typeof bankAccounts.$inferInsert;
 
 export type Update = typeof updates.$inferSelect;
 export type NewUpdate = typeof updates.$inferInsert;
+
+export type CampaignSettings = typeof campaignSettings.$inferSelect;
+export type NewCampaignSettings = typeof campaignSettings.$inferInsert;

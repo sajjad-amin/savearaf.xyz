@@ -1,0 +1,923 @@
+---
+import Navbar from '@/components/common/Navbar.astro';
+import Footer from '@/components/common/Footer.astro';
+import { db } from '@/db';
+import { campaignSettings } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+interface Props {
+  lang: 'bn' | 'en';
+}
+
+const { lang } = Astro.props;
+const isBn = lang === 'bn';
+
+const session = Astro.locals.session;
+const currentUser = Astro.locals.user;
+
+// Security check: Only Admins can access update landing page
+if (!session || !currentUser || currentUser.role !== 'admin') {
+  return Astro.redirect(isBn ? '/' : '/en');
+}
+
+// Fetch current settings for instant SSR hydration
+let initialSettings = null;
+try {
+  const [row] = await db
+    .select()
+    .from(campaignSettings)
+    .where(eq(campaignSettings.id, 1))
+    .limit(1);
+  initialSettings = row || null;
+} catch (err) {
+  console.error('Error fetching campaign settings in SSR:', err);
+}
+
+const settings = initialSettings || {
+  id: 1,
+  hospitalCabinBn: 'ডিএমসিএইচ ১১৪/বি',
+  hospitalCabinEn: 'DMCH Cabin 114/B',
+  treatmentPhaseBn: 'আজ ৩য় দিনের কেমো চলছে',
+  treatmentPhaseEn: 'Day 3 of Intensive Chemotherapy',
+  doctorNameBn: 'ডা. হুমায়রা নাজনীন',
+  doctorNameEn: 'Dr. Humayra Nazneen',
+  dailyUpdateTextBn:
+    'আজ আরাফের ৩য় দিনের কেমোথেরাপির জটিল চক্র চলছে। সেন্ট্রাল ভেনাস লাইন (সিভি লাইন)-এর মাধ্যমে একটানা উচ্চমাত্রার কেমো এবং ওষুধ চলায় ওর শরীর প্রচণ্ড দুর্বল। রক্তের প্লাটিলেট ও প্রয়োজনীয় সেল বারবার আশঙ্কাজনকভাবে কমে যাচ্ছে। সার্বক্ষণিক B+ হোল ব্লাড ও সিঙ্গেল ডোনার প্লাটিলেট (SDP) ব্যাকআপে রাখা অত্যন্ত জরুরি।',
+  dailyUpdateTextEn:
+    'Araf is currently on Day 3 of his intensive chemotherapy cycle. Continuous high-dose chemo and medications through his Central Venous (CV) line have made him extremely frail. His blood platelets and essential cells are rapidly falling to critical thresholds. Maintaining an immediate standby of B+ Whole Blood and Single Donor Platelets (SDP) is life-critical.',
+  platelets: '36,000',
+  wbc: '3,460',
+  hb: '7.6',
+  blast: '90%',
+  creatinine: '0.2',
+  uricAcid: '4.8',
+  alt: '14.83',
+  anc: '1,800',
+  fundTarget: 4000000,
+  fundRaised: 137841,
+  emergencyTextBn:
+    'হাসপাতাল কেবিন: ডিএমসিএইচ ১১৪/বি • আজ ৩য় দিনের কেমো চলছে • রক্তের গ্রুপ: B+ (বি পজিটিভ) • জরুরি B+ রক্ত ও প্লাটিলেট (SDP) প্রয়োজন',
+  emergencyTextEn:
+    'DMCH Cabin 114/B • Day 3 of Intensive Chemotherapy • Blood Group: B+ (Positive) • Urgent need for B+ Blood & SDP Platelets',
+  enableScrolling: false,
+  scrollSpeed: 20,
+  updatedAt: null,
+};
+
+const initialTarget = settings.fundTarget ? Number(settings.fundTarget) : 4000000;
+const initialRaised = settings.fundRaised ? Number(settings.fundRaised) : 137841;
+const initialRemaining = Math.max(0, initialTarget - initialRaised);
+const initialPercent = initialTarget > 0 ? ((initialRaised / initialTarget) * 100).toFixed(2) : '0.00';
+
+function toEnDigits(val: string | null | undefined, fallback: string = ''): string {
+  if (!val) return fallback;
+  const bnToEnMap: Record<string, string> = {
+    '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
+    '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9',
+  };
+  return String(val).replace(/[০-৯]/g, (d) => bnToEnMap[d] || d);
+}
+
+const plateletsVal = toEnDigits(settings.platelets, '36,000');
+const wbcVal = toEnDigits(settings.wbc, '3,460');
+const hbVal = toEnDigits(settings.hb, '7.6');
+const blastVal = toEnDigits(settings.blast, '90%');
+const creatinineVal = toEnDigits(settings.creatinine, '0.2');
+const uricAcidVal = toEnDigits(settings.uricAcid, '4.8');
+const altVal = toEnDigits(settings.alt, '14.83');
+const ancVal = toEnDigits(settings.anc, '1,800');
+---
+
+<!doctype html>
+<html lang={lang} class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{isBn ? 'ওয়েবসাইট ও ক্যাম্পেইন আপডেট' : 'Update Landing & Campaign Settings'} - Save Araf</title>
+  </head>
+  <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
+    <!-- Navbar -->
+    <Navbar lang={lang} />
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <!-- Header Area -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-200">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-100 text-rose-700 uppercase tracking-wider">
+              {isBn ? 'অ্যাডমিন পোর্টাল' : 'Admin Portal'}
+            </span>
+            <span class="text-xs text-gray-400">/</span>
+            <span class="text-xs text-gray-500 font-semibold">{isBn ? 'ওয়েবসাইট আপডেট' : 'Update Landing'}</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-black text-gray-900 mt-1 flex items-center gap-2.5">
+            <span>⚙️</span>
+            <span>{isBn ? 'ওয়েবসাইট ও ক্যাম্পেইন তথ্য হালনাগাদ (দ্বিভাষিক)' : 'Update Campaign & Landing Settings (Bilingual)'}</span>
+          </h1>
+          <p class="text-xs sm:text-sm text-gray-600 mt-1">
+            {isBn
+              ? 'বাংলা ও ইংরেজি উভয় ভাষার জন্য চিকিৎসা পরিস্থিতি, রক্তের কাউন্ট রিপোর্ট এবং ফান্ড ট্র্যাকিং তথ্য সরাসরি আপডেট করুন।'
+              : 'Directly update clinical status, blood biomarker reports, and fundraising progress for both Bengali and English visitors.'}
+          </p>
+        </div>
+
+        <!-- Quick link to Landing Page -->
+        <div class="flex items-center gap-2.5">
+          <a
+            href={isBn ? '/' : '/en'}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs sm:text-sm shadow-xs transition"
+          >
+            <span>👁️</span>
+            <span>{isBn ? 'লাইভ পেজ দেখুন' : 'View Live Landing'}</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Admin Navigation Tabs -->
+      <div class="flex items-center gap-2 border-b border-gray-200 mt-6 mb-6 overflow-x-auto whitespace-nowrap">
+        <a
+          href={isBn ? '/admin/crm' : '/en/admin/crm'}
+          class="py-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-800 flex items-center gap-1.5"
+        >
+          <span>🩸</span>
+          <span>{isBn ? 'ব্লাড ডোনার সিআরএম' : 'Blood CRM'}</span>
+        </a>
+        <a
+          href={isBn ? '/admin/users' : '/en/admin/users'}
+          class="py-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-800 flex items-center gap-1.5"
+        >
+          <span>👥</span>
+          <span>{isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management'}</span>
+        </a>
+        <a
+          href={isBn ? '/admin/update' : '/en/admin/update'}
+          class="py-2.5 px-4 text-xs sm:text-sm font-bold border-b-2 border-rose-600 text-rose-600 flex items-center gap-1.5"
+        >
+          <span>⚙️</span>
+          <span>{isBn ? 'ওয়েবসাইট আপডেট' : 'Update Landing'}</span>
+        </a>
+      </div>
+
+      <!-- Feedback Alert Notification Banner -->
+      <div id="feedback-alert" class="hidden mb-6 p-4 rounded-2xl border transition-all duration-300">
+        <div class="flex items-center gap-3">
+          <span id="feedback-icon" class="text-xl"></span>
+          <div class="flex-1">
+            <h3 id="feedback-title" class="text-sm font-bold"></h3>
+            <p id="feedback-message" class="text-xs mt-0.5"></p>
+          </div>
+          <button
+            type="button"
+            id="close-feedback-btn"
+            class="text-gray-400 hover:text-gray-700 text-sm font-bold p-1"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Settings Form -->
+      <form id="campaign-settings-form" class="space-y-8">
+        <!-- ======================================================== -->
+        <!-- SECTION 1: CLINICAL STATUS & DAILY UPDATES (BILINGUAL)  -->
+        <!-- ======================================================== -->
+        <section class="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-xs space-y-6">
+          <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <span class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shrink-0 font-bold">
+              🏥
+            </span>
+            <div>
+              <h2 class="text-lg font-black text-gray-900">
+                {isBn ? '১. চিকিৎসা ও বর্তমান অবস্থা (দ্বিভাষিক)' : '1. Clinical Status & Current Condition (Bilingual)'}
+              </h2>
+              <p class="text-xs text-gray-500">
+                {isBn
+                  ? 'হাসপাতাল কেবিন, কেমো পর্যায়, ডাক্তার এবং দৈনিক শারীরিক পরিস্থিতির বাংলা ও ইংরেজি বিবরণ'
+                  : 'Hospital cabin, chemo cycle, physician, and daily clinical situation in both Bengali & English'}
+              </p>
+            </div>
+          </div>
+
+          <!-- Pair 1: Hospital Cabin -->
+          <div class="p-4 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-3">
+            <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+              <span>📍</span>
+              <span>{isBn ? 'হাসপাতাল ও কেবিন নম্বর (Hospital Cabin)' : 'Hospital & Cabin'}</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="hospitalCabinBn" class="block text-xs font-bold text-gray-700 mb-1">
+                  বাংলা (Bengali) <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="hospitalCabinBn"
+                  name="hospitalCabinBn"
+                  value={settings.hospitalCabinBn || ''}
+                  placeholder="যেমন: ডিএমসিএইচ ১১৪/বি"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white"
+                />
+              </div>
+              <div>
+                <label for="hospitalCabinEn" class="block text-xs font-bold text-gray-700 mb-1">
+                  English <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="hospitalCabinEn"
+                  name="hospitalCabinEn"
+                  value={settings.hospitalCabinEn || ''}
+                  placeholder="e.g., DMCH Cabin 114/B"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Pair 2: Treatment Phase / Chemo Day -->
+          <div class="p-4 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-3">
+            <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+              <span>💉</span>
+              <span>{isBn ? 'চিকিৎসা পর্যায় / কেমোর দিন (Treatment Stage)' : 'Treatment Stage / Chemo Day'}</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="treatmentPhaseBn" class="block text-xs font-bold text-gray-700 mb-1">
+                  বাংলা (Bengali) <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="treatmentPhaseBn"
+                  name="treatmentPhaseBn"
+                  value={settings.treatmentPhaseBn || ''}
+                  placeholder="যেমন: আজ ৩য় দিনের কেমো চলছে"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white"
+                />
+              </div>
+              <div>
+                <label for="treatmentPhaseEn" class="block text-xs font-bold text-gray-700 mb-1">
+                  English <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="treatmentPhaseEn"
+                  name="treatmentPhaseEn"
+                  value={settings.treatmentPhaseEn || ''}
+                  placeholder="e.g., Day 3 of Intensive Chemotherapy"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Pair 3: Attending Physician -->
+          <div class="p-4 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-3">
+            <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+              <span>🩺</span>
+              <span>{isBn ? 'তত্ত্বাবধায়ক চিকিৎসক (Attending Physician)' : 'Attending Physician'}</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="doctorNameBn" class="block text-xs font-bold text-gray-700 mb-1">
+                  বাংলা (Bengali) <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="doctorNameBn"
+                  name="doctorNameBn"
+                  value={settings.doctorNameBn || ''}
+                  placeholder="যেমন: ডা. হুমায়রা নাজনীন"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white"
+                />
+              </div>
+              <div>
+                <label for="doctorNameEn" class="block text-xs font-bold text-gray-700 mb-1">
+                  English <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="doctorNameEn"
+                  name="doctorNameEn"
+                  value={settings.doctorNameEn || ''}
+                  placeholder="e.g., Dr. Humayra Nazneen"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Pair 4: Daily Clinical Update (Textareas) -->
+          <div class="p-4 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-3">
+            <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+              <span>📝</span>
+              <span>{isBn ? 'আজকের পরিস্থিতি ও শারীরিক আপডেট (দৈনিক বার্তা)' : 'Daily Clinical Update Text'}</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="dailyUpdateTextBn" class="block text-xs font-bold text-gray-700 mb-1">
+                  বাংলা (Bengali) <span class="text-rose-500">*</span>
+                </label>
+                <textarea
+                  id="dailyUpdateTextBn"
+                  name="dailyUpdateTextBn"
+                  rows="4"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white leading-relaxed"
+                  placeholder="আরাফের শারীরিক অবস্থা এবং রক্তের প্রয়োজনের বিস্তারিত বাংলা বিবরণ..."
+                >{settings.dailyUpdateTextBn || ''}</textarea>
+              </div>
+              <div>
+                <label for="dailyUpdateTextEn" class="block text-xs font-bold text-gray-700 mb-1">
+                  English <span class="text-rose-500">*</span>
+                </label>
+                <textarea
+                  id="dailyUpdateTextEn"
+                  name="dailyUpdateTextEn"
+                  rows="4"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white leading-relaxed"
+                  placeholder="Detailed clinical situation and blood requirements in English..."
+                >{settings.dailyUpdateTextEn || ''}</textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECTION 2: BLOOD COUNTS & BIOMARKERS (UNIFIED NUMERICAL)-->
+        <!-- ======================================================== -->
+        <section class="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-xs space-y-6">
+          <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <span class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0 font-bold">
+              🔬
+            </span>
+            <div>
+              <h2 class="text-lg font-black text-gray-900">
+                {isBn ? '২. রক্তের রিপোর্ট (সিভিসি বায়োমার্কার)' : '2. Blood Counts (CVC Biomarkers)'}
+              </h2>
+              <p class="text-xs text-gray-500">
+                {isBn
+                  ? 'ইংরেজি ডিজিটে ইনপুট দিন (যেমন: 7.6 বা 8.2)। ল্যান্ডিং পেজে স্বয়ংক্রিয়ভাবে বাংলা/ইংরেজি উভয় ফরম্যাটে রূপান্তরিত হবে।'
+                  : 'Enter in standard English digits (e.g., 7.6 or 8.2). Automatically localized on the public landing page.'}
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <!-- Platelets -->
+            <div class="bg-gray-50/60 p-3.5 rounded-xl border border-gray-200">
+              <label for="platelets" class="block text-xs font-bold text-gray-700 mb-1">
+                {isBn ? 'প্লাটিলেট (Platelets)' : 'Platelets (/μL)'}
+              </label>
+              <input
+                type="text"
+                id="platelets"
+                name="platelets"
+                value={plateletsVal}
+                placeholder="36,000"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold bg-white"
+              />
+              <span class="text-[10px] text-gray-400 mt-1 block">{isBn ? 'স্বাভাবিক: 150k - 450k' : 'Normal: 150k - 450k'}</span>
+            </div>
+
+            <!-- WBC -->
+            <div class="bg-gray-50/60 p-3.5 rounded-xl border border-gray-200">
+              <label for="wbc" class="block text-xs font-bold text-gray-700 mb-1">
+                {isBn ? 'ডব্লিউবিসি (WBC)' : 'WBC (/μL)'}
+              </label>
+              <input
+                type="text"
+                id="wbc"
+                name="wbc"
+                value={wbcVal}
+                placeholder="3,460"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold bg-white"
+              />
+              <span class="text-[10px] text-gray-400 mt-1 block">{isBn ? 'স্বাভাবিক: 4k - 11k' : 'Normal: 4k - 11k'}</span>
+            </div>
+
+            <!-- Hb -->
+            <div class="bg-gray-50/60 p-3.5 rounded-xl border border-gray-200">
+              <label for="hb" class="block text-xs font-bold text-gray-700 mb-1">
+                {isBn ? 'হিমোগ্লোবিন (Hb)' : 'Hemoglobin (g/dL)'}
+              </label>
+              <input
+                type="text"
+                id="hb"
+                name="hb"
+                value={hbVal}
+                placeholder="7.6"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold bg-white"
+              />
+              <span class="text-[10px] text-gray-400 mt-1 block">{isBn ? 'স্বাভাবিক: 13.0 - 17.0' : 'Normal: 13.0 - 17.0'}</span>
+            </div>
+
+            <!-- Blast -->
+            <div class="bg-gray-50/60 p-3.5 rounded-xl border border-gray-200">
+              <label for="blast" class="block text-xs font-bold text-gray-700 mb-1">
+                {isBn ? 'ব্লাস্ট সেল (Blast %)' : 'Blast Cell (%)'}
+              </label>
+              <input
+                type="text"
+                id="blast"
+                name="blast"
+                value={blastVal}
+                placeholder="90%"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold bg-white"
+              />
+              <span class="text-[10px] text-gray-400 mt-1 block">{isBn ? 'AML ক্যানসার সেল' : 'Leukemic blasts'}</span>
+            </div>
+
+            <!-- Creatinine -->
+            <div class="bg-gray-50/60 p-3.5 rounded-xl border border-gray-200">
+              <label for="creatinine" class="block text-xs font-bold text-gray-700 mb-1">
+                {isBn ? 'ক্রিয়েটিনিন (Creatinine)' : 'Creatinine (mg/dL)'}
+              </label>
+              <input
+                type="text"
+                id="creatinine"
+                name="creatinine"
+                value={creatinineVal}
+                placeholder="0.2"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold bg-white"
+              />
+              <span class="text-[10px] text-gray-400 mt-1 block">{isBn ? 'স্বাভাবিক: 0.7 - 1.3' : 'Normal: 0.7 - 1.3'}</span>
+            </div>
+
+            <!-- Uric Acid -->
+            <div class="bg-gray-50/60 p-3.5 rounded-xl border border-gray-200">
+              <label for="uricAcid" class="block text-xs font-bold text-gray-700 mb-1">
+                {isBn ? 'ইউরিক অ্যাসিড (Uric Acid)' : 'Uric Acid (mg/dL)'}
+              </label>
+              <input
+                type="text"
+                id="uricAcid"
+                name="uricAcid"
+                value={uricAcidVal}
+                placeholder="4.8"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold bg-white"
+              />
+              <span class="text-[10px] text-gray-400 mt-1 block">{isBn ? 'স্বাভাবিক: 3.5 - 7.2' : 'Normal: 3.5 - 7.2'}</span>
+            </div>
+
+            <!-- ALT / SGPT -->
+            <div class="bg-gray-50/60 p-3.5 rounded-xl border border-gray-200">
+              <label for="alt" class="block text-xs font-bold text-gray-700 mb-1">
+                {isBn ? 'এএলটি / এসজিপিটি (ALT)' : 'SGPT/ALT (U/L)'}
+              </label>
+              <input
+                type="text"
+                id="alt"
+                name="alt"
+                value={altVal}
+                placeholder="14.83"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold bg-white"
+              />
+              <span class="text-[10px] text-gray-400 mt-1 block">{isBn ? 'লিভার এনজাইম' : 'Liver function'}</span>
+            </div>
+
+            <!-- ANC -->
+            <div class="bg-gray-50/60 p-3.5 rounded-xl border border-gray-200">
+              <label for="anc" class="block text-xs font-bold text-gray-700 mb-1">
+                {isBn ? 'এএনসি (ANC)' : 'ANC (/μL)'}
+              </label>
+              <input
+                type="text"
+                id="anc"
+                name="anc"
+                value={ancVal}
+                placeholder="1,800"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold bg-white"
+              />
+              <span class="text-[10px] text-gray-400 mt-1 block">{isBn ? 'নিউট্রোফিল কাউন্ট' : 'Neutrophil count'}</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECTION 3: FUND TRACKING & PROGRESS                     -->
+        <!-- ======================================================== -->
+        <section class="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-xs space-y-6">
+          <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <span class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0 font-bold">
+              💰
+            </span>
+            <div>
+              <h2 class="text-lg font-black text-gray-900">
+                {isBn ? '৩. ফান্ড ট্র্যাকিং ও অনুদান হিসাব' : '3. Fund Tracking & Goal Progress'}
+              </h2>
+              <p class="text-xs text-gray-500">
+                {isBn
+                  ? 'চিকিৎসা খরচের মোট টার্গেট এবং এ পর্যন্ত সংগৃহীত অনুদানের পরিমাণ (টাকায়)'
+                  : 'Total campaign financial target and audited raised funds in BDT'}
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Fund Target -->
+            <div>
+              <label for="fundTarget" class="block text-xs font-bold text-gray-700 mb-1.5">
+                {isBn ? 'মোট লক্ষ্যমাত্রা (টাকায়)' : 'Target Goal (in BDT)'} <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center font-bold text-gray-400 text-sm">৳</span>
+                <input
+                  type="number"
+                  id="fundTarget"
+                  name="fundTarget"
+                  value={settings.fundTarget || 4000000}
+                  step="1000"
+                  min="0"
+                  required
+                  class="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-mono font-bold bg-gray-50/50"
+                />
+              </div>
+              <span class="text-[11px] text-gray-400 mt-1 block">
+                {isBn ? 'যেমন: ৪০,০০,০০০ (৪০ লাখ টাকা)' : 'Default: 4,000,000 (40 Lakh BDT)'}
+              </span>
+            </div>
+
+            <!-- Fund Raised -->
+            <div>
+              <label for="fundRaised" class="block text-xs font-bold text-gray-700 mb-1.5">
+                {isBn ? 'এ পর্যন্ত সংগৃহীত অনুদান (টাকায়)' : 'Total Raised (in BDT)'} <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center font-bold text-gray-400 text-sm">৳</span>
+                <input
+                  type="number"
+                  id="fundRaised"
+                  name="fundRaised"
+                  value={settings.fundRaised !== null && settings.fundRaised !== undefined ? settings.fundRaised : 137841}
+                  step="1"
+                  min="0"
+                  required
+                  class="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-mono font-bold bg-gray-50/50"
+                />
+              </div>
+              <span class="text-[11px] text-gray-400 mt-1 block">
+                {isBn ? 'যেমন: ১,৩৭,৮৪১ টাকা' : 'Audited total collected across bank & mobile wallets'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Dynamic Live Calculation Preview Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 rounded-xl bg-gray-50/80 border border-gray-200">
+            <div>
+              <span class="text-[11px] font-semibold text-gray-500 uppercase block mb-0.5">
+                {isBn ? 'সংগৃহীত' : 'Raised'}
+              </span>
+              <p id="preview-raised" class="text-base sm:text-lg font-black text-emerald-700 font-mono">
+                ৳ {initialRaised.toLocaleString('en-US')}
+              </p>
+            </div>
+            <div>
+              <span class="text-[11px] font-semibold text-gray-500 uppercase block mb-0.5">
+                {isBn ? 'অবশিষ্ট প্রয়োজন' : 'Remaining Required'}
+              </span>
+              <p id="preview-remaining" class="text-base sm:text-lg font-black text-rose-600 font-mono">
+                ৳ {initialRemaining.toLocaleString('en-US')}
+              </p>
+            </div>
+            <div class="col-span-2 md:col-span-1">
+              <span class="text-[11px] font-semibold text-gray-500 uppercase block mb-0.5">
+                {isBn ? 'অর্জিত শতকরা' : 'Progress'}
+              </span>
+              <p id="preview-percent" class="text-base sm:text-lg font-black text-amber-600 font-mono">
+                {initialPercent}%
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECTION 4: EMERGENCY TOP BAR (BILINGUAL & MARQUEE)      -->
+        <!-- ======================================================== -->
+        <section class="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-xs space-y-6">
+          <div class="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <span class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shrink-0 font-bold">
+              🚨
+            </span>
+            <div>
+              <h2 class="text-lg font-black text-gray-900">
+                {isBn ? '৪. ইমার্জেন্সি টপ বার (Emergency Top Bar)' : '4. Emergency Top Bar (Bilingual & Marquee)'}
+              </h2>
+              <p class="text-xs text-gray-500">
+                {isBn
+                  ? 'ওয়েবসাইটের একদম শীর্ষে প্রদর্শিত লাল জরুরি সতর্কবার্তা এবং টেক্সট স্ক্রলিং (মারকুই) নিয়ন্ত্রণ'
+                  : 'Red emergency announcement banner at top of site and marquee scrolling animation controls'}
+              </p>
+            </div>
+          </div>
+
+          <!-- Bilingual Emergency Text -->
+          <div class="p-4 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-3">
+            <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+              <span>📢</span>
+              <span>{isBn ? 'জরুরি সতর্কবার্তা টেক্সট (Emergency Announcement Text)' : 'Emergency Announcement Text'}</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="emergencyTextBn" class="block text-xs font-bold text-gray-700 mb-1">
+                  বাংলা (Bengali) <span class="text-rose-500">*</span>
+                </label>
+                <textarea
+                  id="emergencyTextBn"
+                  name="emergencyTextBn"
+                  rows="3"
+                  placeholder="যেমন: হাসপাতাল কেবিন: ডিএমসিএইচ ১১৪/বি • আজ ৩য় দিনের কেমো চলছে • রক্তের গ্রুপ: B+ (বি পজিটিভ) • জরুরি B+ রক্ত ও প্লাটিলেট (SDP) প্রয়োজন"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white"
+                >{settings.emergencyTextBn || ''}</textarea>
+                <span class="text-[10px] text-gray-400 mt-1 block">
+                  {isBn ? 'ওয়েবসাইটে বাংলা নির্বাচিত থাকলে এই টেক্সট প্রদর্শিত হবে।' : 'Shown when viewing in Bengali.'}
+                </span>
+              </div>
+              <div>
+                <label for="emergencyTextEn" class="block text-xs font-bold text-gray-700 mb-1">
+                  English <span class="text-rose-500">*</span>
+                </label>
+                <textarea
+                  id="emergencyTextEn"
+                  name="emergencyTextEn"
+                  rows="3"
+                  placeholder="e.g., DMCH Cabin 114/B • Day 3 of Intensive Chemotherapy • Blood Group: B+ (Positive) • Urgent need for B+ Blood & SDP Platelets"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm bg-white"
+                >{settings.emergencyTextEn || ''}</textarea>
+                <span class="text-[10px] text-gray-400 mt-1 block">
+                  {isBn ? 'ওয়েবসাইটে ইংরেজি নির্বাচিত থাকলে এই টেক্সট প্রদর্শিত হবে।' : 'Shown when viewing in English.'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scrolling Animation Controls -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Toggle: Enable Scrolling -->
+            <div class="p-4 rounded-xl bg-gray-50/70 border border-gray-200/80 flex items-center justify-between gap-4">
+              <div>
+                <label for="enableScrolling" class="text-xs font-black text-gray-800 uppercase tracking-wider block cursor-pointer">
+                  {isBn ? 'টেক্সট স্ক্রল / মারকুই অ্যানিমেশন' : 'Enable Marquee Scrolling'}
+                </label>
+                <p class="text-[11px] text-gray-500 mt-0.5">
+                  {isBn
+                    ? 'চালু করলে জরুরি টেক্সট স্ক্রিনের একপাশ থেকে অন্যপাশে ক্রমাগত স্ক্রল করবে।'
+                    : 'When enabled, the emergency text scrolls continuously across the top bar.'}
+                </p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  id="enableScrolling"
+                  name="enableScrolling"
+                  checked={settings.enableScrolling}
+                  class="sr-only peer"
+                />
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rose-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+              </label>
+            </div>
+
+            <!-- Scroll Speed (Seconds) -->
+            <div class="p-4 rounded-xl bg-gray-50/70 border border-gray-200/80 space-y-2">
+              <div class="flex items-center justify-between">
+                <label for="scrollSpeed" class="text-xs font-black text-gray-800 uppercase tracking-wider">
+                  {isBn ? 'স্ক্রল স্পিড / সময়কাল (সেকেন্ড)' : 'Scroll Duration (Seconds)'}
+                </label>
+                <span id="speed-indicator" class="text-xs font-mono font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
+                  {settings.scrollSpeed || 20}s
+                </span>
+              </div>
+              <input
+                type="number"
+                id="scrollSpeed"
+                name="scrollSpeed"
+                value={settings.scrollSpeed || 20}
+                min="5"
+                max="60"
+                step="1"
+                class="w-full px-3.5 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-mono font-bold bg-white"
+              />
+              <span class="text-[10px] text-gray-400 block">
+                {isBn
+                  ? 'মান যত কম হবে গতি তত দ্রুত হবে (ডিফল্ট: ২০ সেকেন্ড, গ্রহণযোগ্য: ৫ থেকে ৬০ সেকেন্ড)।'
+                  : 'Lower seconds = faster scroll (Default: 20s, Recommended: 10s–30s).'}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Save Actions Floating / Fixed Bar -->
+        <div class="flex items-center justify-between gap-4 pt-4 border-t border-gray-200">
+          <p class="text-xs text-gray-500">
+            {isBn
+              ? 'সেটিংস সংরক্ষণ করার সাথে সাথে ল্যান্ডিং পেজে তথ্য সরাসরি পরিবর্তিত হবে।'
+              : 'Changes will be reflected immediately on the live landing page after saving.'}
+          </p>
+
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              id="reset-form-btn"
+              class="px-5 py-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 text-xs sm:text-sm font-bold transition cursor-pointer"
+            >
+              {isBn ? 'পুনরুদ্ধার করুন' : 'Reset Form'}
+            </button>
+
+            <button
+              type="submit"
+              id="submit-settings-btn"
+              class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs sm:text-sm font-bold shadow-sm shadow-rose-600/30 transition cursor-pointer"
+            >
+              <span id="btn-icon">💾</span>
+              <span id="btn-text">{isBn ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </main>
+
+    <!-- Footer -->
+    <Footer lang={lang} />
+
+    <!-- Client-Side Form Logic & AJAX -->
+    <script>
+      const form = document.getElementById('campaign-settings-form') as HTMLFormElement;
+      const submitBtn = document.getElementById('submit-settings-btn') as HTMLButtonElement;
+      const resetBtn = document.getElementById('reset-form-btn') as HTMLButtonElement;
+      const btnText = document.getElementById('btn-text');
+      const btnIcon = document.getElementById('btn-icon');
+
+      const alertBanner = document.getElementById('feedback-alert');
+      const alertTitle = document.getElementById('feedback-title');
+      const alertMsg = document.getElementById('feedback-message');
+      const alertIcon = document.getElementById('feedback-icon');
+      const closeAlertBtn = document.getElementById('close-feedback-btn');
+
+      const targetInput = document.getElementById('fundTarget') as HTMLInputElement;
+      const raisedInput = document.getElementById('fundRaised') as HTMLInputElement;
+      const previewRaised = document.getElementById('preview-raised');
+      const previewRemaining = document.getElementById('preview-remaining');
+      const previewPercent = document.getElementById('preview-percent');
+
+      const speedInput = document.getElementById('scrollSpeed') as HTMLInputElement;
+      const speedIndicator = document.getElementById('speed-indicator');
+      speedInput?.addEventListener('input', () => {
+        if (speedIndicator) speedIndicator.textContent = `${speedInput.value || 20}s`;
+      });
+
+      // Update live preview calculations
+      function updateCalculations() {
+        const target = Number(targetInput?.value) || 0;
+        const raised = Number(raisedInput?.value) || 0;
+        const remaining = Math.max(0, target - raised);
+        const percent = target > 0 ? ((raised / target) * 100).toFixed(2) : '0.00';
+
+        if (previewRaised) previewRaised.textContent = '৳ ' + raised.toLocaleString('en-US');
+        if (previewRemaining) previewRemaining.textContent = '৳ ' + remaining.toLocaleString('en-US');
+        if (previewPercent) previewPercent.textContent = percent + '%';
+      }
+
+      targetInput?.addEventListener('input', updateCalculations);
+      raisedInput?.addEventListener('input', updateCalculations);
+
+      // Feedback display helper
+      function showAlert(type: 'success' | 'error', title: string, message: string) {
+        if (!alertBanner || !alertTitle || !alertMsg || !alertIcon) return;
+        alertBanner.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+        if (type === 'success') {
+          alertBanner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+          alertIcon.textContent = '✅';
+        } else {
+          alertBanner.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+          alertIcon.textContent = '⚠️';
+        }
+
+        alertTitle.textContent = title;
+        alertMsg.textContent = message;
+        alertBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      closeAlertBtn?.addEventListener('click', () => {
+        alertBanner?.classList.add('hidden');
+      });
+
+      // Reset form to latest server state
+      resetBtn?.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/admin/settings');
+          const data = await res.json();
+          if (data.success && data.settings) {
+            populateForm(data.settings);
+            updateCalculations();
+            showAlert('success', 'রিসেট সম্পন্ন', 'ফর্মটিতে ডাটাবেজের মূল তথ্য লোড করা হয়েছে।');
+          }
+        } catch {
+          window.location.reload();
+        }
+      });
+
+      function populateForm(s: any) {
+        const f = form.elements as any;
+        if (f.hospitalCabinBn) f.hospitalCabinBn.value = s.hospitalCabinBn || '';
+        if (f.hospitalCabinEn) f.hospitalCabinEn.value = s.hospitalCabinEn || '';
+        if (f.treatmentPhaseBn) f.treatmentPhaseBn.value = s.treatmentPhaseBn || '';
+        if (f.treatmentPhaseEn) f.treatmentPhaseEn.value = s.treatmentPhaseEn || '';
+        if (f.doctorNameBn) f.doctorNameBn.value = s.doctorNameBn || '';
+        if (f.doctorNameEn) f.doctorNameEn.value = s.doctorNameEn || '';
+        if (f.dailyUpdateTextBn) f.dailyUpdateTextBn.value = s.dailyUpdateTextBn || '';
+        if (f.dailyUpdateTextEn) f.dailyUpdateTextEn.value = s.dailyUpdateTextEn || '';
+        function toEn(val: any, fallback: string = ''): string {
+          if (!val) return fallback;
+          const map: Record<string, string> = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+          return String(val).replace(/[০-৯]/g, d => map[d] || d);
+        }
+        if (f.platelets) f.platelets.value = toEn(s.platelets, '36,000');
+        if (f.wbc) f.wbc.value = toEn(s.wbc, '3,460');
+        if (f.hb) f.hb.value = toEn(s.hb, '7.6');
+        if (f.blast) f.blast.value = toEn(s.blast, '90%');
+        if (f.creatinine) f.creatinine.value = toEn(s.creatinine, '0.2');
+        if (f.uricAcid) f.uricAcid.value = toEn(s.uricAcid, '4.8');
+        if (f.alt) f.alt.value = toEn(s.alt, '14.83');
+        if (f.anc) f.anc.value = toEn(s.anc, '1,800');
+        if (f.fundTarget) f.fundTarget.value = s.fundTarget || 4000000;
+        if (f.fundRaised) f.fundRaised.value = s.fundRaised || 0;
+        if (f.emergencyTextBn) f.emergencyTextBn.value = s.emergencyTextBn || '';
+        if (f.emergencyTextEn) f.emergencyTextEn.value = s.emergencyTextEn || '';
+        if (f.enableScrolling) f.enableScrolling.checked = !!s.enableScrolling;
+        if (f.scrollSpeed) {
+          f.scrollSpeed.value = s.scrollSpeed || 20;
+          if (speedIndicator) speedIndicator.textContent = `${s.scrollSpeed || 20}s`;
+        }
+      }
+
+      // Handle AJAX Form Submission
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Loading state
+        submitBtn.setAttribute('disabled', 'true');
+        submitBtn.classList.add('opacity-75', 'cursor-wait');
+        if (btnText) btnText.textContent = 'সংরক্ষণ করা হচ্ছে...';
+        if (btnIcon) btnIcon.textContent = '⏳';
+
+        const formData = new FormData(form);
+        const payload: Record<string, any> = {};
+        formData.forEach((value, key) => {
+          payload[key] = value;
+        });
+        payload.enableScrolling = !!(form.elements as any).enableScrolling?.checked;
+        payload.scrollSpeed = Number((form.elements as any).scrollSpeed?.value) || 20;
+
+        try {
+          const res = await fetch('/api/admin/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await res.json();
+
+          if (!res.ok || !data.success) {
+            throw new Error(data.error || 'Failed to save settings');
+          }
+
+          showAlert(
+            'success',
+            'সফলভাবে আপডেট করা হয়েছে!',
+            'ল্যান্ডিং পেজের সকল দ্বিভাষিক মেট্রিক্স ও শারীরিক আপডেট সফলভাবে সংরক্ষিত হয়েছে।'
+          );
+
+          if (data.settings) {
+            populateForm(data.settings);
+            updateCalculations();
+          }
+        } catch (err: any) {
+          console.error('Error saving settings:', err);
+          showAlert(
+            'error',
+            'সংরক্ষণ ব্যর্থ হয়েছে!',
+            err?.message || 'একটি ত্রুটি ঘটেছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।'
+          );
+        } finally {
+          submitBtn.removeAttribute('disabled');
+          submitBtn.classList.remove('opacity-75', 'cursor-wait');
+          if (btnText) btnText.textContent = 'পরিবর্তন সংরক্ষণ করুন';
+          if (btnIcon) btnIcon.textContent = '💾';
+        }
+      });
+    </script>
+  </body>
+</html>

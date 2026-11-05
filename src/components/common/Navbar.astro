@@ -35,11 +35,11 @@ const profileUrl = isBn ? '/profile' : '/en/profile';
 const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
 ---
 
-<header class="border-b border-gray-200 bg-white sticky top-0 z-30 shadow-xs">
-  <div class="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between">
+<header class="border-b border-gray-200/80 bg-white/95 backdrop-blur-md sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between">
     <!-- Left: Brand Logo -->
     <a href={homeUrl} class="flex items-center transition shrink-0" aria-label={isBn ? 'সেভ আরাফ হোমপেজ' : 'Save Araf Home'}>
-      <img src="/logo.png" alt={isBn ? 'সেভ আরাফ লোগো' : 'Save Araf Logo'} class="h-7 sm:h-8 w-auto object-contain rounded-sm" width="80" height="32" loading="eager" decoding="async" />
+      <img src="/logo.png" alt={isBn ? 'সেভ আরাফ লোগো' : 'Save Araf Logo'} class="h-10 sm:h-13 w-auto object-contain" width="160" height="52" loading="eager" decoding="async" />
     </a>
 
     <!-- Right: Actions, User Dropdown & Compact Language Switcher -->
@@ -118,6 +118,15 @@ const donateBloodUrl = isBn ? '/donate-blood' : '/en/donate-blood';
                   >
                     <span>👥</span>
                     <span>{isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management'}</span>
+                  </a>
+
+                  <a
+                    href={isBn ? '/admin/update' : '/en/admin/update'}
+                    role="menuitem"
+                    class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-800 hover:bg-gray-50 hover:text-rose-600 transition"
+                  >
+                    <span>⚙️</span>
+                    <span>{isBn ? 'ওয়েবসাইট আপডেট' : 'Update Landing'}</span>
                   </a>
                   <div class="border-t border-gray-100 my-1"></div>
                 </>
