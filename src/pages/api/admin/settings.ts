@@ -27,6 +27,7 @@ const defaultFallbackSettings = {
   anc: '1,800',
   fundTarget: 4000000,
   fundRaised: 137841,
+  fundUpdatedAt: new Date('2026-11-02T00:00:00'),
   emergencyTextBn:
     'হাসপাতাল কেবিন: ডিএমসিএইচ ১১৪/বি • আজ ৩য় দিনের কেমো চলছে • রক্তের গ্রুপ: B+ (বি পজিটিভ) • জরুরি B+ রক্ত ও প্লাটিলেট (SDP) প্রয়োজন',
   emergencyTextEn:
@@ -105,6 +106,7 @@ export const POST: APIRoute = async ({ request }) => {
       anc,
       fundTarget,
       fundRaised,
+      fundUpdatedAt,
       emergencyTextBn,
       emergencyTextEn,
       enableScrolling,
@@ -119,6 +121,14 @@ export const POST: APIRoute = async ({ request }) => {
       fundRaised !== undefined && fundRaised !== null && fundRaised !== ''
         ? Number(fundRaised)
         : defaultFallbackSettings.fundRaised;
+
+    let parsedFundUpdatedAt: Date | null = null;
+    if (fundUpdatedAt) {
+      const d = new Date(fundUpdatedAt);
+      if (!isNaN(d.getTime())) {
+        parsedFundUpdatedAt = d;
+      }
+    }
 
     const isScrollingEnabled =
       enableScrolling === true ||
@@ -200,6 +210,7 @@ export const POST: APIRoute = async ({ request }) => {
           : defaultFallbackSettings.anc,
       fundTarget: isNaN(parsedFundTarget) ? defaultFallbackSettings.fundTarget : parsedFundTarget,
       fundRaised: isNaN(parsedFundRaised) ? defaultFallbackSettings.fundRaised : parsedFundRaised,
+      fundUpdatedAt: parsedFundUpdatedAt || defaultFallbackSettings.fundUpdatedAt,
       emergencyTextBn:
         typeof emergencyTextBn === 'string' && emergencyTextBn.trim() !== ''
           ? emergencyTextBn.trim()
@@ -236,6 +247,7 @@ export const POST: APIRoute = async ({ request }) => {
           anc: valuesToSave.anc,
           fundTarget: valuesToSave.fundTarget,
           fundRaised: valuesToSave.fundRaised,
+          fundUpdatedAt: valuesToSave.fundUpdatedAt,
           emergencyTextBn: valuesToSave.emergencyTextBn,
           emergencyTextEn: valuesToSave.emergencyTextEn,
           enableScrolling: valuesToSave.enableScrolling,

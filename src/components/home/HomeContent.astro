@@ -84,9 +84,41 @@ const circleRadius = 42;
 const circleCircumference = 264;
 const circleOffset = Math.max(0, circleCircumference - (circleCircumference * (progressPercentNum / 100)));
 
-const fundDate = isBn
-  ? '২ নভেম্বর রাত ১২টা পর্যন্ত হিসাব হালনাগাদ করা হয়েছে'
-  : 'Audited and updated as of November 2, 12:00 AM';
+function formatFundUpdatedAt(dateVal: Date | string | null | undefined, isBengali: boolean): string {
+  const dObj = dateVal ? (typeof dateVal === 'string' ? new Date(dateVal) : dateVal) : new Date('2026-11-02T00:00:00');
+  const validDate = isNaN(dObj.getTime()) ? new Date('2026-11-02T00:00:00') : dObj;
+
+  const bnMonths = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+  const enMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  const day = validDate.getDate();
+  const month = validDate.getMonth();
+  const hours24 = validDate.getHours();
+  const minutes = validDate.getMinutes();
+
+  if (isBengali) {
+    let period = 'সকাল';
+    if (hours24 === 0 || hours24 === 24) period = 'রাত';
+    else if (hours24 < 6) period = 'রাত';
+    else if (hours24 < 12) period = 'সকাল';
+    else if (hours24 < 15) period = 'দুপুর';
+    else if (hours24 < 18) period = 'বিকেল';
+    else if (hours24 < 20) period = 'সন্ধ্যা';
+    else period = 'রাত';
+
+    const hours12 = hours24 % 12 || 12;
+    const timeStr = minutes === 0 ? `${period} ${toBnDigits(hours12)}টা` : `${period} ${toBnDigits(hours12)}টা ${toBnDigits(minutes)} মিনিট`;
+    return `${toBnDigits(day)} ${bnMonths[month]} ${timeStr} পর্যন্ত হিসাব হালনাগাদ করা হয়েছে`;
+  } else {
+    const period = hours24 >= 12 ? 'PM' : 'AM';
+    const hours12 = hours24 % 12 || 12;
+    const minStr = String(minutes).padStart(2, '0');
+    const timeStr = `${hours12}:${minStr} ${period}`;
+    return `Account updated as of ${enMonths[month]} ${day}, ${timeStr}`;
+  }
+}
+
+const fundDate = formatFundUpdatedAt(settings?.fundUpdatedAt, isBn);
 const newsUrl = 'https://www.shomoyeralo.com/news/393324';
 const newsTitle = isBn
   ? '“বাঁচতে চায় ক্যানসার আক্রান্ত ১৭ বছরের আরাফ”'
@@ -1249,8 +1281,8 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
           </h2>
           <p class="text-gray-600 mt-2 text-sm sm:text-base leading-relaxed">
             {isBn
-              ? 'বিকাশ, নগদ বা রকেটে সেন্ড মানি করুন কিংবা ব্যাংক অ্যাকাউন্টে সরাসরি ট্রান্সফার করুন। সকল অ্যাকাউন্ট সরাসরি পরিবারের তত্ত্বাবধানে পরিচালিত।'
-              : 'Send Money via bKash, Nagad, Rocket, or transfer directly to City Bank account. All channels are strictly family-managed.'}
+              ? 'বিকাশ, নগদ বা রকেটে সেন্ড মানি করুন, সিটি ব্যাংকে সরাসরি ট্রান্সফার করুন কিংবা প্রবাস থেকে GoFundMe-এর মাধ্যমে অনুদান পাঠান। সকল চ্যানেল সরাসরি পরিবারের তত্ত্বাবধানে পরিচালিত।'
+              : 'Send Money via bKash, Nagad, Rocket, transfer directly to City Bank, or donate internationally via GoFundMe. All channels are strictly family-managed.'}
           </p>
         </div>
 
@@ -1441,6 +1473,52 @@ const allReportPages = Array.from({ length: 33 }, (_, i) => i + 1);
                 <span>{isBn ? 'সম্পূর্ণ ব্যাংক তথ্য কপি করুন' : 'Copy All Bank Details'}</span>
               </button>
             </div>
+          </div>
+        </div>
+
+        <!-- International Donors (GoFundMe) Card -->
+        <div class="mt-6 sm:mt-8 bg-gradient-to-br from-white via-white to-emerald-50/40 rounded-3xl p-6 sm:p-7 border border-emerald-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="flex items-start sm:items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100/80 text-emerald-700 flex items-center justify-center font-black text-xl shrink-0 shadow-2xs">
+              🌍
+            </div>
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="text-base sm:text-lg font-bold text-gray-900">
+                  {isBn ? 'প্রবাসী ও আন্তর্জাতিক অনুদান (GoFundMe)' : 'International Donation (GoFundMe)'}
+                </h3>
+                <span class="text-[11px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold">
+                  GoFundMe Verified
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-2xl">
+                {isBn
+                  ? 'বাংলাদেশ বাদে বিশ্বের যেকোনো দেশ থেকে ভিসা, মাস্টারকার্ড, অ্যাপল পে বা গুগল পে-এর মাধ্যমে নিরাপদে সরাসরি অনুদান পাঠাতে পারবেন।'
+                  : 'Donate securely from anywhere across the globe using Visa, Mastercard, AMEX, Apple Pay, or Google Pay via our verified campaign.'}
+              </p>
+            </div>
+          </div>
+
+          <div class="shrink-0 w-full md:w-auto flex flex-col sm:flex-row items-center gap-3">
+            <a
+              href="https://www.gofundme.com/f/hope-for-a-friends-cousin-facing-cancer"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-sm shadow-sm shadow-emerald-600/30 hover:shadow-md transition cursor-pointer"
+            >
+              <span>{isBn ? 'GoFundMe-তে অনুদান দিন' : 'Donate via GoFundMe'}</span>
+              <i data-lucide="external-link" class="w-4 h-4"></i>
+            </a>
+            <button
+              type="button"
+              onclick="copyToClipboard('https://www.gofundme.com/f/hope-for-a-friends-cousin-facing-cancer', 'gofundme-copy-btn')"
+              id="gofundme-copy-btn"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl bg-white hover:bg-gray-50 text-gray-700 font-semibold text-xs border border-gray-300 transition cursor-pointer"
+              title={isBn ? 'লিঙ্ক কপি করুন' : 'Copy link'}
+            >
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>{isBn ? 'লিঙ্ক কপি' : 'Copy Link'}</span>
+            </button>
           </div>
         </div>
       </section>

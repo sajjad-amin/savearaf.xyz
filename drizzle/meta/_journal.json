@@ -36,6 +36,13 @@
       "when": 1793849500000,
       "tag": "0004_emergency_bar",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1793998800000,
+      "tag": "0005_fund_updated_at",
+      "breakpoints": true
     }
   ]
 }

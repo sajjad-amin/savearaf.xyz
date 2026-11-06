@@ -214,6 +214,7 @@ export const campaignSettings = mysqlTable('campaign_settings', {
   anc: varchar('anc', { length: 100 }),
   fundTarget: int('fund_target'),
   fundRaised: int('fund_raised'),
+  fundUpdatedAt: timestamp('fund_updated_at', { mode: 'date' }),
   emergencyTextBn: varchar('emergency_text_bn', { length: 500 }),
   emergencyTextEn: varchar('emergency_text_en', { length: 500 }),
   enableScrolling: boolean('enable_scrolling').default(false).notNull(),
